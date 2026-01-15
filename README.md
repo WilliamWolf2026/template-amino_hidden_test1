@@ -1,32 +1,73 @@
-# SolidStart
+# Game Production Scaffold
 
-Everything you need to build a Solid project, powered by [`solid-start`](https://start.solidjs.com);
+SolidJS game scaffold with engine-agnostic asset management, supporting PixiJS, Phaser, and Three.js.
 
-## Creating a project
-
-```bash
-# create a new project in the current directory
-npm init solid@latest
-
-# create a new project in my-app
-npm init solid@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Quick Start
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun install
+bun run dev
 ```
 
-## Building
+## Features
 
-Solid apps are built with _presets_, which optimise your project for deployment to different environments.
+- **Asset Management** — Layered loading system with DOM, GPU, and audio loaders
+- **Engine Agnostic** — Swap between Pixi, Phaser, or Three.js
+- **Signal-Based Navigation** — No router, instant screen transitions
+- **Error Boundaries** — Layered error handling with Sentry + PostHog
+- **DOM HUD Overlay** — UI layer on top of game canvas
 
-By default, `npm run build` will generate a Node app that you can run with `npm start`. To use a different preset, add it to the `devDependencies` in `package.json` and specify in your `app.config.js`.
+## Documentation
 
-## This project was created with the [Solid CLI](https://github.com/solidjs-community/solid-cli)
+- [Asset Management](docs/assets.md) — Manifest structure, loaders, and usage
+
+## Project Structure
+
+```
+src/
+├── config/           # Game configuration
+├── systems/
+│   ├── assets/       # Asset loading system
+│   ├── screens/      # Screen management
+│   └── errors/       # Error boundaries & reporting
+├── screens/          # Screen components
+├── components/
+│   ├── ui/           # Buttons, spinners, progress bars
+│   └── hud/          # In-game HUD overlay
+├── game/
+│   ├── manifest.ts   # Asset manifest
+│   └── state.ts      # Game state signals
+└── lib/              # Sentry, PostHog init
+```
+
+## Screen Flow
+
+```
+LoadingScreen → StartScreen → GameScreen → ResultsScreen
+     │              │              │
+   boot-*      [Start click]    scene-*
+   theme-*      initGpu()       gameplay
+                core-*
+                audio-*
+```
+
+## Configuration
+
+Edit `src/config/game.config.ts`:
+
+```typescript
+export const gameConfig: GameConfig = {
+  engine: 'pixi',  // 'pixi' | 'phaser' | 'three'
+  debug: import.meta.env.DEV,
+  sentry: { dsn: '...' },
+  posthog: { apiKey: '...' },
+};
+```
+
+## Scripts
+
+```bash
+bun run dev     # Start dev server
+bun run build   # Production build
+bun run start   # Run production build
+```

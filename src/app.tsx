@@ -1,20 +1,47 @@
-import { Router } from "@solidjs/router";
-import { FileRoutes } from "@solidjs/start/router";
-import { Suspense } from "solid-js";
-import Nav from "~/components/Nav";
-import "./app.css";
+import { onMount } from 'solid-js';
+import {
+  GlobalBoundary,
+  setupGlobalErrorHandlers,
+  AssetProvider,
+  ScreenProvider,
+  ScreenRenderer,
+  PauseProvider,
+  initPauseKeyboard,
+} from '~/scaffold';
+import { initSentry } from '~/scaffold/lib/sentry';
+import { initPostHog } from '~/scaffold/lib/posthog';
+import { scaffoldConfig } from '~/scaffold/config';
+import { manifest, gameConfig } from '~/game';
+import { TweakpaneConfig } from '~/utils';
+import './app.css';
 
 export default function App() {
+  onMount(() => {
+    // Initialize error tracking
+    if (scaffoldConfig.sentry?.dsn) {
+      initSentry(scaffoldConfig.sentry.dsn);
+    }
+    if (scaffoldConfig.posthog?.apiKey) {
+      initPostHog(scaffoldConfig.posthog.apiKey, scaffoldConfig.posthog.apiHost);
+    }
+
+    // Setup global error handlers
+    setupGlobalErrorHandlers();
+
+    // Initialize pause keyboard (spacebar)
+    initPauseKeyboard();
+  });
+
   return (
-    <Router
-      root={props => (
-        <>
-          <Nav />
-          <Suspense>{props.children}</Suspense>
-        </>
-      )}
-    >
-      <FileRoutes />
-    </Router>
+    <GlobalBoundary>
+      <TweakpaneConfig />
+      <PauseProvider>
+        <AssetProvider manifest={manifest} config={{ engine: scaffoldConfig.engine }}>
+          <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+            <ScreenRenderer screens={gameConfig.screens} />
+          </ScreenProvider>
+        </AssetProvider>
+      </PauseProvider>
+    </GlobalBoundary>
   );
 }

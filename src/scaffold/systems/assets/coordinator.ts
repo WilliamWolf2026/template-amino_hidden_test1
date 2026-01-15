@@ -1,0 +1,163 @@
+import type { Manifest, AssetLoader } from './types';
+import { getBundleTarget } from './types';
+import { DomLoader } from './loaders/dom';
+import { AudioLoader } from './loaders/audio';
+import { createGpuLoader, type EngineType } from './loaders/gpu';
+
+export interface CoordinatorConfig {
+  engine: EngineType;
+}
+
+export class AssetCoordinator {
+  private manifest!: Manifest;
+  private config!: CoordinatorConfig;
+
+  // Loaders
+  readonly dom = new DomLoader();
+  readonly audio = new AudioLoader();
+  private gpuLoader: AssetLoader | null = null;
+  private gpuLoaderPromise: Promise<AssetLoader> | null = null;
+
+  // Queue for gpu bundles requested before engine ready
+  private gpuQueue: string[] = [];
+
+  init(manifest: Manifest, config: CoordinatorConfig): void {
+    this.manifest = manifest;
+    this.config = config;
+
+    this.dom.init(manifest);
+    this.audio.init(manifest);
+  }
+
+  // Initialize GPU loader (call when engine is ready)
+  async initGpu(): Promise<void> {
+    if (this.gpuLoader) return;
+
+    if (this.gpuLoaderPromise) {
+      await this.gpuLoaderPromise;
+      return;
+    }
+
+    this.gpuLoaderPromise = createGpuLoader(this.config.engine);
+    this.gpuLoader = await this.gpuLoaderPromise;
+    this.gpuLoader.init(this.manifest);
+
+    // Flush queued bundles
+    if (this.gpuQueue.length > 0) {
+      await Promise.all(this.gpuQueue.map((name) => this.gpuLoader!.loadBundle(name)));
+      this.gpuQueue = [];
+    }
+  }
+
+  isGpuReady(): boolean {
+    return this.gpuLoader !== null;
+  }
+
+  getGpuLoader(): AssetLoader | null {
+    return this.gpuLoader;
+  }
+
+  // Load a bundle, routing to correct loader based on target
+  async loadBundle(name: string): Promise<void> {
+    const bundle = this.manifest.bundles.find((b) => b.name === name);
+    if (!bundle) throw new Error(`Unknown bundle: ${name}`);
+
+    const target = getBundleTarget(bundle);
+
+    switch (target) {
+      case 'dom':
+        await this.dom.loadBundle(name);
+        break;
+
+      case 'gpu':
+        if (this.gpuLoader) {
+          await this.gpuLoader.loadBundle(name);
+        } else {
+          // Queue for later
+          if (!this.gpuQueue.includes(name)) {
+            this.gpuQueue.push(name);
+          }
+        }
+        break;
+
+      case 'agnostic':
+        // Load with dom loader for raw access, audio handled separately
+        if (bundle.assets.some((p) => p.includes('audio/'))) {
+          await this.audio.loadBundle(name);
+        } else {
+          await this.dom.loadBundle(name);
+        }
+        break;
+    }
+  }
+
+  // Load all bundles matching a prefix
+  async loadBundles(prefix: string): Promise<void> {
+    const bundles = this.manifest.bundles.filter((b) => b.name.startsWith(prefix));
+    await Promise.all(bundles.map((b) => this.loadBundle(b.name)));
+  }
+
+  // Convenience methods for common loading phases
+  async loadBoot(): Promise<void> {
+    await this.loadBundles('boot-');
+  }
+
+  async loadCore(): Promise<void> {
+    await this.loadBundles('core-');
+  }
+
+  async loadTheme(): Promise<void> {
+    await this.loadBundles('theme-');
+  }
+
+  async loadAudio(): Promise<void> {
+    await this.loadBundles('audio-');
+  }
+
+  async loadScene(name: string): Promise<void> {
+    await this.loadBundle(`scene-${name}`);
+  }
+
+  // Check if bundle is loaded
+  isLoaded(name: string): boolean {
+    const bundle = this.manifest.bundles.find((b) => b.name === name);
+    if (!bundle) return false;
+
+    const target = getBundleTarget(bundle);
+
+    switch (target) {
+      case 'dom':
+        return this.dom.isLoaded(name);
+      case 'gpu':
+        return this.gpuLoader?.isLoaded(name) ?? false;
+      case 'agnostic':
+        if (bundle.assets.some((p) => p.includes('audio/'))) {
+          return bundle.assets.every((p) =>
+            !p.includes('audio/') || this.audio.hasChannel(p.replace(/\.json$/, ''))
+          );
+        }
+        return this.dom.isLoaded(name);
+    }
+  }
+
+  // Background loading for deferred bundles
+  async startBackgroundLoading(): Promise<void> {
+    const deferredBundles = this.manifest.bundles
+      .filter((b) => b.name.startsWith('defer-') || b.name.startsWith('fx-'))
+      .map((b) => b.name);
+
+    for (const name of deferredBundles) {
+      if (!this.isLoaded(name)) {
+        // Yield to main thread between bundles
+        await new Promise((resolve) => {
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => resolve(undefined), { timeout: 2000 });
+          } else {
+            setTimeout(resolve, 50);
+          }
+        });
+        await this.loadBundle(name);
+      }
+    }
+  }
+}
