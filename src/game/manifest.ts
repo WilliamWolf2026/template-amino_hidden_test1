@@ -13,6 +13,9 @@ export const manifest: Manifest = {
     { name: 'core-background', assets: ['animation-water.json'] },
     // { name: 'core-chrome', assets: ['ui/buttons.json', 'ui/modals.json'] },
 
+    // TILES - Game tiles
+    { name: 'tiles_citylines_v1', assets: ['tiles_citylines_v1.json'] },
+
     // SCENES
     // { name: 'scene-gameplay', assets: ['scenes/gameplay/entities.json'] },
 
