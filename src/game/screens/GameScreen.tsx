@@ -1,15 +1,14 @@
-import { onMount, onCleanup, createSignal } from 'solid-js';
-import { Application, TilingSprite, type Texture } from 'pixi.js';
+import { onMount, onCleanup } from 'solid-js';
+import { Application } from 'pixi.js';
 import { useAssets } from '~/scaffold/systems/assets';
-import { PauseOverlay, pauseState } from '~/scaffold';
+import { PauseOverlay } from '~/scaffold';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import { CityLinesGame, type LevelConfig } from '~/game/citylines';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
   let containerRef: HTMLDivElement | undefined;
   let app: Application | null = null;
-
-  const [engineReady, setEngineReady] = createSignal(false);
 
   onMount(async () => {
     if (!containerRef) return;
@@ -26,66 +25,83 @@ export function GameScreen() {
     // Mount canvas
     containerRef.appendChild(app.canvas);
 
-    // Load and create tiling water background
     const gpuLoader = coordinator.getGpuLoader() as PixiLoader;
 
-    if (gpuLoader && gpuLoader.hasSheet('animation-water')) {
-      try {
-        // Get all frame textures for animation
-        const frameNames = [
-          'caust_001.png', 'caust_002.png', 'caust_003.png', 'caust_004.png',
-          'caust_005.png', 'caust_006.png', 'caust_007.png', 'caust_008.png',
-          'caust_009.png', 'caust_010.png', 'caust_011.png', 'caust_012.png',
-          'caust_013.png', 'caust_014.png', 'caust_015.png', 'caust_016.png',
-        ];
-        const frames: Texture[] = frameNames.map((name) =>
-          gpuLoader.getTexture('animation-water', name)
-        );
+    // Animated water background (commented out for now)
+    // if (gpuLoader && gpuLoader.hasSheet('animation-water')) {
+    //   try {
+    //     const frameNames = [
+    //       'caust_001.png', 'caust_002.png', 'caust_003.png', 'caust_004.png',
+    //       'caust_005.png', 'caust_006.png', 'caust_007.png', 'caust_008.png',
+    //       'caust_009.png', 'caust_010.png', 'caust_011.png', 'caust_012.png',
+    //       'caust_013.png', 'caust_014.png', 'caust_015.png', 'caust_016.png',
+    //     ];
+    //     const frames: Texture[] = frameNames.map((name) =>
+    //       gpuLoader.getTexture('animation-water', name)
+    //     );
+    //     const tilingBg = new TilingSprite({
+    //       texture: frames[0],
+    //       width: app.screen.width,
+    //       height: app.screen.height,
+    //     });
+    //     app.stage.addChild(tilingBg);
+    //     let frameIndex = 0;
+    //     let frameTime = 0;
+    //     const frameDelay = 1 / 24;
+    //     app.ticker.add((ticker) => {
+    //       if (pauseState.paused()) return;
+    //       frameTime += ticker.deltaTime / 60;
+    //       if (frameTime >= frameDelay) {
+    //         frameTime = 0;
+    //         frameIndex = (frameIndex + 1) % frames.length;
+    //         tilingBg.texture = frames[frameIndex];
+    //       }
+    //     });
+    //     console.log('[GameScreen] Tiling water background added');
+    //   } catch (err) {
+    //     console.error('[GameScreen] Failed to create water background:', err);
+    //   }
+    // }
 
-        // Create tiling sprite with first frame
-        const tilingBg = new TilingSprite({
-          texture: frames[0],
-          width: app.screen.width,
-          height: app.screen.height,
-        });
-        app.stage.addChild(tilingBg);
+    // Load game tiles bundle
+    await coordinator.loadBundle('tiles_citylines_v1');
 
-        // Animate through frames
-        let frameIndex = 0;
-        let frameTime = 0;
-        const frameDelay = 1 / 24; // 24 fps
+    // Create City Lines game
+    if (gpuLoader.hasSheet('tiles_citylines_v1')) {
+      const tileSize = 100;
+      const game = new CityLinesGame(gpuLoader, tileSize);
 
-        app.ticker.add((ticker) => {
-          if (pauseState.paused()) return;
+      // Sample level config
+      const sampleLevel: LevelConfig = {
+        levelNumber: 1,
+        gridSize: 4,
+        county: 'atlantic',
+        landmarks: [
+          { type: 'diner', position: { row: 1, col: 1 } },
+          { type: 'gas_station', position: { row: 2, col: 2 } },
+        ],
+        exits: [
+          { position: { row: 0, col: 3 }, facingEdge: 'south' },
+        ],
+        roadTiles: [],
+      };
 
-          frameTime += ticker.deltaTime / 60;
-          if (frameTime >= frameDelay) {
-            frameTime = 0;
-            frameIndex = (frameIndex + 1) % frames.length;
-            tilingBg.texture = frames[frameIndex];
-          }
-        });
+      game.loadLevel(sampleLevel);
 
-        console.log('[GameScreen] Tiling water background added');
-      } catch (err) {
-        console.error('[GameScreen] Failed to create water background:', err);
-      }
+      // Center the game on screen
+      const gridPixelSize = sampleLevel.gridSize * tileSize;
+      game.x = (app.screen.width - gridPixelSize) / 2;
+      game.y = (app.screen.height - gridPixelSize) / 2;
+
+      app.stage.addChild(game);
+
+      // Listen for level complete
+      game.onGameEvent('levelComplete', () => {
+        console.log('[GameScreen] Level complete!');
+      });
+
+      console.log('[GameScreen] City Lines game loaded');
     }
-
-    setEngineReady(true);
-
-    // Demo: Add something to show it's working
-    const graphics = new (await import('pixi.js')).Graphics();
-    graphics.circle(app.screen.width / 2, app.screen.height / 2, 50);
-    graphics.fill(0x6366f1);
-    app.stage.addChild(graphics);
-
-    // Demo animation
-    app.ticker.add((ticker) => {
-      if (!pauseState.paused()) {
-        graphics.rotation += 0.01 * ticker.deltaTime;
-      }
-    });
   });
 
   onCleanup(() => {
