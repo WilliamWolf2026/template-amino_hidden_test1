@@ -162,4 +162,62 @@ export class ConnectionDetector {
       landmark.setConnected(connectedEdges, isConnected);
     });
   }
+
+  /**
+   * Get all tile keys that are connected to exits via BFS.
+   * Used to determine which road tiles should show as "lit up".
+   */
+  getConnectedTileKeys(exits: Exit[]): Set<string> {
+    const connected = new Set<string>();
+    const visited = new Set<string>();
+    const queue: GridPosition[] = [];
+
+    // Start from exit positions
+    for (const exit of exits) {
+      const exitKey = posKey(exit.gridPosition);
+      if (!visited.has(exitKey)) {
+        visited.add(exitKey);
+        queue.push(exit.gridPosition);
+
+        // Ensure exit tile is in map
+        this.tileMap.set(exitKey, {
+          position: exit.gridPosition,
+          connectedEdges: [exit.facingEdge],
+        });
+      }
+    }
+
+    while (queue.length > 0) {
+      const currentPos = queue.shift()!;
+      const currentKey = posKey(currentPos);
+      const currentTile = this.tileMap.get(currentKey);
+
+      if (!currentTile) continue;
+
+      // Mark this tile as connected
+      connected.add(currentKey);
+
+      // Check each connected edge
+      for (const edge of currentTile.connectedEdges) {
+        const adjPos = getAdjacentPosition(currentPos, edge);
+
+        if (!isInBounds(adjPos, this.gridSize)) continue;
+
+        const adjKey = posKey(adjPos);
+        const adjTile = this.tileMap.get(adjKey);
+
+        if (!adjTile) continue;
+
+        // Check if tiles are connected
+        if (this.areTilesConnected(currentTile, adjTile, edge)) {
+          if (!visited.has(adjKey)) {
+            visited.add(adjKey);
+            queue.push(adjPos);
+          }
+        }
+      }
+    }
+
+    return connected;
+  }
 }

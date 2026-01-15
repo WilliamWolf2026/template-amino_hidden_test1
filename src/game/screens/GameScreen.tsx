@@ -68,10 +68,22 @@ export function GameScreen() {
 
     // Create City Lines game
     if (gpuLoader.hasSheet('tiles_citylines_v1')) {
+      // Add background stretched to fill screen
+      const background = gpuLoader.createSprite('tiles_citylines_v1', 'background.png');
+      background.width = app.screen.width;
+      background.height = app.screen.height;
+      app.stage.addChild(background);
+
       const tileSize = 100;
       const game = new CityLinesGame(gpuLoader, tileSize);
 
-      // Sample level config
+      // Sample level config - a solvable puzzle
+      // Grid layout (solution):
+      //   col0  col1  col2  col3
+      // row0  .     .     .     EXIT
+      // row1  .     DINER .     straight(N-S)
+      // row2  .     straight(N-S) GAS   T-junc(N-S-W)
+      // row3  .     corner(N-E)   straight(E-W) corner(W-N)
       const sampleLevel: LevelConfig = {
         levelNumber: 1,
         gridSize: 4,
@@ -83,7 +95,20 @@ export function GameScreen() {
         exits: [
           { position: { row: 0, col: 3 }, facingEdge: 'south' },
         ],
-        roadTiles: [],
+        roadTiles: [
+          // Path from exit down
+          { type: 'straight', row: 1, col: 3, solutionRotation: 0, initialRotation: 90 },
+          // T-junction connects to gas station (east) and continues down
+          { type: 't_junction', row: 2, col: 3, solutionRotation: 180, initialRotation: 0 },
+          // Corner turns from down to left
+          { type: 'corner', row: 3, col: 3, solutionRotation: 270, initialRotation: 90 },
+          // Straight goes left
+          { type: 'straight', row: 3, col: 2, solutionRotation: 90, initialRotation: 0 },
+          // Corner turns from right to up
+          { type: 'corner', row: 3, col: 1, solutionRotation: 0, initialRotation: 180 },
+          // Straight goes up to diner
+          { type: 'straight', row: 2, col: 1, solutionRotation: 0, initialRotation: 90 },
+        ],
       };
 
       game.loadLevel(sampleLevel);

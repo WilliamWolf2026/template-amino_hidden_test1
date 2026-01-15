@@ -2,7 +2,9 @@ import { Container } from 'pixi.js';
 import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
 import { Exit } from './Exit';
+import { RoadTile } from './RoadTile';
 import { ConnectionDetector, type TileConnections } from './ConnectionDetector';
+import { posKey } from '../types';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 
 /** Events emitted by the game */
@@ -20,10 +22,12 @@ export class CityLinesGame extends Container {
   private gridSize: GridSize = 4;
   private landmarks: Landmark[] = [];
   private exits: Exit[] = [];
+  private roadTiles: RoadTile[] = [];
   private connectionDetector: ConnectionDetector;
 
   // Containers for layering
   private gridContainer: Container;
+  private roadTilesContainer: Container;
   private landmarksContainer: Container;
   private exitsContainer: Container;
 
@@ -41,6 +45,9 @@ export class CityLinesGame extends Container {
     this.gridContainer = new Container();
     this.gridContainer.label = 'grid';
 
+    this.roadTilesContainer = new Container();
+    this.roadTilesContainer.label = 'roadTiles';
+
     this.landmarksContainer = new Container();
     this.landmarksContainer.label = 'landmarks';
 
@@ -48,6 +55,7 @@ export class CityLinesGame extends Container {
     this.exitsContainer.label = 'exits';
 
     this.addChild(this.gridContainer);
+    this.addChild(this.roadTilesContainer);
     this.addChild(this.exitsContainer);
     this.addChild(this.landmarksContainer);
 
@@ -80,6 +88,19 @@ export class CityLinesGame extends Container {
     this.gridSize = config.gridSize;
     this.connectionDetector = new ConnectionDetector(this.gridSize);
 
+    // Create grid cell backgrounds
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        const cellBg = this.gpuLoader.createSprite('tiles_citylines_v1', 'grid_backing.png');
+        cellBg.anchor.set(0.5);
+        cellBg.width = this.tileSize;
+        cellBg.height = this.tileSize;
+        cellBg.x = col * this.tileSize + this.tileSize / 2;
+        cellBg.y = row * this.tileSize + this.tileSize / 2;
+        this.gridContainer.addChild(cellBg);
+      }
+    }
+
     // Create exits
     for (const exitConfig of config.exits) {
       const exit = new Exit(
@@ -105,12 +126,51 @@ export class CityLinesGame extends Container {
       this.landmarksContainer.addChild(landmark);
     }
 
+    // Create road tiles
+    for (const tileConfig of config.roadTiles) {
+      const roadTile = new RoadTile(
+        tileConfig.type,
+        { row: tileConfig.row, col: tileConfig.col },
+        this.gpuLoader,
+        this.tileSize,
+        tileConfig.solutionRotation,
+        tileConfig.initialRotation
+      );
+
+      // Add tap handler for rotation
+      roadTile.on('pointertap', () => this.handleTileRotate(roadTile));
+
+      this.roadTiles.push(roadTile);
+      this.roadTilesContainer.addChild(roadTile);
+    }
+
     // Initial connection check
+    this.syncTileConnections();
     this.updateConnections();
+  }
+
+  /** Handle tile rotation */
+  private handleTileRotate(tile: RoadTile): void {
+    tile.rotate();
+    this.syncTileConnections();
+    this.updateConnections();
+    this.emitEvent('tileRotated');
+  }
+
+  /** Sync all road tile connections to detector */
+  private syncTileConnections(): void {
+    const tileConnections: TileConnections[] = this.roadTiles.map((tile) => ({
+      position: tile.gridPosition,
+      connectedEdges: tile.getConnectedEdges(),
+    }));
+    this.connectionDetector.setAllTiles(tileConnections);
   }
 
   /** Clear current level */
   clearLevel(): void {
+    // Clear grid backgrounds
+    this.gridContainer.removeChildren();
+
     // Destroy landmarks
     for (const landmark of this.landmarks) {
       landmark.destroy();
@@ -122,6 +182,13 @@ export class CityLinesGame extends Container {
       exit.destroy();
     }
     this.exits = [];
+
+    // Destroy road tiles
+    for (const tile of this.roadTiles) {
+      tile.off('pointertap');
+      tile.destroy();
+    }
+    this.roadTiles = [];
 
     // Clear connection detector
     this.connectionDetector.clear();
@@ -141,10 +208,20 @@ export class CityLinesGame extends Container {
     this.emitEvent('tileRotated');
   }
 
-  /** Run connection detection and update landmarks */
+  /** Run connection detection and update landmarks + road tiles */
   private updateConnections(): void {
     const previouslyConnected = this.landmarks.filter((l) => l.isConnectedToExit);
 
+    // Get connected tiles from detector
+    const connectedTileKeys = this.connectionDetector.getConnectedTileKeys(this.exits);
+
+    // Update road tile visuals
+    for (const tile of this.roadTiles) {
+      const key = posKey(tile.gridPosition);
+      tile.setConnected(connectedTileKeys.has(key));
+    }
+
+    // Update landmarks
     this.connectionDetector.updateLandmarks(this.exits, this.landmarks);
 
     // Check for newly connected landmarks
