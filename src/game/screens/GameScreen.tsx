@@ -101,7 +101,7 @@ export function GameScreen() {
       {/* Engine canvas container */}
       <div
         ref={containerRef}
-        class="absolute inset-0 z-0"
+        class="absolute inset-0"
       />
 
       {/* Pause overlay */}
