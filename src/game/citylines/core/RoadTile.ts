@@ -1,5 +1,6 @@
 import { Container, Sprite } from 'pixi.js';
 import type { Edge, GridPosition, RoadTileType } from '../types';
+import { EDGES } from '../types';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 
 const ATLAS_NAME = 'tiles_citylines_v1';
@@ -23,9 +24,8 @@ const BASE_CONNECTIONS: Record<RoadTileType, Edge[]> = {
 
 /** Rotate an edge by 90 degrees clockwise */
 function rotateEdge(edge: Edge, times: number): Edge {
-  const edges: Edge[] = ['north', 'east', 'south', 'west'];
-  const index = edges.indexOf(edge);
-  return edges[(index + times) % 4];
+  const index = EDGES.indexOf(edge);
+  return EDGES[(index + times) % 4];
 }
 
 /** Road tile that can be rotated by player */

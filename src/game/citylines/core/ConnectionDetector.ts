@@ -33,7 +33,7 @@ export class ConnectionDetector {
   setAllTiles(tiles: TileConnections[]): void {
     this.tileMap.clear();
     for (const tile of tiles) {
-      this.tileMap.set(posKey(tile.position), tile);
+      this.updateTile(tile);
     }
   }
 
