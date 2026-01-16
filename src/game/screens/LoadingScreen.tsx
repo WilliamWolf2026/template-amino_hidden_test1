@@ -31,7 +31,7 @@ export function LoadingScreen() {
   });
 
   return (
-    <div class="fixed inset-0 flex flex-col items-center justify-center bg-black">
+    <div class="fixed inset-0 flex flex-col items-center justify-center bg-[#BCE083]">
       <h1 class="text-4xl font-bold text-white mb-8">GAME</h1>
       <ProgressBar progress={progress()} label="Loading..." />
 
