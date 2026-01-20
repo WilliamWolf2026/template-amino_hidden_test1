@@ -43,6 +43,10 @@ export interface ScreensConfig {
   loadingFadeOut: number;
 }
 
+export interface TuningPanelConfig {
+  position: 'left' | 'center' | 'right';
+}
+
 export interface ScaffoldTuning {
   version: string;
   engine: EngineConfig;
@@ -51,6 +55,7 @@ export interface ScaffoldTuning {
   audio: AudioConfig;
   performance: PerformanceConfig;
   screens: ScreensConfig;
+  tuningPanel: TuningPanelConfig;
 }
 
 // ============================================
@@ -147,5 +152,8 @@ export const SCAFFOLD_DEFAULTS: ScaffoldTuning = {
   screens: {
     loadingMinDuration: 500,
     loadingFadeOut: 300,
+  },
+  tuningPanel: {
+    position: 'left',
   },
 };

@@ -7,8 +7,8 @@ import type { ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaneInstance = Pane & any;
 
-// Only show in development mode
-const SHOW_TUNING_PANEL = import.meta.env.DEV;
+// Show in development and QA modes, but not production
+const SHOW_TUNING_PANEL = import.meta.env.DEV || import.meta.env.MODE === 'qa';
 
 // Global keyboard listener for backtick toggle
 const [isPanelOpen, setIsPanelOpen] = createSignal(false);
@@ -24,23 +24,19 @@ if (typeof window !== 'undefined' && SHOW_TUNING_PANEL) {
 
 export { isPanelOpen, setIsPanelOpen };
 
-interface TuningPanelProps {
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-}
-
-export default function TuningPanel<G extends GameTuningBase = GameTuningBase>(
-  props: TuningPanelProps
-) {
+export default function TuningPanel<G extends GameTuningBase = GameTuningBase>() {
   let containerRef: HTMLDivElement | undefined;
   let pane: PaneInstance | undefined;
   const tuning = useTuning<ScaffoldTuning, G>();
 
-  // Position classes
+  // Get position from tuning state, with fallback
+  const getPosition = () => tuning.scaffold().tuningPanel?.position || 'left';
+
+  // Position classes for left, center, right
   const positionClasses = {
-    'top-right': 'top-4 right-4',
-    'top-left': 'top-4 left-4',
-    'bottom-right': 'bottom-4 right-4',
-    'bottom-left': 'bottom-4 left-4',
+    left: 'top-0 left-0 bottom-0',
+    center: 'top-0 left-1/2 -translate-x-1/2 bottom-0',
+    right: 'top-0 right-0 bottom-0',
   };
 
   onMount(() => {
@@ -92,11 +88,20 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>(
   return (
     <Show when={SHOW_TUNING_PANEL}>
       <div
-        class={`fixed z-[9999] ${positionClasses[props.position || 'top-right']}`}
-        style={{ display: isPanelOpen() ? 'block' : 'none' }}
+        class={`fixed z-[9999] flex flex-col ${positionClasses[getPosition()]}`}
+        style={{
+          display: isPanelOpen() ? 'flex' : 'none',
+          'max-height': '100vh',
+        }}
       >
-        <div ref={containerRef} />
-        <div class="mt-2 text-xs text-gray-400 text-right">Press ` to toggle</div>
+        <div
+          ref={containerRef}
+          class="overflow-y-auto flex-1"
+          style={{ 'max-height': 'calc(100vh - 24px)' }}
+        />
+        <div class="text-xs text-gray-400 px-2 py-1 text-left">
+          Press ` to toggle
+        </div>
       </div>
     </Show>
   );

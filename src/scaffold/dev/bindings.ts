@@ -1,9 +1,50 @@
 import type { Pane, FolderApi, BindingParams } from 'tweakpane';
 import type { TuningState, ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
+import { isGamePathWired, isScaffoldPathWired, areAllChildrenWired } from './tuningRegistry';
 
 // Use any for Pane methods due to @tweakpane/core type definition issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FolderOrPane = Pane | FolderApi | any;
+
+// Color themes for scaffold vs game sections
+const SECTION_COLORS = {
+  scaffold: {
+    border: '#4ecdc4', // Cyan/teal
+    background: 'rgba(78, 205, 196, 0.1)',
+    title: '#4ecdc4',
+  },
+  game: {
+    border: '#ffb347', // Orange
+    background: 'rgba(255, 179, 71, 0.1)',
+    title: '#ffb347',
+  },
+};
+
+/** Style a folder with section colors */
+function styleSectionFolder(element: HTMLElement, section: 'scaffold' | 'game'): void {
+  const colors = SECTION_COLORS[section];
+  element.style.borderLeft = `3px solid ${colors.border}`;
+  element.style.marginLeft = '0';
+  element.style.paddingLeft = '4px';
+
+  const title = element.querySelector('.tp-fldv_t') as HTMLElement | null;
+  if (title) {
+    title.style.color = colors.title;
+    title.style.fontWeight = 'bold';
+  }
+}
+
+/** Style an unwired binding element red */
+function styleUnwiredBinding(element: HTMLElement): void {
+  // Find the label element and style it red
+  const label = element.querySelector('.tp-lblv_l') as HTMLElement | null;
+  if (label) {
+    label.style.color = '#ff6b6b';
+    label.style.fontStyle = 'italic';
+  }
+  // Add subtle red background tint
+  element.style.backgroundColor = 'rgba(255, 100, 100, 0.1)';
+}
 
 /**
  * Format a camelCase/snake_case key to Title Case label
@@ -102,95 +143,137 @@ function createBinding(
   parent: FolderOrPane,
   key: string,
   value: unknown,
-  onUpdate: (value: unknown) => void
+  onUpdate: (value: unknown) => void,
+  options: { fullPath: string; isScaffold: boolean }
 ): void {
+  const { fullPath, isScaffold } = options;
+  const isWired = isScaffold ? isScaffoldPathWired(fullPath) : isGamePathWired(fullPath);
+
   const label = formatLabel(key);
   const obj = { [key]: value };
 
+  // Helper to style binding after creation
+  const applyUnwiredStyle = (binding: { element: HTMLElement }) => {
+    if (!isWired) {
+      // Use setTimeout to ensure element is in DOM
+      setTimeout(() => styleUnwiredBinding(binding.element), 0);
+    }
+  };
+
   if (typeof value === 'boolean') {
-    parent.addBinding(obj, key, { label }).on('change', (ev: { value: boolean }) => onUpdate(ev.value));
+    const binding = parent.addBinding(obj, key, { label });
+    binding.on('change', (ev: { value: boolean }) => onUpdate(ev.value));
+    applyUnwiredStyle(binding);
     return;
   }
 
   if (typeof value === 'number') {
     // Grid size dropdown (constrained to 4, 5, 6)
     if (key === 'gridSize' || key === 'defaultGridSize') {
-      parent
-        .addBinding(obj, key, {
-          label,
-          options: {
-            '4×4': 4,
-            '5×5': 5,
-            '6×6': 6,
-          },
-        })
-        .on('change', (ev: { value: number }) => onUpdate(ev.value));
+      const binding = parent.addBinding(obj, key, {
+        label,
+        options: {
+          '4×4': 4,
+          '5×5': 5,
+          '6×6': 6,
+        },
+      });
+      binding.on('change', (ev: { value: number }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
       return;
     }
 
     // Tile size dropdown (common game sizes)
     if (key === 'tileSize') {
-      parent
-        .addBinding(obj, key, {
-          label,
-          options: {
-            '32px': 32,
-            '48px': 48,
-            '64px': 64,
-            '80px': 80,
-            '96px': 96,
-            '128px': 128,
-            '160px': 160,
-            '192px': 192,
-            '256px': 256,
-          },
-        })
-        .on('change', (ev: { value: number }) => onUpdate(ev.value));
+      const binding = parent.addBinding(obj, key, {
+        label,
+        options: {
+          '32px': 32,
+          '48px': 48,
+          '64px': 64,
+          '80px': 80,
+          '96px': 96,
+          '128px': 128,
+          '160px': 160,
+          '192px': 192,
+          '256px': 256,
+        },
+      });
+      binding.on('change', (ev: { value: number }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
       return;
     }
 
     const params: BindingParams = { label, ...inferBindingParams(key, value) };
-    parent.addBinding(obj, key, params).on('change', (ev: { value: number }) => onUpdate(ev.value));
+    const binding = parent.addBinding(obj, key, params);
+    binding.on('change', (ev: { value: number }) => onUpdate(ev.value));
+    applyUnwiredStyle(binding);
     return;
   }
 
   if (typeof value === 'string') {
     // Check if it's a hex color
     if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-      parent.addBinding(obj, key, { label, view: 'color' }).on('change', (ev: { value: string }) => onUpdate(ev.value));
+      const binding = parent.addBinding(obj, key, { label, view: 'color' });
+      binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
       return;
     }
 
     // Log level dropdown
     if (key === 'logLevel') {
-      parent
-        .addBinding(obj, key, {
-          label,
-          options: {
-            Debug: 'debug',
-            Info: 'info',
-            Warn: 'warn',
-            Error: 'error',
-            None: 'none',
-          },
-        })
-        .on('change', (ev: { value: string }) => onUpdate(ev.value));
+      const binding = parent.addBinding(obj, key, {
+        label,
+        options: {
+          Debug: 'debug',
+          Info: 'info',
+          Warn: 'warn',
+          Error: 'error',
+          None: 'none',
+        },
+      });
+      binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
       return;
     }
 
     // Transition type dropdown
     if (key === 'transitionType') {
-      parent
-        .addBinding(obj, key, {
-          label,
-          options: { Fade: 'fade', Slide: 'slide', None: 'none' },
-        })
-        .on('change', (ev: { value: string }) => onUpdate(ev.value));
+      const binding = parent.addBinding(obj, key, {
+        label,
+        options: { Fade: 'fade', Slide: 'slide', None: 'none' },
+      });
+      binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
+      return;
+    }
+
+    // Panel position dropdown
+    if (key === 'position' && (value === 'left' || value === 'center' || value === 'right')) {
+      const binding = parent.addBinding(obj, key, {
+        label,
+        options: { Left: 'left', Center: 'center', Right: 'right' },
+      });
+      binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
       return;
     }
 
     // Default text input
-    parent.addBinding(obj, key, { label }).on('change', (ev: { value: string }) => onUpdate(ev.value));
+    const binding = parent.addBinding(obj, key, { label });
+    binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+    applyUnwiredStyle(binding);
+  }
+}
+
+/**
+ * Style an unwired folder element with subtle red tint
+ */
+function styleUnwiredFolder(element: HTMLElement): void {
+  const title = element.querySelector('.tp-fldv_t') as HTMLElement | null;
+  if (title) {
+    title.style.color = '#ff9999';
+    title.style.fontStyle = 'italic';
   }
 }
 
@@ -201,8 +284,10 @@ function bindObjectToPane(
   parent: FolderOrPane,
   obj: Record<string, unknown>,
   onUpdate: (path: string, value: unknown) => void,
-  pathPrefix = ''
+  options: { pathPrefix?: string; isScaffold: boolean }
 ): void {
+  const { pathPrefix = '', isScaffold } = options;
+
   for (const [key, value] of Object.entries(obj)) {
     // Skip version field
     if (key === 'version') continue;
@@ -217,10 +302,23 @@ function bindObjectToPane(
         title: formatLabel(key),
         expanded: false,
       });
-      bindObjectToPane(folder, value as Record<string, unknown>, onUpdate, path);
+
+      // Check if any children are wired
+      const hasWiredChildren = areAllChildrenWired(path, isScaffold);
+      if (!hasWiredChildren) {
+        setTimeout(() => styleUnwiredFolder(folder.element), 0);
+      }
+
+      bindObjectToPane(folder, value as Record<string, unknown>, onUpdate, {
+        pathPrefix: path,
+        isScaffold,
+      });
     } else {
       // Create binding for primitive values
-      createBinding(parent, key, value, (newValue) => onUpdate(path, newValue));
+      createBinding(parent, key, value, (newValue) => onUpdate(path, newValue), {
+        fullPath: path,
+        isScaffold,
+      });
     }
   }
 }
@@ -239,28 +337,32 @@ export function bindTuningToPane<S extends ScaffoldTuning, G extends GameTuningB
 ): void {
   const { scaffoldFolder = 'Scaffold', gameFolder = 'Game', onChange } = options;
 
-  // Create main folders
+  // Create main folders with color coding
   const scaffoldPane = pane.addFolder({
     title: scaffoldFolder,
     expanded: false,
   });
+  // Apply scaffold section styling
+  setTimeout(() => styleSectionFolder(scaffoldPane.element, 'scaffold'), 0);
 
   const gamePane = pane.addFolder({
     title: gameFolder,
     expanded: true,
   });
+  // Apply game section styling
+  setTimeout(() => styleSectionFolder(gamePane.element, 'game'), 0);
 
   // Bind scaffold tuning
   bindObjectToPane(scaffoldPane, state.scaffold() as Record<string, unknown>, (path, value) => {
     state.setScaffoldPath(path, value);
     onChange?.();
-  });
+  }, { isScaffold: true });
 
   // Bind game tuning
   bindObjectToPane(gamePane, state.game() as Record<string, unknown>, (path, value) => {
     state.setGamePath(path, value);
     onChange?.();
-  });
+  }, { isScaffold: false });
 }
 
 /**

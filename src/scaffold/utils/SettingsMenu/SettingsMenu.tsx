@@ -1,20 +1,23 @@
 import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import gsap from 'gsap';
 import { useAudio } from '~/scaffold/systems/audio';
+import { setIsPanelOpen, isPanelOpen } from '~/scaffold/dev/TuningPanel';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';
-import soundAmbientOnIcon from './assets/icon_sound_ambient_on.svg';
-import soundAmbientOffIcon from './assets/icon_sound_ambient_off.svg';
 import volumeHighIcon from './assets/icon_volume_high.svg';
 import volumeMediumIcon from './assets/icon_volume_medium.svg';
 import volumeLowIcon from './assets/icon_volume_low.svg';
 import volumeMutedIcon from './assets/icon_volume_muted.svg';
+import wrenchIcon from './assets/icon_wrench.svg';
+
+// Show tuning button in dev and QA, but not production
+const SHOW_TUNING_BUTTON = import.meta.env.DEV || import.meta.env.MODE === 'qa';
 
 // Settings Menu Configuration
 const SETTINGS_CONFIG = {
   showVolumeSlider: true,
-  showAmbientToggle: true,
+  showTuningToggle: SHOW_TUNING_BUTTON,
   showMusicToggle: true,
   backgroundColor: 'rgb(23,23,23)',
   borderRadius: '26px',
@@ -174,9 +177,9 @@ export default function SettingsMenu() {
     setShowStatus(true);
   };
 
-  const handleAmbientToggle = () => {
-    audio.toggleAmbient();
-    const status = !audio.ambientEnabled() ? 'AMBIENT ON' : 'AMBIENT OFF';
+  const handleTuningToggle = () => {
+    setIsPanelOpen(!isPanelOpen());
+    const status = isPanelOpen() ? 'TUNING ON' : 'TUNING OFF';
     showStatusNotification(status);
   };
 
@@ -299,18 +302,18 @@ export default function SettingsMenu() {
               </div>
             </Show>
 
-            <Show when={SETTINGS_CONFIG.showAmbientToggle}>
+            <Show when={SETTINGS_CONFIG.showTuningToggle}>
               <button
                 class={`h-[60px] w-[60px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
-                  !audio.ambientEnabled() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
+                  !isPanelOpen() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
                 }`}
-                onClick={handleAmbientToggle}
-                aria-label={!audio.ambientEnabled() ? 'Unmute Ambient' : 'Mute Ambient'}
+                onClick={handleTuningToggle}
+                aria-label={isPanelOpen() ? 'Close Tuning Panel' : 'Open Tuning Panel'}
               >
                 <img
-                  src={!audio.ambientEnabled() ? soundAmbientOffIcon : soundAmbientOnIcon}
-                  alt={!audio.ambientEnabled() ? 'Ambient Muted' : 'Ambient On'}
-                  class="w-6 h-6"
+                  src={wrenchIcon}
+                  alt="Tuning"
+                  class={`w-6 h-6 ${isPanelOpen() ? 'brightness-0' : 'invert'}`}
                 />
               </button>
             </Show>
