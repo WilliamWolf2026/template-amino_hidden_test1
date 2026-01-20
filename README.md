@@ -15,59 +15,29 @@ bun run dev
 - **Engine Agnostic** — Swap between Pixi, Phaser, or Three.js
 - **Signal-Based Navigation** — No router, instant screen transitions
 - **Error Boundaries** — Layered error handling with Sentry + PostHog
-- **DOM HUD Overlay** — UI layer on top of game canvas
+
+## Development Tools
+
+### Tuning System
+
+The game includes a real-time parameter tuning system for development and QA.
+
+- **Toggle Panel**: Press backtick (`) in dev mode
+- **Config Files**: `/public/config/tuning/`
+- **Documentation**: [Tuning System Guide](src/game/docs/tuning-system.md)
+
+Features:
+- Real-time parameter adjustment via Tweakpane
+- Two-tier config: scaffold (framework) + game (CityLines-specific)
+- Auto-save to localStorage
+- Export/import JSON configs
 
 ## Documentation
 
-- [Asset Management](docs/assets.md) — Manifest structure, loaders, and usage
-
-## Project Structure
-
-```
-src/
-├── config/           # Game configuration
-├── systems/
-│   ├── assets/       # Asset loading system
-│   ├── screens/      # Screen management
-│   └── errors/       # Error boundaries & reporting
-├── screens/          # Screen components
-├── components/
-│   ├── ui/           # Buttons, spinners, progress bars
-│   └── hud/          # In-game HUD overlay
-├── game/
-│   ├── manifest.ts   # Asset manifest
-│   └── state.ts      # Game state signals
-└── lib/              # Sentry, PostHog init
-```
-
-## Screen Flow
-
-```
-LoadingScreen → StartScreen → GameScreen → ResultsScreen
-     │              │              │
-   boot-*      [Start click]    scene-*
-   theme-*      initGpu()       gameplay
-                core-*
-                audio-*
-```
-
-## Configuration
-
-Edit `src/config/game.config.ts`:
-
-```typescript
-export const gameConfig: GameConfig = {
-  engine: 'pixi',  // 'pixi' | 'phaser' | 'three'
-  debug: import.meta.env.DEV,
-  sentry: { dsn: '...' },
-  posthog: { apiKey: '...' },
-};
-```
-
-## Scripts
-
-```bash
-bun run dev     # Start dev server
-bun run build   # Production build
-bun run start   # Run production build
-```
+- [Architecture](docs/architecture.md)
+- [Configuration](docs/configuration.md)
+- [Screens](docs/screens.md)
+- [Assets](docs/assets.md)
+- [State Management](docs/state-management.md)
+- [Error Handling](docs/error-handling.md)
+- [Tuning System](src/game/docs/tuning-system.md)

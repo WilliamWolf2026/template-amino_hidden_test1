@@ -7,13 +7,15 @@ import {
   ScreenRenderer,
   PauseProvider,
   initPauseKeyboard,
-  TweakpaneConfig,
   SettingsMenu,
+  TuningProvider,
+  TuningPanel,
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
 import { initPostHog } from '~/scaffold/lib/posthog';
 import { scaffoldConfig } from '~/scaffold/config';
 import { manifest, gameConfig } from '~/game';
+import { CITYLINES_DEFAULTS } from '~/game/tuning';
 import './app.css';
 
 export default function App() {
@@ -35,18 +37,20 @@ export default function App() {
 
   return (
     <GlobalBoundary>
-      <TweakpaneConfig />
-      {/* Settings Menu - Top Right */}
-      <div class="fixed top-4 right-4 z-[9999]">
-        <SettingsMenu />
-      </div>
-      <PauseProvider>
-        <AssetProvider manifest={manifest} config={{ engine: scaffoldConfig.engine }}>
-          <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
-            <ScreenRenderer screens={gameConfig.screens} />
-          </ScreenProvider>
-        </AssetProvider>
-      </PauseProvider>
+      <TuningProvider gameDefaults={CITYLINES_DEFAULTS}>
+        <TuningPanel />
+        {/* Settings Menu - Top Right */}
+        <div class="fixed top-4 right-4 z-[9999]">
+          <SettingsMenu />
+        </div>
+        <PauseProvider>
+          <AssetProvider manifest={manifest} config={{ engine: scaffoldConfig.engine }}>
+            <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+              <ScreenRenderer screens={gameConfig.screens} />
+            </ScreenProvider>
+          </AssetProvider>
+        </PauseProvider>
+      </TuningProvider>
     </GlobalBoundary>
   );
 }
