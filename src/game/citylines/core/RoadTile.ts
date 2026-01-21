@@ -38,6 +38,7 @@ export class RoadTile extends Container {
   private defaultSprite: Sprite;
   private completedSprite: Sprite;
   private _currentRotation: number;
+  private _visualRotation: number; // Cumulative rotation for animations (never wraps)
   private _isConnected = false;
   private tileSize: number;
 
@@ -55,6 +56,7 @@ export class RoadTile extends Container {
     this.gridPosition = position;
     this.solutionRotation = solutionRotation;
     this._currentRotation = initialRotation;
+    this._visualRotation = initialRotation; // Start cumulative rotation at initial value
     this.tileSize = tileSize;
 
     // Position on grid
@@ -111,30 +113,25 @@ export class RoadTile extends Container {
   /** Rotate 90 degrees clockwise with optional animation */
   rotate(animationConfig?: { duration: number; easing: string }): void {
     this._currentRotation = (this._currentRotation + 90) % 360;
+    this._visualRotation += 90; // Cumulative, never wraps - ensures always clockwise
 
     if (animationConfig && animationConfig.duration > 0) {
-      // Use relative rotation to always rotate clockwise (positive direction)
-      // This avoids GSAP taking the shortest path (e.g., 270° → 0° going counter-clockwise)
-      const rotationIncrement = Math.PI / 2; // 90° in radians
-      const targetRadians = (this._currentRotation * Math.PI) / 180;
+      const targetRadians = (this._visualRotation * Math.PI) / 180;
 
+      // Kill any existing rotation animations to handle rapid taps
+      gsap.killTweensOf(this.defaultSprite, 'rotation');
+      gsap.killTweensOf(this.completedSprite, 'rotation');
+
+      // Animate to absolute target (no relative +=, no onComplete needed)
       gsap.to(this.defaultSprite, {
-        rotation: `+=${rotationIncrement}`,
-        duration: animationConfig.duration / 1000, // ms to seconds
-        ease: animationConfig.easing,
-        onComplete: () => {
-          // Snap to exact target to prevent floating point drift
-          this.defaultSprite.rotation = targetRadians;
-        },
-      });
-      gsap.to(this.completedSprite, {
-        rotation: `+=${rotationIncrement}`,
+        rotation: targetRadians,
         duration: animationConfig.duration / 1000,
         ease: animationConfig.easing,
-        onComplete: () => {
-          // Snap to exact target to prevent floating point drift
-          this.completedSprite.rotation = targetRadians;
-        },
+      });
+      gsap.to(this.completedSprite, {
+        rotation: targetRadians,
+        duration: animationConfig.duration / 1000,
+        ease: animationConfig.easing,
       });
     } else {
       // Immediate (no animation)
@@ -150,7 +147,7 @@ export class RoadTile extends Container {
   }
 
   private applyRotation(): void {
-    const radians = (this._currentRotation * Math.PI) / 180;
+    const radians = (this._visualRotation * Math.PI) / 180;
     this.defaultSprite.rotation = radians;
     this.completedSprite.rotation = radians;
   }
