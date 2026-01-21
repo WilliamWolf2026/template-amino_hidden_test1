@@ -6,3 +6,6 @@ export * from './data';
 
 // Core game classes
 export * from './core';
+
+// Systems
+export * from './systems';

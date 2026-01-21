@@ -5,6 +5,7 @@ import { Exit } from './Exit';
 import { RoadTile } from './RoadTile';
 import { ConnectionDetector, type TileConnections } from './ConnectionDetector';
 import { posKey } from '../types';
+import { DecorationSystem } from '../systems';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 
 /** Events emitted by the game */
@@ -24,9 +25,11 @@ export class CityLinesGame extends Container {
   private exits: Exit[] = [];
   private roadTiles: RoadTile[] = [];
   private connectionDetector: ConnectionDetector;
+  private decorationSystem: DecorationSystem;
 
   // Containers for layering
   private gridContainer: Container;
+  private decorationsContainer: Container;
   private roadTilesContainer: Container;
   private landmarksContainer: Container;
   private exitsContainer: Container;
@@ -40,10 +43,13 @@ export class CityLinesGame extends Container {
     this.gpuLoader = gpuLoader;
     this.tileSize = tileSize;
     this.connectionDetector = new ConnectionDetector(this.gridSize);
+    this.decorationSystem = new DecorationSystem(gpuLoader, tileSize);
 
     // Create layer containers
     this.gridContainer = new Container();
     this.gridContainer.label = 'grid';
+
+    this.decorationsContainer = this.decorationSystem.getContainer();
 
     this.roadTilesContainer = new Container();
     this.roadTilesContainer.label = 'roadTiles';
@@ -54,7 +60,9 @@ export class CityLinesGame extends Container {
     this.exitsContainer = new Container();
     this.exitsContainer.label = 'exits';
 
+    // Layer order: grid -> decorations -> roads -> exits -> landmarks
     this.addChild(this.gridContainer);
+    this.addChild(this.decorationsContainer);
     this.addChild(this.roadTilesContainer);
     this.addChild(this.exitsContainer);
     this.addChild(this.landmarksContainer);
@@ -147,6 +155,25 @@ export class CityLinesGame extends Container {
     // Initial connection check
     this.syncTileConnections();
     this.updateConnections();
+
+    // Place decorations on empty cells
+    const occupiedPositions = new Set<string>();
+    for (const exit of this.exits) {
+      occupiedPositions.add(posKey(exit.gridPosition));
+    }
+    for (const landmark of this.landmarks) {
+      occupiedPositions.add(posKey(landmark.gridPosition));
+    }
+    for (const tile of this.roadTiles) {
+      occupiedPositions.add(posKey(tile.gridPosition));
+    }
+
+    this.decorationSystem.placeDecorations(
+      this.gridSize,
+      occupiedPositions,
+      config.county,
+      config.levelNumber
+    );
   }
 
   /** Handle tile rotation */
@@ -170,6 +197,9 @@ export class CityLinesGame extends Container {
   clearLevel(): void {
     // Clear grid backgrounds
     this.gridContainer.removeChildren();
+
+    // Clear decorations
+    this.decorationSystem.clear();
 
     // Destroy landmarks
     for (const landmark of this.landmarks) {
@@ -278,6 +308,7 @@ export class CityLinesGame extends Container {
   /** Clean up resources */
   override destroy(): void {
     this.clearLevel();
+    this.decorationSystem.destroy();
     super.destroy({ children: true });
   }
 }
