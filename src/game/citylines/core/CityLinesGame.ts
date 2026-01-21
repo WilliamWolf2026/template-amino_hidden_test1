@@ -1,4 +1,5 @@
-import { Container } from 'pixi.js';
+import { Container, NineSliceSprite } from 'pixi.js';
+import gsap from 'gsap';
 import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
 import { Exit } from './Exit';
@@ -7,6 +8,14 @@ import { ConnectionDetector, type TileConnections } from './ConnectionDetector';
 import { posKey } from '../types';
 import { DecorationSystem } from '../systems';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { NineSliceConfig } from '~/game/tuning';
+
+/** Animation config for tuning transitions */
+const TUNING_ANIMATION = {
+  duration: 0.3,
+  ease: 'power2.out',
+  stagger: 0.015,
+};
 
 /** Events emitted by the game */
 export interface CityLinesGameEvents {
@@ -19,6 +28,14 @@ export interface CityLinesGameEvents {
 export class CityLinesGame extends Container {
   private gpuLoader: PixiLoader;
   private tileSize: number;
+  private padding: number = 0;
+  private cellGap: number = 0;
+  private nineSlice: NineSliceConfig = {
+    leftWidth: 20,
+    topHeight: 20,
+    rightWidth: 20,
+    bottomHeight: 20,
+  };
 
   private gridSize: GridSize = 4;
   private landmarks: Landmark[] = [];
@@ -26,6 +43,9 @@ export class CityLinesGame extends Container {
   private roadTiles: RoadTile[] = [];
   private connectionDetector: ConnectionDetector;
   private decorationSystem: DecorationSystem;
+
+  // Grid background (9-slice sprite)
+  private gridBackground: NineSliceSprite | null = null;
 
   // Containers for layering
   private gridContainer: Container;
@@ -96,18 +116,21 @@ export class CityLinesGame extends Container {
     this.gridSize = config.gridSize;
     this.connectionDetector = new ConnectionDetector(this.gridSize);
 
-    // Create grid cell backgrounds
-    for (let row = 0; row < this.gridSize; row++) {
-      for (let col = 0; col < this.gridSize; col++) {
-        const cellBg = this.gpuLoader.createSprite('tiles_citylines_v1', 'grid_backing.png');
-        cellBg.anchor.set(0.5);
-        cellBg.width = this.tileSize;
-        cellBg.height = this.tileSize;
-        cellBg.x = col * this.tileSize + this.tileSize / 2;
-        cellBg.y = row * this.tileSize + this.tileSize / 2;
-        this.gridContainer.addChild(cellBg);
-      }
-    }
+    // Create 9-slice grid background (single sprite)
+    const texture = this.gpuLoader.getTexture('tiles_citylines_v1', 'grid_backing.png');
+    this.gridBackground = new NineSliceSprite({
+      texture,
+      leftWidth: this.nineSlice.leftWidth,
+      topHeight: this.nineSlice.topHeight,
+      rightWidth: this.nineSlice.rightWidth,
+      bottomHeight: this.nineSlice.bottomHeight,
+    });
+
+    // Size to fit grid with padding
+    const totalSize = this.getGridPixelSize();
+    this.gridBackground.width = totalSize;
+    this.gridBackground.height = totalSize;
+    this.gridContainer.addChild(this.gridBackground);
 
     // Create exits
     for (const exitConfig of config.exits) {
@@ -195,8 +218,9 @@ export class CityLinesGame extends Container {
 
   /** Clear current level */
   clearLevel(): void {
-    // Clear grid backgrounds
+    // Clear grid background
     this.gridContainer.removeChildren();
+    this.gridBackground = null;
 
     // Clear decorations
     this.decorationSystem.clear();
@@ -293,6 +317,102 @@ export class CityLinesGame extends Container {
   /** Get tile size */
   getTileSize(): number {
     return this.tileSize;
+  }
+
+  /** Set tile size and update all elements with animation (for live tuning) */
+  setTileSize(newSize: number, animate = true): void {
+    if (newSize === this.tileSize) return;
+
+    this.tileSize = newSize;
+    this.updateLayout(animate);
+  }
+
+  /** Set grid layout (padding and cell gap) with animation */
+  setGridLayout(padding: number, cellGap: number, animate = true): void {
+    if (padding === this.padding && cellGap === this.cellGap) return;
+
+    this.padding = padding;
+    this.cellGap = cellGap;
+    this.updateLayout(animate);
+  }
+
+  /** Set 9-slice border config (requires rebuilding background) */
+  setNineSlice(config: NineSliceConfig): void {
+    const changed =
+      config.leftWidth !== this.nineSlice.leftWidth ||
+      config.topHeight !== this.nineSlice.topHeight ||
+      config.rightWidth !== this.nineSlice.rightWidth ||
+      config.bottomHeight !== this.nineSlice.bottomHeight;
+
+    if (!changed) return;
+
+    this.nineSlice = { ...config };
+
+    // Rebuild the 9-slice sprite with new borders
+    if (this.gridBackground) {
+      const texture = this.gpuLoader.getTexture('tiles_citylines_v1', 'grid_backing.png');
+      const totalSize = this.getGridPixelSize();
+
+      // Remove old background
+      this.gridContainer.removeChild(this.gridBackground);
+      this.gridBackground.destroy();
+
+      // Create new background with updated borders
+      this.gridBackground = new NineSliceSprite({
+        texture,
+        leftWidth: this.nineSlice.leftWidth,
+        topHeight: this.nineSlice.topHeight,
+        rightWidth: this.nineSlice.rightWidth,
+        bottomHeight: this.nineSlice.bottomHeight,
+      });
+      this.gridBackground.width = totalSize;
+      this.gridBackground.height = totalSize;
+
+      // Add at the bottom of gridContainer
+      this.gridContainer.addChildAt(this.gridBackground, 0);
+    }
+  }
+
+  /** Update all element positions with optional animation */
+  private updateLayout(animate = true): void {
+    const { duration, ease, stagger } = TUNING_ANIMATION;
+    const animDuration = animate ? duration : 0;
+
+    // Update 9-slice grid background
+    const totalSize = this.getGridPixelSize();
+    if (this.gridBackground) {
+      if (animate) {
+        gsap.to(this.gridBackground, {
+          width: totalSize,
+          height: totalSize,
+          duration: animDuration,
+          ease,
+        });
+      } else {
+        this.gridBackground.width = totalSize;
+        this.gridBackground.height = totalSize;
+      }
+    }
+
+    // Update exits
+    this.exits.forEach((exit, i) => {
+      exit.animateToLayout(this.tileSize, this.padding, this.cellGap, animate ? animDuration : 0, i * stagger);
+    });
+
+    // Update landmarks
+    this.landmarks.forEach((landmark, i) => {
+      landmark.animateToLayout(this.tileSize, this.padding, this.cellGap, animate ? animDuration : 0, i * stagger);
+    });
+
+    // Update road tiles
+    this.roadTiles.forEach((tile, i) => {
+      tile.animateToLayout(this.tileSize, this.padding, this.cellGap, animate ? animDuration : 0, i * stagger);
+    });
+  }
+
+  /** Get total grid pixel size (including padding and gaps) */
+  getGridPixelSize(): number {
+    return this.padding * 2 + this.gridSize * this.tileSize + (this.gridSize - 1) * this.cellGap;
   }
 
   /** Get all landmarks */

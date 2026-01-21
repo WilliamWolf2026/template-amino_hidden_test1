@@ -1,4 +1,5 @@
 import { Container, Sprite, Graphics } from 'pixi.js';
+import gsap from 'gsap';
 import type { Edge, GridPosition, LandmarkType } from '../types';
 import { getLandmarkConfig } from '../data';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
@@ -15,6 +16,7 @@ export class Landmark extends Container {
   private connectionIndicators: Map<Edge, Graphics> = new Map();
   private _connectedEdges: Edge[] = [];
   private _isConnectedToExit = false;
+  private tileSize: number;
 
   constructor(
     type: LandmarkType,
@@ -27,6 +29,7 @@ export class Landmark extends Container {
 
     this.type = type;
     this.gridPosition = position;
+    this.tileSize = tileSize;
 
     const config = getLandmarkConfig(type);
     this.connectableEdges = connectableEdgesOverride ?? config.connectableEdges;
@@ -111,6 +114,81 @@ export class Landmark extends Container {
     } else {
       this.sprite.tint = 0xe0e0e0;
       this.sprite.alpha = 0.9;
+    }
+  }
+
+  /** Update tile size (for live tuning) */
+  setTileSize(newSize: number): void {
+    this.tileSize = newSize;
+    this.x = this.gridPosition.col * newSize + newSize / 2;
+    this.y = this.gridPosition.row * newSize + newSize / 2;
+    this.sprite.width = newSize * 0.85;
+    this.sprite.height = newSize * 0.85;
+    this.updateIndicatorPositions(newSize);
+  }
+
+  /** Animate to new layout (for live tuning with GSAP) */
+  animateToLayout(
+    tileSize: number,
+    padding: number,
+    cellGap: number,
+    duration: number,
+    delay = 0
+  ): void {
+    this.tileSize = tileSize;
+    const effectiveSize = tileSize + cellGap;
+    const targetX = padding + this.gridPosition.col * effectiveSize + tileSize / 2;
+    const targetY = padding + this.gridPosition.row * effectiveSize + tileSize / 2;
+
+    if (duration > 0) {
+      gsap.to(this, {
+        x: targetX,
+        y: targetY,
+        duration,
+        ease: 'power2.out',
+        delay,
+      });
+      gsap.to(this.sprite, {
+        width: tileSize * 0.85,
+        height: tileSize * 0.85,
+        duration,
+        ease: 'power2.out',
+        delay,
+      });
+    } else {
+      this.x = targetX;
+      this.y = targetY;
+      this.sprite.width = tileSize * 0.85;
+      this.sprite.height = tileSize * 0.85;
+    }
+
+    // Update indicators (instant, as they're relative to sprite)
+    this.updateIndicatorPositions(tileSize);
+  }
+
+  /** Update connection indicator positions */
+  private updateIndicatorPositions(tileSize: number): void {
+    const indicatorSize = tileSize * 0.08;
+    const offset = tileSize * 0.42;
+
+    const edgePositions: Record<Edge, { x: number; y: number }> = {
+      north: { x: 0, y: -offset },
+      east: { x: offset, y: 0 },
+      south: { x: 0, y: offset },
+      west: { x: -offset, y: 0 },
+    };
+
+    for (const [edge, indicator] of this.connectionIndicators) {
+      const pos = edgePositions[edge];
+      indicator.x = pos.x;
+      indicator.y = pos.y;
+      indicator.clear();
+      indicator.circle(0, 0, indicatorSize);
+      if (this._connectedEdges.includes(edge)) {
+        indicator.fill({ color: 0x27ae60 });
+      } else {
+        indicator.fill({ color: 0xcccccc });
+      }
     }
   }
 

@@ -1,4 +1,5 @@
 import { Container, Sprite } from 'pixi.js';
+import gsap from 'gsap';
 import type { Edge, GridPosition, RoadTileType } from '../types';
 import { EDGES } from '../types';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
@@ -124,6 +125,62 @@ export class RoadTile extends Container {
     const radians = (this._currentRotation * Math.PI) / 180;
     this.defaultSprite.rotation = radians;
     this.completedSprite.rotation = radians;
+  }
+
+  /** Update tile size (for live tuning) */
+  setTileSize(newSize: number): void {
+    this.tileSize = newSize;
+    this.x = this.gridPosition.col * newSize + newSize / 2;
+    this.y = this.gridPosition.row * newSize + newSize / 2;
+    this.defaultSprite.width = newSize;
+    this.defaultSprite.height = newSize;
+    this.completedSprite.width = newSize;
+    this.completedSprite.height = newSize;
+  }
+
+  /** Animate to new layout (for live tuning with GSAP) */
+  animateToLayout(
+    tileSize: number,
+    padding: number,
+    cellGap: number,
+    duration: number,
+    delay = 0
+  ): void {
+    this.tileSize = tileSize;
+    const effectiveSize = tileSize + cellGap;
+    const targetX = padding + this.gridPosition.col * effectiveSize + tileSize / 2;
+    const targetY = padding + this.gridPosition.row * effectiveSize + tileSize / 2;
+
+    if (duration > 0) {
+      gsap.to(this, {
+        x: targetX,
+        y: targetY,
+        duration,
+        ease: 'power2.out',
+        delay,
+      });
+      gsap.to(this.defaultSprite, {
+        width: tileSize,
+        height: tileSize,
+        duration,
+        ease: 'power2.out',
+        delay,
+      });
+      gsap.to(this.completedSprite, {
+        width: tileSize,
+        height: tileSize,
+        duration,
+        ease: 'power2.out',
+        delay,
+      });
+    } else {
+      this.x = targetX;
+      this.y = targetY;
+      this.defaultSprite.width = tileSize;
+      this.defaultSprite.height = tileSize;
+      this.completedSprite.width = tileSize;
+      this.completedSprite.height = tileSize;
+    }
   }
 
   /** Clean up */

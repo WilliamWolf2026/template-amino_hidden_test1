@@ -1,67 +1,40 @@
-import { onMount, onCleanup } from 'solid-js';
+import { onMount, onCleanup, createEffect, createSignal } from 'solid-js';
 import { Application } from 'pixi.js';
 import { useAssets } from '~/scaffold/systems/assets';
-import { PauseOverlay } from '~/scaffold';
+import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, type LevelConfig } from '~/game/citylines';
+import type { CityLinesTuning } from '~/game/tuning';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
+  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
   let containerRef: HTMLDivElement | undefined;
-  let app: Application | null = null;
+
+  // Store references for reactive updates
+  const [pixiApp, setPixiApp] = createSignal<Application | null>(null);
+  const [gameInstance, setGameInstance] = createSignal<CityLinesGame | null>(null);
 
   onMount(async () => {
     if (!containerRef) return;
 
+    // Get initial tuning values
+    const gameTuning = tuning.game();
+
     // Create Pixi application
-    app = new Application();
+    const app = new Application();
 
     await app.init({
-      background: '#1a1a2e',
+      background: gameTuning.visuals.backgroundColor,
       resizeTo: containerRef,
       antialias: true,
     });
 
     // Mount canvas
     containerRef.appendChild(app.canvas);
+    setPixiApp(app);
 
     const gpuLoader = coordinator.getGpuLoader() as PixiLoader;
-
-    // Animated water background (commented out for now)
-    // if (gpuLoader && gpuLoader.hasSheet('animation-water')) {
-    //   try {
-    //     const frameNames = [
-    //       'caust_001.png', 'caust_002.png', 'caust_003.png', 'caust_004.png',
-    //       'caust_005.png', 'caust_006.png', 'caust_007.png', 'caust_008.png',
-    //       'caust_009.png', 'caust_010.png', 'caust_011.png', 'caust_012.png',
-    //       'caust_013.png', 'caust_014.png', 'caust_015.png', 'caust_016.png',
-    //     ];
-    //     const frames: Texture[] = frameNames.map((name) =>
-    //       gpuLoader.getTexture('animation-water', name)
-    //     );
-    //     const tilingBg = new TilingSprite({
-    //       texture: frames[0],
-    //       width: app.screen.width,
-    //       height: app.screen.height,
-    //     });
-    //     app.stage.addChild(tilingBg);
-    //     let frameIndex = 0;
-    //     let frameTime = 0;
-    //     const frameDelay = 1 / 24;
-    //     app.ticker.add((ticker) => {
-    //       if (pauseState.paused()) return;
-    //       frameTime += ticker.deltaTime / 60;
-    //       if (frameTime >= frameDelay) {
-    //         frameTime = 0;
-    //         frameIndex = (frameIndex + 1) % frames.length;
-    //         tilingBg.texture = frames[frameIndex];
-    //       }
-    //     });
-    //     console.log('[GameScreen] Tiling water background added');
-    //   } catch (err) {
-    //     console.error('[GameScreen] Failed to create water background:', err);
-    //   }
-    // }
 
     // Load game tiles bundle
     await coordinator.loadBundle('tiles_citylines_v1');
@@ -74,16 +47,10 @@ export function GameScreen() {
       background.height = app.screen.height;
       app.stage.addChild(background);
 
-      const tileSize = 100;
+      const tileSize = gameTuning.grid.tileSize;
       const game = new CityLinesGame(gpuLoader, tileSize);
 
       // Sample level config - a solvable puzzle
-      // Grid layout (solution):
-      //   col0  col1  col2  col3
-      // row0  .     .     .     EXIT
-      // row1  .     DINER .     straight(N-S)
-      // row2  .     straight(N-S) GAS   T-junc(N-S-W)
-      // row3  .     corner(N-E)   straight(E-W) corner(W-N)
       const sampleLevel: LevelConfig = {
         levelNumber: 1,
         gridSize: 4,
@@ -96,17 +63,11 @@ export function GameScreen() {
           { position: { row: 0, col: 3 }, facingEdge: 'south' },
         ],
         roadTiles: [
-          // Path from exit down
           { type: 'straight', row: 1, col: 3, solutionRotation: 0, initialRotation: 90 },
-          // T-junction connects to gas station (east) and continues down
           { type: 't_junction', row: 2, col: 3, solutionRotation: 180, initialRotation: 0 },
-          // Corner turns from down to left
           { type: 'corner', row: 3, col: 3, solutionRotation: 270, initialRotation: 90 },
-          // Straight goes left
           { type: 'straight', row: 3, col: 2, solutionRotation: 90, initialRotation: 0 },
-          // Corner turns from right to up
           { type: 'corner', row: 3, col: 1, solutionRotation: 0, initialRotation: 180 },
-          // Straight goes up to diner
           { type: 'straight', row: 2, col: 1, solutionRotation: 0, initialRotation: 90 },
         ],
       };
@@ -119,6 +80,7 @@ export function GameScreen() {
       game.y = (app.screen.height - gridPixelSize) / 2;
 
       app.stage.addChild(game);
+      setGameInstance(game);
 
       // Listen for level complete
       game.onGameEvent('levelComplete', () => {
@@ -129,9 +91,49 @@ export function GameScreen() {
     }
   });
 
+  // Reactive: Background color changes
+  createEffect(() => {
+    const app = pixiApp();
+    if (!app) return;
+
+    const bgColor = tuning.game().visuals.backgroundColor;
+    app.renderer.background.color = bgColor;
+    console.log('[Tuning] Background color updated:', bgColor);
+  });
+
+  // Reactive: Grid layout changes (tile size, padding, cell gap)
+  createEffect(() => {
+    const app = pixiApp();
+    const game = gameInstance();
+    if (!app || !game) return;
+
+    const { tileSize, padding, cellGap } = tuning.game().grid;
+
+    // Update game layout with animation
+    game.setTileSize(tileSize);
+    game.setGridLayout(padding, cellGap);
+
+    // Re-center the game using calculated grid size
+    const gridPixelSize = game.getGridPixelSize();
+    game.x = (app.screen.width - gridPixelSize) / 2;
+    game.y = (app.screen.height - gridPixelSize) / 2;
+
+    console.log('[Tuning] Grid layout updated:', { tileSize, padding, cellGap });
+  });
+
+  // Reactive: 9-slice border changes
+  createEffect(() => {
+    const game = gameInstance();
+    if (!game) return;
+
+    const { nineSlice } = tuning.game().grid;
+    game.setNineSlice(nineSlice);
+
+    console.log('[Tuning] Nine-slice updated:', nineSlice);
+  });
+
   onCleanup(() => {
-    // Keep app cached for potential return (don't destroy)
-    // If you want to destroy: app?.destroy(true, { children: true });
+    const app = pixiApp();
     if (app) {
       app.ticker.stop();
     }
