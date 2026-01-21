@@ -1,6 +1,8 @@
 import type { Pane, FolderApi, BindingParams } from 'tweakpane';
 import type { TuningState, ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
 import { isGamePathWired, isScaffoldPathWired, areAllChildrenWired } from './tuningRegistry';
+import gsap from 'gsap';
+import { EasingPicker } from './EasingPicker';
 
 // Use any for Pane methods due to @tweakpane/core type definition issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +46,105 @@ function styleUnwiredBinding(element: HTMLElement): void {
   }
   // Add subtle red background tint
   element.style.backgroundColor = 'rgba(255, 100, 100, 0.1)';
+}
+
+/**
+ * Create an SVG easing curve visualization element.
+ * Has headroom above for overshoot (back/elastic easings).
+ */
+function createEasingCurveSvg(easing: string, width = 200, height = 80): SVGSVGElement {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', String(width));
+  svg.setAttribute('height', String(height));
+  svg.style.display = 'block';
+  svg.style.background = 'rgba(0, 0, 0, 0.3)';
+  svg.style.borderRadius = '4px';
+  svg.style.marginTop = '4px';
+
+  const padding = 8;
+  const graphWidth = width - padding * 2;
+  // Reserve 20% headroom for overshoot, 10% below for undershoot
+  const overshootRatio = 0.2;
+  const undershootRatio = 0.1;
+  const graphHeight = height - padding * 2;
+  const baselineY = padding + graphHeight * overshootRatio; // y=1 position
+  const floorY = padding + graphHeight * (1 - undershootRatio); // y=0 position
+  const usableHeight = floorY - baselineY;
+
+  // Background rect
+  const bgRect = document.createElementNS(ns, 'rect');
+  bgRect.setAttribute('x', String(padding));
+  bgRect.setAttribute('y', String(padding));
+  bgRect.setAttribute('width', String(graphWidth));
+  bgRect.setAttribute('height', String(graphHeight));
+  bgRect.setAttribute('fill', 'rgba(255, 255, 255, 0.03)');
+  bgRect.setAttribute('stroke', 'rgba(255, 255, 255, 0.1)');
+  bgRect.setAttribute('stroke-width', '1');
+  svg.appendChild(bgRect);
+
+  // Horizontal line at y=1 (top baseline for overshoot reference)
+  const topLine = document.createElementNS(ns, 'line');
+  topLine.setAttribute('x1', String(padding));
+  topLine.setAttribute('y1', String(baselineY));
+  topLine.setAttribute('x2', String(padding + graphWidth));
+  topLine.setAttribute('y2', String(baselineY));
+  topLine.setAttribute('stroke', 'rgba(255, 255, 255, 0.15)');
+  topLine.setAttribute('stroke-width', '1');
+  topLine.setAttribute('stroke-dasharray', '2,2');
+  svg.appendChild(topLine);
+
+  // Linear reference (diagonal dashed line)
+  const diagonal = document.createElementNS(ns, 'line');
+  diagonal.setAttribute('x1', String(padding));
+  diagonal.setAttribute('y1', String(floorY));
+  diagonal.setAttribute('x2', String(padding + graphWidth));
+  diagonal.setAttribute('y2', String(baselineY));
+  diagonal.setAttribute('stroke', 'rgba(255, 255, 255, 0.2)');
+  diagonal.setAttribute('stroke-width', '1');
+  diagonal.setAttribute('stroke-dasharray', '4,4');
+  svg.appendChild(diagonal);
+
+  // Sample the easing function
+  const easeFn = gsap.parseEase(easing) || ((t: number) => t);
+  const samples = 50;
+  const points: string[] = [];
+
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    const value = easeFn(t);
+    const x = padding + t * graphWidth;
+    const y = floorY - value * usableHeight;
+    points.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`);
+  }
+
+  // Easing curve path
+  const path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', points.join(' '));
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', '#4dabf7');
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(path);
+
+  // Start point
+  const startCircle = document.createElementNS(ns, 'circle');
+  startCircle.setAttribute('cx', String(padding));
+  startCircle.setAttribute('cy', String(floorY));
+  startCircle.setAttribute('r', '3');
+  startCircle.setAttribute('fill', '#4dabf7');
+  svg.appendChild(startCircle);
+
+  // End point
+  const endCircle = document.createElementNS(ns, 'circle');
+  endCircle.setAttribute('cx', String(padding + graphWidth));
+  endCircle.setAttribute('cy', String(baselineY));
+  endCircle.setAttribute('r', '3');
+  endCircle.setAttribute('fill', '#4dabf7');
+  svg.appendChild(endCircle);
+
+  return svg;
 }
 
 /**
@@ -256,6 +357,48 @@ function createBinding(
       });
       binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      return;
+    }
+
+    // Easing picker with curve previews in dropdown
+    if (key === 'defaultEasing' || key === 'tileRotateEasing') {
+      // Create a container that mimics Tweakpane row styling
+      const container = document.createElement('div');
+      container.className = 'tp-lblv';
+      container.style.cssText = 'display: flex; align-items: center; padding: 2px 4px;';
+
+      // Label
+      const labelEl = document.createElement('div');
+      labelEl.className = 'tp-lblv_l';
+      labelEl.style.cssText = 'flex: 1; font-size: 11px; color: rgba(255, 255, 255, 0.7);';
+      labelEl.textContent = label;
+      container.appendChild(labelEl);
+
+      // Picker container
+      const pickerContainer = document.createElement('div');
+      pickerContainer.style.cssText = 'flex: 1.5;';
+
+      const picker = new EasingPicker(value as string, (newValue) => {
+        onUpdate(newValue);
+      });
+      pickerContainer.appendChild(picker.element);
+      container.appendChild(pickerContainer);
+
+      // Inject into parent folder
+      setTimeout(() => {
+        const parentEl = parent.element.querySelector('.tp-fldv_c') || parent.element;
+        parentEl.appendChild(container);
+      }, 0);
+
+      // Style if unwired
+      if (!isWired) {
+        setTimeout(() => {
+          labelEl.style.color = '#ff6b6b';
+          labelEl.style.fontStyle = 'italic';
+          container.style.backgroundColor = 'rgba(255, 100, 100, 0.1)';
+        }, 0);
+      }
+
       return;
     }
 

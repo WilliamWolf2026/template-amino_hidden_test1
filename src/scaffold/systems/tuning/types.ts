@@ -133,7 +133,7 @@ export const SCAFFOLD_DEFAULTS: ScaffoldTuning = {
   },
   animation: {
     defaultDuration: 300,
-    defaultEasing: 'easeOutQuad',
+    defaultEasing: 'power2.out',
     transitionDuration: 300,
     transitionType: 'fade',
   },

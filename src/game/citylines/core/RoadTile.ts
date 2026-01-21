@@ -108,10 +108,38 @@ export class RoadTile extends Container {
     return this._currentRotation === this.solutionRotation;
   }
 
-  /** Rotate 90 degrees clockwise */
-  rotate(): void {
+  /** Rotate 90 degrees clockwise with optional animation */
+  rotate(animationConfig?: { duration: number; easing: string }): void {
     this._currentRotation = (this._currentRotation + 90) % 360;
-    this.applyRotation();
+
+    if (animationConfig && animationConfig.duration > 0) {
+      // Use relative rotation to always rotate clockwise (positive direction)
+      // This avoids GSAP taking the shortest path (e.g., 270° → 0° going counter-clockwise)
+      const rotationIncrement = Math.PI / 2; // 90° in radians
+      const targetRadians = (this._currentRotation * Math.PI) / 180;
+
+      gsap.to(this.defaultSprite, {
+        rotation: `+=${rotationIncrement}`,
+        duration: animationConfig.duration / 1000, // ms to seconds
+        ease: animationConfig.easing,
+        onComplete: () => {
+          // Snap to exact target to prevent floating point drift
+          this.defaultSprite.rotation = targetRadians;
+        },
+      });
+      gsap.to(this.completedSprite, {
+        rotation: `+=${rotationIncrement}`,
+        duration: animationConfig.duration / 1000,
+        ease: animationConfig.easing,
+        onComplete: () => {
+          // Snap to exact target to prevent floating point drift
+          this.completedSprite.rotation = targetRadians;
+        },
+      });
+    } else {
+      // Immediate (no animation)
+      this.applyRotation();
+    }
   }
 
   /** Set connected state (visual feedback) */

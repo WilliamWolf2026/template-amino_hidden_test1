@@ -20,24 +20,21 @@ bun run dev
 
 ### Tuning System
 
-The game includes a real-time parameter tuning system for development and QA.
+Real-time parameter tuning for development and QA.
 
-- **Toggle Panel**: Press backtick (`) in dev mode
-- **Config Files**: `/public/config/tuning/`
-- **Documentation**: [Tuning System Guide](src/game/docs/tuning-system.md)
-
-Features:
-- Real-time parameter adjustment via Tweakpane
-- Two-tier config: scaffold (framework) + game (CityLines-specific)
-- Auto-save to localStorage
-- Export/import JSON configs
+- **Toggle**: Press backtick (`) or click wrench icon in settings
+- **Documentation**: [Tuning System](docs/services/tuning.md)
 
 ## Documentation
 
+### Scaffold
 - [Architecture](docs/architecture.md)
 - [Configuration](docs/configuration.md)
 - [Screens](docs/screens.md)
 - [Assets](docs/assets.md)
 - [State Management](docs/state-management.md)
 - [Error Handling](docs/error-handling.md)
-- [Tuning System](src/game/docs/tuning-system.md)
+- [Tuning System](docs/services/tuning.md)
+
+### Game
+- [Game Design Document](docs/game/gdd.md)

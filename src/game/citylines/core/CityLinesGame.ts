@@ -57,6 +57,9 @@ export class CityLinesGame extends Container {
   // Event callbacks
   private eventHandlers: Partial<CityLinesGameEvents> = {};
 
+  // Animation config for tile rotation (from tuning)
+  private rotationAnimationConfig?: { duration: number; easing: string };
+
   constructor(gpuLoader: PixiLoader, tileSize: number = 128) {
     super();
 
@@ -201,10 +204,15 @@ export class CityLinesGame extends Container {
 
   /** Handle tile rotation */
   private handleTileRotate(tile: RoadTile): void {
-    tile.rotate();
+    tile.rotate(this.rotationAnimationConfig);
     this.syncTileConnections();
     this.updateConnections();
     this.emitEvent('tileRotated');
+  }
+
+  /** Set rotation animation config (from tuning) */
+  setRotationAnimationConfig(config: { duration: number; easing: string }): void {
+    this.rotationAnimationConfig = config;
   }
 
   /** Sync all road tile connections to detector */

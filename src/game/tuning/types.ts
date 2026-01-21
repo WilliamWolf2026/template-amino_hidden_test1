@@ -141,7 +141,7 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
   },
   animation: {
     tileRotateDuration: 200,
-    tileRotateEasing: 'easeOutBack',
+    tileRotateEasing: 'elastic.out(1, 0.5)',
     connectionPulseDuration: 300,
     levelCompleteDelay: 500,
   },
