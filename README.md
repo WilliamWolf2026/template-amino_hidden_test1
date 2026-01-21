@@ -16,25 +16,25 @@ bun run dev
 - **Signal-Based Navigation** — No router, instant screen transitions
 - **Error Boundaries** — Layered error handling with Sentry + PostHog
 
-## Development Tools
-
-### Tuning System
-
-Real-time parameter tuning for development and QA.
-
-- **Toggle**: Press backtick (`) or click wrench icon in settings
-- **Documentation**: [Tuning System](docs/services/tuning.md)
-
 ## Documentation
 
-### Scaffold
-- [Architecture](docs/architecture.md)
-- [Configuration](docs/configuration.md)
-- [Screens](docs/screens.md)
-- [Assets](docs/assets.md)
-- [State Management](docs/state-management.md)
-- [Error Handling](docs/error-handling.md)
-- [Tuning System](docs/services/tuning.md)
+### Architecture & Setup
+- [Architecture](docs/architecture.md) — System overview and design patterns
+- [Configuration](docs/configuration.md) — Environment and build config
+- [Screens](docs/screens.md) — Screen navigation system
+
+### Systems
+- [Assets](docs/assets.md) — Asset loading and management
+- [State Management](docs/state-management.md) — Signal-based state
+- [Error Handling](docs/error-handling.md) — Error boundaries and logging
+
+### Development Tools
+- [Tuning System](docs/services/tuning.md) — Real-time parameter adjustment
+- [AI-Driven Development](docs/aidd.md) — AI coding guidelines
+
+### Components
+- [Tuning Panel](docs/components/tuning-panel.md) — Dev tuning UI component
+- [Easing Picker](docs/components/easing-picker.md) — GSAP easing dropdown with curve previews
 
 ### Game
-- [Game Design Document](docs/game/gdd.md)
+- [Game Design Document](docs/game/gdd.md) — City Lines game design
