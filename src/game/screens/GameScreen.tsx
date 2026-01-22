@@ -2,18 +2,22 @@ import { onMount, onCleanup, createEffect, createSignal } from 'solid-js';
 import { Application } from 'pixi.js';
 import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
+import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, type LevelConfig } from '~/game/citylines';
 import type { CityLinesTuning } from '~/game/tuning';
+import { GameAudioManager } from '~/game/audio/manager';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
   const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const audio = useAudio();
   let containerRef: HTMLDivElement | undefined;
 
   // Store references for reactive updates
   const [pixiApp, setPixiApp] = createSignal<Application | null>(null);
   const [gameInstance, setGameInstance] = createSignal<CityLinesGame | null>(null);
+  const [audioManager, setAudioManager] = createSignal<GameAudioManager | null>(null);
 
   onMount(async () => {
     if (!containerRef) return;
@@ -82,9 +86,23 @@ export function GameScreen() {
       app.stage.addChild(game);
       setGameInstance(game);
 
-      // Listen for level complete
+      // Create audio manager
+      const manager = new GameAudioManager(coordinator.audio);
+      setAudioManager(manager);
+
+      // Wire game events to audio
+      game.onGameEvent('tileRotated', () => {
+        manager.playTileRotate();
+      });
+
       game.onGameEvent('levelComplete', () => {
         console.log('[GameScreen] Level complete!');
+        manager.playLevelComplete();
+      });
+
+      // landmarkConnected has no sound per GDD (future: news reveal)
+      game.onGameEvent('landmarkConnected', (landmark) => {
+        console.log('[GameScreen] Landmark connected:', landmark);
       });
 
       console.log('[GameScreen] City Lines game loaded');
@@ -144,6 +162,25 @@ export function GameScreen() {
     });
 
     console.log('[Tuning] Rotation animation updated:', { tileRotateDuration, tileRotateEasing });
+  });
+
+  // Reactive: Audio volume changes
+  createEffect(() => {
+    const volume = audio.volume();
+    coordinator.audio.setMasterVolume(volume);
+    console.log('[Audio] Master volume updated:', volume);
+  });
+
+  // Reactive: Music enabled/disabled
+  createEffect(() => {
+    const manager = audioManager();
+    if (!manager) return;
+
+    if (audio.musicEnabled()) {
+      manager.startMusic();
+    } else {
+      manager.stopMusic();
+    }
   });
 
   onCleanup(() => {

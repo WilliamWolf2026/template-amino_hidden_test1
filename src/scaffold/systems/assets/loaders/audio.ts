@@ -86,7 +86,7 @@ export class AudioLoader {
 
     await Promise.all(
       bundle.assets
-        .filter((p) => p.endsWith('.json') && p.includes('audio/'))
+        .filter((p) => p.endsWith('.json'))
         .map((p) => this.register(p))
     );
   }
