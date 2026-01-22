@@ -21,8 +21,10 @@ export const WIRED_GAME_PATHS = new Set([
   'visuals.backgroundColor',
   // NOT WIRED: roadConnectedTint, roadDisconnectedTint, landmarkConnectedScale, etc.
 
-  // Animation - not wired yet
-  // NOT WIRED: animation.*
+  // Animation - wired in GameScreen.tsx
+  'animation.tileRotateDuration',
+  'animation.tileRotateEasing',
+  // NOT WIRED: animation.connectionPulseDuration, animation.levelCompleteDelay
 
   // Scoring - not wired (game logic)
   // NOT WIRED: scoring.*

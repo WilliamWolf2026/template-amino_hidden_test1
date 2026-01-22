@@ -132,6 +132,20 @@ export function GameScreen() {
     console.log('[Tuning] Nine-slice updated:', nineSlice);
   });
 
+  // Reactive: Rotation animation config changes
+  createEffect(() => {
+    const game = gameInstance();
+    if (!game) return;
+
+    const { tileRotateDuration, tileRotateEasing } = tuning.game().animation;
+    game.setRotationAnimationConfig({
+      duration: tileRotateDuration,
+      easing: tileRotateEasing,
+    });
+
+    console.log('[Tuning] Rotation animation updated:', { tileRotateDuration, tileRotateEasing });
+  });
+
   onCleanup(() => {
     const app = pixiApp();
     if (app) {
