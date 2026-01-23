@@ -25,7 +25,9 @@ export interface LevelConfig {
   /** County for theming */
   county: string;
   /** Story clue revealed on completion */
-  clue?: string;
+  clue: string;
+  /** Optional celebration image URL */
+  celebrationImageUrl?: string;
 }
 
 /** Chapter configuration */

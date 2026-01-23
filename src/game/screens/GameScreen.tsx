@@ -3,8 +3,9 @@ import { Application } from 'pixi.js';
 import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, type LevelConfig } from '~/game/citylines';
+import { CityLinesGame, sampleLevel } from '~/game/citylines';
 import type { CityLinesTuning } from '~/game/tuning';
+import { CompletionOverlay } from './components';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
@@ -14,6 +15,12 @@ export function GameScreen() {
   // Store references for reactive updates
   const [pixiApp, setPixiApp] = createSignal<Application | null>(null);
   const [gameInstance, setGameInstance] = createSignal<CityLinesGame | null>(null);
+
+  // Completion overlay state
+  const [overlayOpen, setOverlayOpen] = createSignal(false);
+  const [clueText, setClueText] = createSignal('');
+  const [celebrationImageUrl, setCelebrationImageUrl] = createSignal<string | undefined>();
+  const [canContinue, setCanContinue] = createSignal(false);
 
   onMount(async () => {
     if (!containerRef) return;
@@ -50,46 +57,63 @@ export function GameScreen() {
       const tileSize = gameTuning.grid.tileSize;
       const game = new CityLinesGame(gpuLoader, tileSize);
 
-      // Sample level config - a solvable puzzle
-      const sampleLevel: LevelConfig = {
-        levelNumber: 1,
-        gridSize: 4,
-        county: 'atlantic',
-        landmarks: [
-          { type: 'diner', position: { row: 1, col: 1 } },
-          { type: 'gas_station', position: { row: 2, col: 2 } },
-        ],
-        exits: [
-          { position: { row: 0, col: 3 }, facingEdge: 'south' },
-        ],
-        roadTiles: [
-          { type: 'straight', row: 1, col: 3, solutionRotation: 0, initialRotation: 90 },
-          { type: 't_junction', row: 2, col: 3, solutionRotation: 180, initialRotation: 0 },
-          { type: 'corner', row: 3, col: 3, solutionRotation: 270, initialRotation: 90 },
-          { type: 'straight', row: 3, col: 2, solutionRotation: 90, initialRotation: 0 },
-          { type: 'corner', row: 3, col: 1, solutionRotation: 0, initialRotation: 180 },
-          { type: 'straight', row: 2, col: 1, solutionRotation: 0, initialRotation: 90 },
-        ],
-      };
-
+      // Load sample level
       game.loadLevel(sampleLevel);
 
       // Center the game on screen
-      const gridPixelSize = sampleLevel.gridSize * tileSize;
+      const gridPixelSize = game.getGridPixelSize();
       game.x = (app.screen.width - gridPixelSize) / 2;
       game.y = (app.screen.height - gridPixelSize) / 2;
 
       app.stage.addChild(game);
       setGameInstance(game);
 
-      // Listen for level complete
-      game.onGameEvent('levelComplete', () => {
-        console.log('[GameScreen] Level complete!');
+      // Wire completion events
+      game.onGameEvent('completionStart', (clue) => {
+        setOverlayOpen(true);
+        setClueText(clue);
+        setCanContinue(false);
+
+        const config = game.getCurrentLevelConfig();
+        setCelebrationImageUrl(config?.celebrationImageUrl);
+      });
+
+      game.onGameEvent('clueTimerEnd', () => {
+        setCanContinue(true);
+      });
+
+      game.onGameEvent('completionEnd', () => {
+        setOverlayOpen(false);
+      });
+
+      game.onGameEvent('levelComplete', (payload) => {
+        console.log('[GameScreen] Level complete!', payload);
+        // Analytics would go here
       });
 
       console.log('[GameScreen] City Lines game loaded');
     }
   });
+
+  // Handle continue button
+  const handleContinue = () => {
+    const game = gameInstance();
+    if (!game) return;
+
+    const controller = game.getCompletionController();
+    controller.continue();
+
+    // Reset the same level
+    game.loadLevel(sampleLevel);
+
+    // Re-center game
+    const app = pixiApp();
+    if (app) {
+      const gridPixelSize = game.getGridPixelSize();
+      game.x = (app.screen.width - gridPixelSize) / 2;
+      game.y = (app.screen.height - gridPixelSize) / 2;
+    }
+  };
 
   // Reactive: Background color changes
   createEffect(() => {
@@ -98,7 +122,6 @@ export function GameScreen() {
 
     const bgColor = tuning.game().visuals.backgroundColor;
     app.renderer.background.color = bgColor;
-    console.log('[Tuning] Background color updated:', bgColor);
   });
 
   // Reactive: Grid layout changes (tile size, padding, cell gap)
@@ -117,8 +140,6 @@ export function GameScreen() {
     const gridPixelSize = game.getGridPixelSize();
     game.x = (app.screen.width - gridPixelSize) / 2;
     game.y = (app.screen.height - gridPixelSize) / 2;
-
-    console.log('[Tuning] Grid layout updated:', { tileSize, padding, cellGap });
   });
 
   // Reactive: 9-slice border changes
@@ -128,8 +149,6 @@ export function GameScreen() {
 
     const { nineSlice } = tuning.game().grid;
     game.setNineSlice(nineSlice);
-
-    console.log('[Tuning] Nine-slice updated:', nineSlice);
   });
 
   // Reactive: Rotation animation config changes
@@ -142,8 +161,6 @@ export function GameScreen() {
       duration: tileRotateDuration,
       easing: tileRotateEasing,
     });
-
-    console.log('[Tuning] Rotation animation updated:', { tileRotateDuration, tileRotateEasing });
   });
 
   onCleanup(() => {
@@ -163,6 +180,15 @@ export function GameScreen() {
 
       {/* Pause overlay */}
       <PauseOverlay />
+
+      {/* Completion overlay */}
+      <CompletionOverlay
+        open={overlayOpen()}
+        clueText={clueText()}
+        celebrationImageUrl={celebrationImageUrl()}
+        canContinue={canContinue()}
+        onContinue={handleContinue}
+      />
     </div>
   );
 }

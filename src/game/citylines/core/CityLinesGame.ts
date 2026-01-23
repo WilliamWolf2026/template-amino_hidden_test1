@@ -4,11 +4,20 @@ import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
 import { Exit } from './Exit';
 import { RoadTile } from './RoadTile';
-import { ConnectionDetector, type TileConnections } from './ConnectionDetector';
 import { posKey } from '../types';
 import { DecorationSystem } from '../systems';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import type { NineSliceConfig } from '~/game/tuning';
+import {
+  createLevelCompletionController,
+  type LevelCompletionController,
+} from '../controllers';
+import {
+  evaluateConnections,
+  type TileData,
+  type LandmarkData,
+  type ExitData,
+} from '../utils';
 
 /** Animation config for tuning transitions */
 const TUNING_ANIMATION = {
@@ -17,11 +26,21 @@ const TUNING_ANIMATION = {
   stagger: 0.015,
 };
 
+/** Level complete event payload */
+export interface LevelCompletePayload {
+  levelId: number;
+  moves: number;
+  durationMs: number;
+}
+
 /** Events emitted by the game */
 export interface CityLinesGameEvents {
-  levelComplete: () => void;
+  levelComplete: (payload: LevelCompletePayload) => void;
   landmarkConnected: (landmark: Landmark) => void;
   tileRotated: () => void;
+  completionStart: (clue: string) => void;
+  clueTimerEnd: () => void;
+  completionEnd: () => void;
 }
 
 /** Main game controller for City Lines */
@@ -41,7 +60,6 @@ export class CityLinesGame extends Container {
   private landmarks: Landmark[] = [];
   private exits: Exit[] = [];
   private roadTiles: RoadTile[] = [];
-  private connectionDetector: ConnectionDetector;
   private decorationSystem: DecorationSystem;
 
   // Grid background (9-slice sprite)
@@ -60,13 +78,33 @@ export class CityLinesGame extends Container {
   // Animation config for tile rotation (from tuning)
   private rotationAnimationConfig?: { duration: number; easing: string };
 
-  constructor(gpuLoader: PixiLoader, tileSize: number = 128) {
+  // Completion lifecycle
+  private completionController: LevelCompletionController;
+  private currentLevelConfig: LevelConfig | null = null;
+  private moveCount: number = 0;
+  private levelStartTime: number = 0;
+
+  constructor(
+    gpuLoader: PixiLoader,
+    tileSize: number = 128
+  ) {
     super();
 
     this.gpuLoader = gpuLoader;
     this.tileSize = tileSize;
-    this.connectionDetector = new ConnectionDetector(this.gridSize);
     this.decorationSystem = new DecorationSystem(gpuLoader, tileSize);
+
+    // Create completion controller
+    this.completionController = createLevelCompletionController({
+      events: {
+        onCompletionStart: (clue) => this.emitEvent('completionStart', clue),
+        onClueTimerEnd: () => this.emitEvent('clueTimerEnd'),
+        onCompletionEnd: () => this.emitEvent('completionEnd'),
+        onLevelComplete: (payload) => this.emitEvent('levelComplete', payload),
+      },
+      celebrationDuration: 500,
+      clueDuration: 3000,
+    });
 
     // Create layer containers
     this.gridContainer = new Container();
@@ -116,8 +154,12 @@ export class CityLinesGame extends Container {
   loadLevel(config: LevelConfig): void {
     this.clearLevel();
 
+    this.currentLevelConfig = config;
+    this.moveCount = 0;
+    this.levelStartTime = Date.now();
+    this.completionController.reset();
+
     this.gridSize = config.gridSize;
-    this.connectionDetector = new ConnectionDetector(this.gridSize);
 
     // Create 9-slice grid background (single sprite)
     const texture = this.gpuLoader.getTexture('tiles_citylines_v1', 'grid_backing.png');
@@ -179,7 +221,6 @@ export class CityLinesGame extends Container {
     }
 
     // Initial connection check
-    this.syncTileConnections();
     this.updateConnections();
 
     // Place decorations on empty cells
@@ -204,24 +245,27 @@ export class CityLinesGame extends Container {
 
   /** Handle tile rotation */
   private handleTileRotate(tile: RoadTile): void {
+    // Block input during completion sequence
+    if (this.completionController.isInputBlocked) {
+      return;
+    }
+
+    // Rotate tile
     tile.rotate(this.rotationAnimationConfig);
-    this.syncTileConnections();
+    
+    // Increment move counter
+    this.moveCount++;
+
+    // Update connections
     this.updateConnections();
+    
+    // Emit event
     this.emitEvent('tileRotated');
   }
 
   /** Set rotation animation config (from tuning) */
   setRotationAnimationConfig(config: { duration: number; easing: string }): void {
     this.rotationAnimationConfig = config;
-  }
-
-  /** Sync all road tile connections to detector */
-  private syncTileConnections(): void {
-    const tileConnections: TileConnections[] = this.roadTiles.map((tile) => ({
-      position: tile.gridPosition,
-      connectedEdges: tile.getConnectedEdges(),
-    }));
-    this.connectionDetector.setAllTiles(tileConnections);
   }
 
   /** Clear current level */
@@ -251,51 +295,64 @@ export class CityLinesGame extends Container {
       tile.destroy();
     }
     this.roadTiles = [];
-
-    // Clear connection detector
-    this.connectionDetector.clear();
   }
 
-  /** Update road tile connections (called when tiles rotate) */
-  updateTileConnections(tiles: TileConnections[]): void {
-    this.connectionDetector.setAllTiles(tiles);
-    this.updateConnections();
-    this.emitEvent('tileRotated');
-  }
-
-  /** Update single tile connection */
-  updateTileConnection(tile: TileConnections): void {
-    this.connectionDetector.updateTile(tile);
-    this.updateConnections();
-    this.emitEvent('tileRotated');
-  }
-
-  /** Run connection detection and update landmarks + road tiles */
+  /** Run connection evaluation and update visuals */
   private updateConnections(): void {
-    const previouslyConnected = this.landmarks.filter((l) => l.isConnectedToExit);
+    // Convert game objects to evaluation format
+    const tiles: TileData[] = this.roadTiles.map(t => ({
+      type: t.type,
+      rotation: t.currentRotation,
+      position: t.gridPosition,
+    }));
 
-    // Get connected tiles from detector
-    const connectedTileKeys = this.connectionDetector.getConnectedTileKeys(this.exits);
+    const landmarks: LandmarkData[] = this.landmarks.map((l, index) => ({
+      id: index,
+      position: l.gridPosition,
+      connectableEdges: l.connectableEdges,
+    }));
 
-    // Update road tile visuals
+    const exits: ExitData[] = this.exits.map(e => ({
+      position: e.gridPosition,
+      facingEdge: e.facingEdge,
+    }));
+
+    // Evaluate connections (pure, efficient)
+    const result = evaluateConnections(this.gridSize, tiles, landmarks, exits);
+
+    // Track previously connected for landmark events
+    const previouslyConnected = this.landmarks.filter(l => l.isConnectedToExit);
+
+    // Update road tile visuals (green chain rule from GDD)
     for (const tile of this.roadTiles) {
-      const key = posKey(tile.gridPosition);
-      tile.setConnected(connectedTileKeys.has(key));
+      const index = tile.gridPosition.row * this.gridSize + tile.gridPosition.col;
+      const isConnected = result.connectedTiles.has(index);
+      tile.setConnected(isConnected);
     }
 
     // Update landmarks
-    this.connectionDetector.updateLandmarks(this.exits, this.landmarks);
-
-    // Check for newly connected landmarks
-    for (const landmark of this.landmarks) {
-      if (landmark.isConnectedToExit && !previouslyConnected.includes(landmark)) {
+    for (let i = 0; i < this.landmarks.length; i++) {
+      const landmark = this.landmarks[i];
+      const isConnected = result.connectedLandmarkIds.has(i);
+      
+      // Set connected state
+      landmark.setConnected([], isConnected);
+      
+      // Emit event for newly connected landmarks
+      if (isConnected && !previouslyConnected.includes(landmark)) {
         this.emitEvent('landmarkConnected', landmark);
       }
     }
 
-    // Check win condition
-    if (this.isLevelComplete()) {
-      this.emitEvent('levelComplete');
+    // Check if level solved
+    if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig) {
+      // Start completion sequence with level stats
+      this.completionController.startCompletion(
+        this.currentLevelConfig.levelNumber,
+        this.moveCount,
+        Date.now() - this.levelStartTime,
+        this.currentLevelConfig.clue
+      );
     }
   }
 
@@ -315,6 +372,21 @@ export class CityLinesGame extends Container {
   /** Get total landmark count */
   getTotalLandmarkCount(): number {
     return this.landmarks.length;
+  }
+
+  /** Get completion controller */
+  getCompletionController(): LevelCompletionController {
+    return this.completionController;
+  }
+
+  /** Get current level config */
+  getCurrentLevelConfig(): LevelConfig | null {
+    return this.currentLevelConfig;
+  }
+
+  /** Get current move count */
+  getMoveCount(): number {
+    return this.moveCount;
   }
 
   /** Get grid size */
@@ -436,6 +508,7 @@ export class CityLinesGame extends Container {
   /** Clean up resources */
   override destroy(): void {
     this.clearLevel();
+    this.completionController.destroy();
     this.decorationSystem.destroy();
     super.destroy({ children: true });
   }
