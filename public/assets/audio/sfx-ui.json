@@ -1,0 +1,9 @@
+{
+  "src": ["sfx-ui.webm", "sfx-ui.mp3"],
+  "sprite": {
+    "button_click": [0, 150],
+    "start_game": [150, 500],
+    "play_again": [650, 300],
+    "main_menu": [950, 250]
+  }
+}
