@@ -56,10 +56,8 @@ export function StartScreen() {
     const screenWidth = app.screen.width;
     const screenHeight = app.screen.height;
 
-    // Background - aspect-ratio preserving cover
-    const scaleX = screenWidth / background.texture.width;
-    const scaleY = screenHeight / background.texture.height;
-    const scale = Math.max(scaleX, scaleY);
+    // Background - fit height, maintain aspect ratio, center horizontally
+    const scale = screenHeight / background.texture.height;
     background.scale.set(scale);
     background.x = screenWidth / 2;
     background.y = screenHeight / 2;
@@ -90,7 +88,7 @@ export function StartScreen() {
 
     app = new Application();
     await app.init({
-      background: '#BCE083',
+      background: '#B2DD53',
       resizeTo: containerRef,
     });
     containerRef.appendChild(app.canvas);
@@ -156,7 +154,7 @@ export function StartScreen() {
   });
 
   return (
-    <div class="fixed inset-0 bg-[#BCE083]">
+    <div class="fixed inset-0 bg-[#B2DD53]">
       {/* Pixi canvas container */}
       <div ref={containerRef} class="absolute inset-0" />
 

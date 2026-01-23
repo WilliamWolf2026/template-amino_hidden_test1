@@ -45,10 +45,13 @@ export function GameScreen() {
 
     // Create City Lines game
     if (gpuLoader.hasSheet('tiles_citylines_v1')) {
-      // Add background stretched to fill screen
+      // Add background - fit height, maintain aspect ratio, center horizontally
       const background = gpuLoader.createSprite('tiles_citylines_v1', 'background.png');
-      background.width = app.screen.width;
-      background.height = app.screen.height;
+      const scale = app.screen.height / background.texture.height;
+      background.scale.set(scale);
+      background.anchor.set(0.5);
+      background.x = app.screen.width / 2;
+      background.y = app.screen.height / 2;
       app.stage.addChild(background);
 
       const tileSize = gameTuning.grid.tileSize;

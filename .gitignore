@@ -1,28 +1,45 @@
+# Build outputs
 dist
-.wrangler
 .output
+.vinxi
 .vercel
 .netlify
-.vinxi
+.wrangler
 app.config.timestamp_*.js
 
 # Environment
 .env
 .env*.local
 
-# dependencies
-/node_modules
+# Dependencies
+node_modules
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage
+
+# Logs
+*.log
 
 # IDEs and editors
-/.idea
-.project
-.classpath
-*.launch
-.settings/
+.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 
-# Temp
-gitignore
+# Editor backups
+*.swp
+*.swo
+*~
+*.bak
 
-# System Files
+# System files
 .DS_Store
 Thumbs.db
+Desktop.ini
+
+# Cache
+.cache
+.eslintcache

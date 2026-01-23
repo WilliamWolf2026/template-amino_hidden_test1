@@ -123,7 +123,7 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     },
   },
   visuals: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#58A23B',
     roadConnectedTint: '#ffffff',
     roadDisconnectedTint: '#888888',
     landmarkConnectedScale: 1.1,
