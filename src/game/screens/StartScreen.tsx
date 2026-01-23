@@ -30,7 +30,14 @@ export function StartScreen() {
       unlockAudio();
       await initGpu();
       await loadCore();
-      await loadAudio();
+
+      // Load audio with graceful degradation
+      try {
+        await loadAudio();
+      } catch (error) {
+        console.warn('Audio loading failed (assets may not exist yet):', error);
+        // Continue without audio - game is still playable
+      }
 
       gameState.reset();
 

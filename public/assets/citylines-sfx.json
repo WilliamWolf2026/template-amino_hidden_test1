@@ -1,0 +1,19 @@
+{
+  "src": ["citylines-sfx.webm", "citylines-sfx.mp3"],
+  "sprite": {
+    "button_click": [0, 1481],
+    "start_game": [1581, 1448],
+    "play_again": [3129, 1209],
+    "main_menu": [4438, 1000],
+    "tile_rotate_1": [5538, 124],
+    "tile_rotate_2": [5762, 100],
+    "tile_rotate_3": [5962, 100],
+    "tile_rotate_4": [6162, 2000],
+    "tile_rotate_5": [8262, 203],
+    "tile_rotate_6": [8565, 100],
+    "tile_rotate_7": [8765, 207],
+    "tile_rotate_8": [9072, 217],
+    "level_complete": [9389, 1473],
+    "landmark_connect": [10962, 1592]
+  }
+}
