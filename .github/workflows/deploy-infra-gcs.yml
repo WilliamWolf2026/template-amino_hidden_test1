@@ -3,22 +3,32 @@ name: "Multi-Environment Deployment to Infra (GCS)"
 on:
   push:
     branches:
-      - main # QA deployments
+      - main  # QA deployments
     tags:
-      - "staging-v*" # Staging deployments
-      - "v*" # Production deployments
+      - 'staging-v*'   # Staging deployments
+      - 'v*'           # Production deployments
   workflow_dispatch:
     inputs:
       environment:
-        description: "Target environment"
+        description: 'Target environment'
         required: false
-        default: "qa"
+        default: 'qa'
         type: choice
         options:
           - dev
           - qa
           - staging
           - production
+      version_name:
+        description: 'Version name for deployment (defaults to "main" for non-frozen deployments)'
+        required: false
+        default: 'main'
+        type: string
+      is_frozen:
+        description: 'Whether this is a frozen/immutable version'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   trigger-deployment:
@@ -47,6 +57,27 @@ jobs:
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
           echo "Target environment: $ENVIRONMENT"
 
+      - name: Set version info
+        id: version
+        run: |
+          # For push/tag events OR when version_name is not provided, use "main"
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ -z "${{ github.event.inputs.version_name }}" ]; then
+            VERSION_NAME="main"
+            IS_FROZEN="false"
+          else
+            VERSION_NAME="${{ github.event.inputs.version_name }}"
+            IS_FROZEN="${{ github.event.inputs.is_frozen }}"
+          fi
+
+          # Ensure is_frozen is false when version_name is "main"
+          if [ "$VERSION_NAME" = "main" ]; then
+            IS_FROZEN="false"
+          fi
+
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "IS_FROZEN=$IS_FROZEN" >> $GITHUB_ENV
+          echo "Version name: $VERSION_NAME, Is frozen: $IS_FROZEN"
+
       - name: Trigger infrastructure deployment
         run: |
           curl -X POST \
@@ -61,6 +92,8 @@ jobs:
                   "environment": "${{ env.ENVIRONMENT }}",
                   "commit_sha": "${{ github.sha }}",
                   "game_repo": "${{ github.repository }}",
+                  "is_frozen": "${{ env.IS_FROZEN }}",
+                  "version_name": "${{ env.VERSION_NAME }}",
                   "build_command": "npm run build"
                 }
               }
