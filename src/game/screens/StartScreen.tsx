@@ -2,15 +2,19 @@ import { createSignal, onMount, onCleanup } from 'solid-js';
 import { Application, Sprite } from 'pixi.js';
 import { useScreen } from '~/scaffold/systems/screens';
 import { useAssets } from '~/scaffold/systems/assets';
+import { useTuning, type ScaffoldTuning } from '~/scaffold';
 import { Logo } from '~/scaffold/ui/Logo';
 import { gameState } from '~/game/state';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { Character } from '~/game/citylines/core/Character';
 import { SpriteButton } from '~/game/citylines/core/SpriteButton';
+import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 
 export function StartScreen() {
   const { goto } = useScreen();
   const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
+  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
   const [loading, setLoading] = createSignal(false);
   let containerRef: HTMLDivElement | undefined;
   let app: Application | null = null;
@@ -93,18 +97,21 @@ export function StartScreen() {
     });
     containerRef.appendChild(app.canvas);
 
-    // Load and display assets
-    await coordinator.loadBundle('tiles_citylines_v1');
+    // Load tile bundle based on theme setting
+    const tileTheme = tuning.game().theme.tileTheme;
+    setAtlasName(tileTheme); // Set global atlas name for all game entities
+    const tileBundleName = getTileBundleName(tileTheme);
+    await coordinator.loadBundle(tileBundleName);
     const gpuLoader = coordinator.getGpuLoader() as PixiLoader;
 
-    if (gpuLoader?.hasSheet('tiles_citylines_v1')) {
+    if (gpuLoader?.hasSheet(tileBundleName)) {
       // Background with aspect-ratio cover scaling
-      background = gpuLoader.createSprite('tiles_citylines_v1', 'background.png');
+      background = gpuLoader.createSprite(tileBundleName, 'background.png');
       background.anchor.set(0.5);
       app.stage.addChild(background);
 
       // Title sprite
-      titleSprite = gpuLoader.createSprite('tiles_citylines_v1', 'title.png');
+      titleSprite = gpuLoader.createSprite(tileBundleName, 'title.png');
       titleSprite.anchor.set(0.5);
       app.stage.addChild(titleSprite);
 
@@ -114,7 +121,7 @@ export function StartScreen() {
 
       // Start button with 9-slice
       startButton = new SpriteButton(gpuLoader, {
-        atlasName: 'tiles_citylines_v1',
+        atlasName: tileBundleName,
         spriteName: 'button.png',
         label: 'START',
         width: 200,

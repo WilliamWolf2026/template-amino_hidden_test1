@@ -5,7 +5,8 @@ import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, type LevelConfig } from '~/game/citylines';
-import type { CityLinesTuning } from '~/game/tuning';
+import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
 
 export function GameScreen() {
@@ -40,13 +41,16 @@ export function GameScreen() {
 
     const gpuLoader = coordinator.getGpuLoader() as PixiLoader;
 
-    // Load game tiles bundle
-    await coordinator.loadBundle('tiles_citylines_v1');
+    // Load game tiles bundle based on theme setting
+    const tileTheme = gameTuning.theme.tileTheme;
+    setAtlasName(tileTheme); // Set global atlas name for all game entities
+    const tileBundleName = getTileBundleName(tileTheme);
+    await coordinator.loadBundle(tileBundleName);
 
     // Create City Lines game
-    if (gpuLoader.hasSheet('tiles_citylines_v1')) {
+    if (gpuLoader.hasSheet(tileBundleName)) {
       // Add background - fit height, maintain aspect ratio, center horizontally
-      const background = gpuLoader.createSprite('tiles_citylines_v1', 'background.png');
+      const background = gpuLoader.createSprite(tileBundleName, 'background.png');
       const scale = app.screen.height / background.texture.height;
       background.scale.set(scale);
       background.anchor.set(0.5);
@@ -81,10 +85,9 @@ export function GameScreen() {
 
       game.loadLevel(sampleLevel);
 
-      // Center the game on screen
-      const gridPixelSize = sampleLevel.gridSize * tileSize;
-      game.x = (app.screen.width - gridPixelSize) / 2;
-      game.y = (app.screen.height - gridPixelSize) / 2;
+      // Center the game on screen (pivot is at grid center, so position at screen center)
+      game.x = app.screen.width / 2;
+      game.y = app.screen.height / 2;
 
       app.stage.addChild(game);
       setGameInstance(game);
@@ -130,14 +133,13 @@ export function GameScreen() {
 
     const { tileSize, padding, cellGap } = tuning.game().grid;
 
-    // Update game layout with animation
+    // Update game layout with animation (pivot updates automatically for center-based scaling)
     game.setTileSize(tileSize);
     game.setGridLayout(padding, cellGap);
 
-    // Re-center the game using calculated grid size
-    const gridPixelSize = game.getGridPixelSize();
-    game.x = (app.screen.width - gridPixelSize) / 2;
-    game.y = (app.screen.height - gridPixelSize) / 2;
+    // Keep game at screen center (pivot is at grid center)
+    game.x = app.screen.width / 2;
+    game.y = app.screen.height / 2;
 
     console.log('[Tuning] Grid layout updated:', { tileSize, padding, cellGap });
   });

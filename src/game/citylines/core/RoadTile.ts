@@ -3,8 +3,7 @@ import gsap from 'gsap';
 import type { Edge, GridPosition, RoadTileType } from '../types';
 import { EDGES } from '../types';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-
-const ATLAS_NAME = 'tiles_citylines_v1';
+import { getAtlasName } from '../utils/atlasHelper';
 
 /** Map tile type to sprite frames */
 const TILE_SPRITES: Record<RoadTileType, { default: string; completed: string }> = {
@@ -66,13 +65,13 @@ export class RoadTile extends Container {
     const sprites = TILE_SPRITES[type];
 
     // Create default sprite
-    this.defaultSprite = gpuLoader.createSprite(ATLAS_NAME, sprites.default);
+    this.defaultSprite = gpuLoader.createSprite(getAtlasName(), sprites.default);
     this.defaultSprite.anchor.set(0.5);
     this.defaultSprite.width = tileSize;
     this.defaultSprite.height = tileSize;
 
     // Create completed sprite (hidden initially)
-    this.completedSprite = gpuLoader.createSprite(ATLAS_NAME, sprites.completed);
+    this.completedSprite = gpuLoader.createSprite(getAtlasName(), sprites.completed);
     this.completedSprite.anchor.set(0.5);
     this.completedSprite.width = tileSize;
     this.completedSprite.height = tileSize;

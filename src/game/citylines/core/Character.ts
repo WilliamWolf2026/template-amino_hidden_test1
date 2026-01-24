@@ -1,7 +1,6 @@
 import { Container, Sprite } from 'pixi.js';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-
-const ATLAS_NAME = 'tiles_citylines_v1';
+import { getAtlasName } from '../utils/atlasHelper';
 
 /**
  * Character types available in the game
@@ -42,7 +41,7 @@ export class Character extends Container {
 
     // Create sprite from atlas
     const spriteName = CHARACTER_SPRITES[type];
-    this.sprite = gpuLoader.createSprite(ATLAS_NAME, spriteName);
+    this.sprite = gpuLoader.createSprite(getAtlasName(), spriteName);
 
     // Set center anchor for easy positioning
     this.sprite.anchor.set(0.5);

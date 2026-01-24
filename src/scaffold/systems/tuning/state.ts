@@ -121,6 +121,20 @@ export function createTuningState<
     }
   };
 
+  /**
+   * Apply overrides to game tuning without saving to localStorage.
+   * Used for URL params that should take effect but not persist.
+   */
+  const applyGameOverrides = (overrides: Record<string, unknown>): void => {
+    setGame((prev) => {
+      let result = prev;
+      for (const [path, value] of Object.entries(overrides)) {
+        result = setPath(result, path, value);
+      }
+      return result;
+    });
+  };
+
   return {
     scaffold,
     game,
@@ -129,6 +143,7 @@ export function createTuningState<
     source,
     setScaffoldPath,
     setGamePath,
+    applyGameOverrides,
     load,
     save,
     reset,

@@ -1,15 +1,27 @@
-import type { Season } from '~/game/tuning';
+import type { TileTheme } from '~/game/tuning';
+
+// Module-level state for current atlas name (set at game startup)
+let currentAtlasName = 'tiles_citylines_v1';
 
 /**
- * Get the atlas name for a given season
+ * Set the current atlas name based on theme (call once at game startup)
  */
-export function getAtlasName(season: Season): string {
-  switch (season) {
+export function setAtlasName(theme: TileTheme): void {
+  switch (theme) {
     case 'fall':
-      return 'tiles_citylines_v1_fall';
+      currentAtlasName = 'tiles_citylines_v1_fall';
+      break;
     case 'winter':
-      return 'tiles_citylines_v1_winter';
+      currentAtlasName = 'tiles_citylines_v1_winter';
+      break;
     default:
-      return 'tiles_citylines_v1';
+      currentAtlasName = 'tiles_citylines_v1';
   }
+}
+
+/**
+ * Get the current atlas name (used by all game entities)
+ */
+export function getAtlasName(): string {
+  return currentAtlasName;
 }
