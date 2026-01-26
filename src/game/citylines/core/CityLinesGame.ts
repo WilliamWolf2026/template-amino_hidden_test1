@@ -6,6 +6,7 @@ import { Exit } from './Exit';
 import { RoadTile } from './RoadTile';
 import { posKey } from '../types';
 import { DecorationSystem } from '../systems';
+import { getAtlasName } from '../utils/atlasHelper';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import type { NineSliceConfig } from '~/game/tuning';
 import {
@@ -162,7 +163,7 @@ export class CityLinesGame extends Container {
     this.gridSize = config.gridSize;
 
     // Create 9-slice grid background (single sprite)
-    const texture = this.gpuLoader.getTexture('tiles_citylines_v1', 'grid_backing.png');
+    const texture = this.gpuLoader.getTexture(getAtlasName(), 'grid_backing.png');
     this.gridBackground = new NineSliceSprite({
       texture,
       leftWidth: this.nineSlice.leftWidth,
@@ -241,6 +242,9 @@ export class CityLinesGame extends Container {
       config.county,
       config.levelNumber
     );
+
+    // Set pivot to center for center-based scaling
+    this.updatePivot(false);
   }
 
   /** Handle tile rotation */
@@ -430,7 +434,7 @@ export class CityLinesGame extends Container {
 
     // Rebuild the 9-slice sprite with new borders
     if (this.gridBackground) {
-      const texture = this.gpuLoader.getTexture('tiles_citylines_v1', 'grid_backing.png');
+      const texture = this.gpuLoader.getTexture(getAtlasName(), 'grid_backing.png');
       const totalSize = this.getGridPixelSize();
 
       // Remove old background
@@ -453,10 +457,30 @@ export class CityLinesGame extends Container {
     }
   }
 
+  /** Update pivot to center of grid for center-based scaling */
+  private updatePivot(animate = true): void {
+    const totalSize = this.getGridPixelSize();
+    const center = totalSize / 2;
+
+    if (animate) {
+      gsap.to(this.pivot, {
+        x: center,
+        y: center,
+        duration: TUNING_ANIMATION.duration,
+        ease: TUNING_ANIMATION.ease,
+      });
+    } else {
+      this.pivot.set(center, center);
+    }
+  }
+
   /** Update all element positions with optional animation */
   private updateLayout(animate = true): void {
     const { duration, ease, stagger } = TUNING_ANIMATION;
     const animDuration = animate ? duration : 0;
+
+    // Update pivot to new center for center-based scaling
+    this.updatePivot(animate);
 
     // Update 9-slice grid background
     const totalSize = this.getGridPixelSize();

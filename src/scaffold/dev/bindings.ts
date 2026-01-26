@@ -360,6 +360,17 @@ function createBinding(
       return;
     }
 
+    // Tile theme dropdown (requires restart)
+    if (key === 'tileTheme') {
+      const binding = parent.addBinding(obj, key, {
+        label: 'Tile Theme ⟳',
+        options: { Regular: 'regular', Fall: 'fall', Winter: 'winter' },
+      });
+      binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
+      return;
+    }
+
     // Easing picker with curve previews in dropdown
     if (key === 'defaultEasing' || key === 'tileRotateEasing') {
       // Create a container that mimics Tweakpane row styling

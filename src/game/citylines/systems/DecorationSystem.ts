@@ -2,8 +2,7 @@ import { Container, Sprite } from 'pixi.js';
 import type { GridPosition, GridSize, County } from '../types';
 import { posKey } from '../types';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-
-const ATLAS_NAME = 'tiles_citylines_v1';
+import { getAtlasName } from '../utils/atlasHelper';
 
 /** Available decoration sprites */
 const DECORATION_SPRITES = [
@@ -157,7 +156,7 @@ export class DecorationSystem {
 
         for (let i = 0; i < count; i++) {
           const spriteFrame = this.selectDecoration(county, rng);
-          const sprite = this.gpuLoader.createSprite(ATLAS_NAME, spriteFrame);
+          const sprite = this.gpuLoader.createSprite(getAtlasName(), spriteFrame);
 
           // Base position at cell center
           const cellCenterX = col * this.tileSize + this.tileSize / 2;

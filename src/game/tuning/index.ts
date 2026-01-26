@@ -1,6 +1,8 @@
 // Types
 export type {
   CityLinesTuning,
+  TileTheme,
+  ThemeConfig,
   GridConfig,
   NineSliceConfig,
   DifficultyConfig,
@@ -14,3 +16,6 @@ export type {
 
 // Constants
 export { CITYLINES_DEFAULTS } from './types';
+
+// Helpers
+export { getTileBundleName, getThemeFromUrl } from './types';

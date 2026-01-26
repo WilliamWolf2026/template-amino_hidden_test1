@@ -5,6 +5,35 @@ import type { GridSize } from '~/game/citylines/types/grid';
 // CITYLINES TUNING TYPES
 // ============================================
 
+export type TileTheme = 'regular' | 'fall' | 'winter';
+
+export interface ThemeConfig {
+  tileTheme: TileTheme;
+}
+
+/** Map tile theme to bundle name */
+export function getTileBundleName(theme: TileTheme): string {
+  switch (theme) {
+    case 'fall':
+      return 'tiles_citylines_v1_fall';
+    case 'winter':
+      return 'tiles_citylines_v1_winter';
+    default:
+      return 'tiles_citylines_v1';
+  }
+}
+
+/** Parse theme from URL params (?theme=fall or ?theme=winter) */
+export function getThemeFromUrl(): TileTheme | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const theme = params.get('theme');
+  if (theme === 'fall' || theme === 'winter' || theme === 'regular') {
+    return theme;
+  }
+  return null;
+}
+
 export interface NineSliceConfig {
   leftWidth: number;
   topHeight: number;
@@ -71,6 +100,7 @@ export interface GameScreensConfig {
 }
 
 export interface CityLinesTuning extends GameTuningBase {
+  theme: ThemeConfig;
   grid: GridConfig;
   difficulty: {
     easy: DifficultyConfig;
@@ -90,6 +120,9 @@ export interface CityLinesTuning extends GameTuningBase {
 
 export const CITYLINES_DEFAULTS: CityLinesTuning = {
   version: '1.0.0',
+  theme: {
+    tileTheme: 'regular',
+  },
   grid: {
     tileSize: 96,
     defaultGridSize: 4,
@@ -123,7 +156,7 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     },
   },
   visuals: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#58A23B',
     roadConnectedTint: '#ffffff',
     roadDisconnectedTint: '#888888',
     landmarkConnectedScale: 1.1,

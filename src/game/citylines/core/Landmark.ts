@@ -3,8 +3,7 @@ import gsap from 'gsap';
 import type { Edge, GridPosition, LandmarkType } from '../types';
 import { getLandmarkConfig } from '../data';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-
-const ATLAS_NAME = 'tiles_citylines_v1';
+import { getAtlasName } from '../utils/atlasHelper';
 
 /** Visual representation of a landmark on the grid */
 export class Landmark extends Container {
@@ -39,7 +38,7 @@ export class Landmark extends Container {
     this.y = position.row * tileSize + tileSize / 2;
 
     // Create sprite
-    this.sprite = gpuLoader.createSprite(ATLAS_NAME, config.spriteFrame);
+    this.sprite = gpuLoader.createSprite(getAtlasName(), config.spriteFrame);
     this.sprite.anchor.set(0.5);
     this.sprite.width = tileSize * 0.85;
     this.sprite.height = tileSize * 0.85;

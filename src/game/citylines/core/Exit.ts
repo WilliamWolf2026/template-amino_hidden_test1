@@ -2,8 +2,7 @@ import { Container, Sprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { Edge, GridPosition } from '../types';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-
-const ATLAS_NAME = 'tiles_citylines_v1';
+import { getAtlasName } from '../utils/atlasHelper';
 
 /** Highway exit - the target that landmarks must connect to */
 export class Exit extends Container {
@@ -30,7 +29,7 @@ export class Exit extends Container {
     this.y = position.row * tileSize + tileSize / 2;
 
     // Create sprite
-    this.sprite = gpuLoader.createSprite(ATLAS_NAME, 'exit.png');
+    this.sprite = gpuLoader.createSprite(getAtlasName(), 'exit.png');
     this.sprite.anchor.set(0.5);
     this.sprite.width = tileSize * 0.85;
     this.sprite.height = tileSize * 0.85;
