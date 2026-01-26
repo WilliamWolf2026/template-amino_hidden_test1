@@ -88,6 +88,8 @@ export interface TuningState<S extends ScaffoldTuning, G extends GameTuningBase>
   // Mutators
   setScaffoldPath: (path: string, value: unknown) => void;
   setGamePath: (path: string, value: unknown) => void;
+  /** Apply overrides without saving to localStorage (for URL params) */
+  applyGameOverrides: (overrides: Record<string, unknown>) => void;
 
   // Actions
   load: () => Promise<void>;

@@ -14,6 +14,8 @@ export interface TuningProviderProps<S extends ScaffoldTuning, G extends GameTun
   scaffoldDefaults?: S;
   gameDefaults: G;
   autoLoad?: boolean;
+  /** URL param overrides - applied after load, not saved to localStorage */
+  urlOverrides?: Record<string, unknown>;
 }
 
 /**
@@ -28,9 +30,13 @@ export function TuningProvider<
     props.gameDefaults
   );
 
-  onMount(() => {
+  onMount(async () => {
     if (props.autoLoad !== false) {
-      state.load();
+      await state.load();
+      // Apply URL overrides after load (won't persist to localStorage)
+      if (props.urlOverrides && Object.keys(props.urlOverrides).length > 0) {
+        state.applyGameOverrides(props.urlOverrides);
+      }
     }
   });
 

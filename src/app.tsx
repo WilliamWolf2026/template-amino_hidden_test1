@@ -15,8 +15,12 @@ import { initSentry } from '~/scaffold/lib/sentry';
 import { initPostHog } from '~/scaffold/lib/posthog';
 import { scaffoldConfig } from '~/scaffold/config';
 import { manifest, gameConfig } from '~/game';
-import { CITYLINES_DEFAULTS } from '~/game/tuning';
+import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
 import './app.css';
+
+// Build URL overrides (applied after load, not saved to localStorage)
+const urlTheme = getThemeFromUrl();
+const urlOverrides = urlTheme ? { 'theme.tileTheme': urlTheme } : undefined;
 
 export default function App() {
   onMount(() => {
@@ -37,7 +41,7 @@ export default function App() {
 
   return (
     <GlobalBoundary>
-      <TuningProvider gameDefaults={CITYLINES_DEFAULTS}>
+      <TuningProvider gameDefaults={CITYLINES_DEFAULTS} urlOverrides={urlOverrides}>
         <TuningPanel />
         {/* Settings Menu - Top Right */}
         <div class="fixed top-4 right-4 z-[9999]">
