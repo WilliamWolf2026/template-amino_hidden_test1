@@ -20,8 +20,7 @@ export const manifest: Manifest = {
     // { name: 'scene-gameplay', assets: ['scenes/gameplay/entities.json'] },
 
     // AUDIO (agnostic)
-    // { name: 'audio-sfx-ui', assets: ['audio/sfx-ui.json'] },
-    // { name: 'audio-music', assets: ['audio/music.json'] },
+    { name: 'audio-citylines-sfx', assets: ['citylines-sfx.json'] },
 
     // DEFERRED - Low priority
     // { name: 'defer-extras', assets: ['ui/achievements.json'] },

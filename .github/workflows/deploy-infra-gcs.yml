@@ -1,0 +1,109 @@
+name: "Multi-Environment Deployment to Infra (GCS)"
+
+on:
+  push:
+    branches:
+      - main  # QA deployments
+    tags:
+      - 'staging-v*'   # Staging deployments
+      - 'v*'           # Production deployments
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'qa'
+        type: choice
+        options:
+          - dev
+          - qa
+          - staging
+          - production
+      version_name:
+        description: 'Version name for deployment (defaults to "main" for non-frozen deployments)'
+        required: false
+        default: 'main'
+        type: string
+      is_frozen:
+        description: 'Whether this is a frozen/immutable version'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  trigger-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set game name
+        id: game_info
+        run: |
+          GAME_NAME="citylines"
+          echo "GAME_NAME=$GAME_NAME" >> $GITHUB_ENV
+          echo "Game name: $GAME_NAME"
+
+      - name: Set environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+          elif [[ "${{ github.ref }}" == refs/tags/staging-v* ]]; then
+            ENVIRONMENT="staging"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            ENVIRONMENT="production"
+          else
+            # Default to qa for main branch pushes
+            ENVIRONMENT="qa"
+          fi
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "Target environment: $ENVIRONMENT"
+
+      - name: Set version info
+        id: version
+        run: |
+          # For push/tag events OR when version_name is not provided, use "main"
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ -z "${{ github.event.inputs.version_name }}" ]; then
+            VERSION_NAME="main"
+            IS_FROZEN="false"
+          else
+            VERSION_NAME="${{ github.event.inputs.version_name }}"
+            IS_FROZEN="${{ github.event.inputs.is_frozen }}"
+          fi
+
+          # Ensure is_frozen is false when version_name is "main"
+          if [ "$VERSION_NAME" = "main" ]; then
+            IS_FROZEN="false"
+          fi
+
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "IS_FROZEN=$IS_FROZEN" >> $GITHUB_ENV
+          echo "Version name: $VERSION_NAME, Is frozen: $IS_FROZEN"
+
+      - name: Trigger infrastructure deployment
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.INFRASTRUCTURE_REPO_TOKEN }}" \
+            https://api.github.com/repos/wolfgames/infrastructure/dispatches \
+            -d '{
+              "event_type": "deploy-static-game",
+              "client_payload": {
+                "inputs": {
+                  "game_name": "${{ env.GAME_NAME }}",
+                  "environment": "${{ env.ENVIRONMENT }}",
+                  "commit_sha": "${{ github.sha }}",
+                  "game_repo": "${{ github.repository }}",
+                  "is_frozen": "${{ env.IS_FROZEN }}",
+                  "version_name": "${{ env.VERSION_NAME }}",
+                  "build_command": "npm run build"
+                }
+              }
+            }'
+
+      - name: Deployment triggered
+        run: |
+          echo "## Deployment Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "- **Game**: ${{ env.GAME_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ env.ENVIRONMENT }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the [infrastructure repository](https://github.com/wolfgames/infrastructure/actions) for deployment progress." >> $GITHUB_STEP_SUMMARY

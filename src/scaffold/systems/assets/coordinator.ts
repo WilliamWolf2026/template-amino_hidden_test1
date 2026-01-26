@@ -82,7 +82,7 @@ export class AssetCoordinator {
 
       case 'agnostic':
         // Load with dom loader for raw access, audio handled separately
-        if (bundle.assets.some((p) => p.includes('audio/'))) {
+        if (name.startsWith('audio-') || bundle.assets.some((p) => p.includes('audio/'))) {
           await this.audio.loadBundle(name);
         } else {
           await this.dom.loadBundle(name);
@@ -131,10 +131,10 @@ export class AssetCoordinator {
       case 'gpu':
         return this.gpuLoader?.isLoaded(name) ?? false;
       case 'agnostic':
-        if (bundle.assets.some((p) => p.includes('audio/'))) {
-          return bundle.assets.every((p) =>
-            !p.includes('audio/') || this.audio.hasChannel(p.replace(/\.json$/, ''))
-          );
+        if (name.startsWith('audio-') || bundle.assets.some((p) => p.includes('audio/'))) {
+          return bundle.assets
+            .filter((p) => p.endsWith('.json'))
+            .every((p) => this.audio.hasChannel(p.replace(/\.json$/, '')));
         }
         return this.dom.isLoaded(name);
     }
