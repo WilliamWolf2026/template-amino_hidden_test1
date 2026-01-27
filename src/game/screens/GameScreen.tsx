@@ -5,8 +5,8 @@ import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, sampleLevel, CompanionCharacter, DialogueBox } from '~/game/citylines';
-import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { CityLinesGame, CompanionCharacter, DialogueBox, LevelGenerationService } from '~/game/citylines';
+import { getTileBundleName, CITYLINES_DEFAULTS, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
@@ -34,6 +34,11 @@ export function GameScreen() {
   let darkOverlay: Graphics | null = null;
   let isCompanionAnimating = false;
   let isShowingCompletionClue = false; // Track if currently showing level completion
+
+  // Current level (generated procedurally)
+  const [currentLevel, setCurrentLevel] = createSignal(
+    LevelGenerationService.generateLevel(1, CITYLINES_DEFAULTS.generator)
+  );
 
   // Accessibility: aria-live announcements
   let ariaLiveRef: HTMLDivElement | undefined;
@@ -84,8 +89,15 @@ export function GameScreen() {
       const tileSize = gameTuning.grid.tileSize;
       const game = new CityLinesGame(gpuLoader, tileSize);
 
-      // Load sample level
-      game.loadLevel(sampleLevel);
+      // Set grid layout BEFORE loading level to ensure proper initial positioning
+      const { padding, cellGap } = gameTuning.grid;
+      game.setGridLayout(padding, cellGap, false);
+
+      // Configure level transition animation
+      game.setLevelTransitionConfig(gameTuning.levelTransition);
+
+      // Load generated level
+      game.loadLevel(currentLevel());
 
       // Center the game on screen (pivot is at grid center, so position at screen center)
       game.x = app.screen.width / 2;
@@ -95,7 +107,7 @@ export function GameScreen() {
       setGameInstance(game);
 
       // Create progress bar HUD
-      const countyConfig = getCountyConfig(sampleLevel.county);
+      const countyConfig = getCountyConfig(currentLevel().county);
       const barWidth = Math.min(320, app.screen.width - 48);
       const bar = new ProgressBar(gpuLoader, tileBundleName, {
         width: barWidth,
@@ -290,14 +302,27 @@ export function GameScreen() {
             }
             isCompanionAnimating = false;
 
-            // If we were showing completion clue, reload the level
+            // If we were showing completion clue, generate and load a new level
             if (isShowingCompletionClue) {
               isShowingCompletionClue = false;
               const controller = game.getCompletionController();
               controller.continue();
-              game.loadLevel(sampleLevel);
+
+              // Generate new level
+              const newLevel = LevelGenerationService.generateLevel(
+                currentLevel().levelNumber + 1,
+                tuning.game().generator
+              );
+              setCurrentLevel(newLevel);
+
+              game.loadLevel(newLevel);
               game.x = app.screen.width / 2;
               game.y = app.screen.height / 2;
+
+              // Play level transition animation
+              game.playLevelTransition().catch(err => {
+                console.error('[GameScreen] Level transition animation error:', err);
+              });
             }
           },
         });
@@ -463,6 +488,35 @@ export function GameScreen() {
       manager.stopMusic();
     }
   });
+
+  // Function to regenerate current level with new config
+  const regenerateLevel = () => {
+    const game = gameInstance();
+    const app = pixiApp();
+    if (!game || !app) return;
+
+    const newLevel = LevelGenerationService.generateLevel(
+      currentLevel().levelNumber,
+      tuning.game().generator
+    );
+    setCurrentLevel(newLevel);
+
+    game.loadLevel(newLevel);
+    game.x = app.screen.width / 2;
+    game.y = app.screen.height / 2;
+
+    // Play level transition animation
+    game.playLevelTransition().catch(err => {
+      console.error('[GameScreen] Level transition animation error:', err);
+    });
+
+    console.log('[Generator] Level regenerated with new config');
+  };
+
+  // Expose regenerateLevel to window for Tweakpane button
+  if (typeof window !== 'undefined') {
+    (window as any).regenerateLevel = regenerateLevel;
+  }
 
   onCleanup(() => {
     const app = pixiApp();

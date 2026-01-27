@@ -33,9 +33,9 @@ export class Landmark extends Container {
     const config = getLandmarkConfig(type);
     this.connectableEdges = connectableEdgesOverride ?? config.connectableEdges;
 
-    // Position on grid
-    this.x = position.col * tileSize + tileSize / 2;
-    this.y = position.row * tileSize + tileSize / 2;
+    // Position on grid (x = column, y = row)
+    this.x = position.x * tileSize + tileSize / 2;
+    this.y = position.y * tileSize + tileSize / 2;
 
     // Create sprite
     this.sprite = gpuLoader.createSprite(getAtlasName(), config.spriteFrame);
@@ -119,8 +119,8 @@ export class Landmark extends Container {
   /** Update tile size (for live tuning) */
   setTileSize(newSize: number): void {
     this.tileSize = newSize;
-    this.x = this.gridPosition.col * newSize + newSize / 2;
-    this.y = this.gridPosition.row * newSize + newSize / 2;
+    this.x = this.gridPosition.x * newSize + newSize / 2;
+    this.y = this.gridPosition.y * newSize + newSize / 2;
     this.sprite.width = newSize * 0.85;
     this.sprite.height = newSize * 0.85;
     this.updateIndicatorPositions(newSize);
@@ -136,8 +136,8 @@ export class Landmark extends Container {
   ): void {
     this.tileSize = tileSize;
     const effectiveSize = tileSize + cellGap;
-    const targetX = padding + this.gridPosition.col * effectiveSize + tileSize / 2;
-    const targetY = padding + this.gridPosition.row * effectiveSize + tileSize / 2;
+    const targetX = padding + this.gridPosition.x * effectiveSize + tileSize / 2;
+    const targetY = padding + this.gridPosition.y * effectiveSize + tileSize / 2;
 
     if (duration > 0) {
       gsap.to(this, {

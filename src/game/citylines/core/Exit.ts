@@ -24,41 +24,25 @@ export class Exit extends Container {
     this.facingEdge = facingEdge;
     this.tileSize = tileSize;
 
-    // Position on grid
-    this.x = position.col * tileSize + tileSize / 2;
-    this.y = position.row * tileSize + tileSize / 2;
+    // Position on grid (x = column, y = row)
+    this.x = position.x * tileSize + tileSize / 2;
+    this.y = position.y * tileSize + tileSize / 2;
 
-    // Create sprite
+    // Create sprite (no rotation - exits always face the same direction)
     this.sprite = gpuLoader.createSprite(getAtlasName(), 'exit.png');
     this.sprite.anchor.set(0.5);
     this.sprite.width = tileSize * 0.85;
     this.sprite.height = tileSize * 0.85;
 
-    // Rotate based on facing edge
-    this.sprite.rotation = this.getRotationForEdge(facingEdge);
-
     this.addChild(this.sprite);
     this.label = 'exit';
-  }
-
-  private getRotationForEdge(edge: Edge): number {
-    switch (edge) {
-      case 'south':
-        return 0; // Default orientation facing south
-      case 'west':
-        return Math.PI / 2; // 90 degrees
-      case 'north':
-        return Math.PI; // 180 degrees
-      case 'east':
-        return -Math.PI / 2; // -90 degrees
-    }
   }
 
   /** Update tile size (for live tuning) */
   setTileSize(newSize: number): void {
     this.tileSize = newSize;
-    this.x = this.gridPosition.col * newSize + newSize / 2;
-    this.y = this.gridPosition.row * newSize + newSize / 2;
+    this.x = this.gridPosition.x * newSize + newSize / 2;
+    this.y = this.gridPosition.y * newSize + newSize / 2;
     this.sprite.width = newSize * 0.85;
     this.sprite.height = newSize * 0.85;
   }
@@ -73,8 +57,8 @@ export class Exit extends Container {
   ): void {
     this.tileSize = tileSize;
     const effectiveSize = tileSize + cellGap;
-    const targetX = padding + this.gridPosition.col * effectiveSize + tileSize / 2;
-    const targetY = padding + this.gridPosition.row * effectiveSize + tileSize / 2;
+    const targetX = padding + this.gridPosition.x * effectiveSize + tileSize / 2;
+    const targetY = padding + this.gridPosition.y * effectiveSize + tileSize / 2;
 
     if (duration > 0) {
       gsap.to(this, {

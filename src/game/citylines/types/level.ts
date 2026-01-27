@@ -1,17 +1,20 @@
 import type { GridSize } from './grid';
 import type { LandmarkPlacement, ExitPlacement, LandmarkType } from './landmark';
 
+/** New Jersey counties available in the game */
+export type County = 'atlantic' | 'bergen' | 'cape_may' | 'essex' | 'hudson';
+
 /** Road tile types */
 export type RoadTileType = 'straight' | 'corner' | 't_junction';
 
-/** Road tile placement in level config */
+/** Road tile placement in level config (aligned with generator: x = column, y = row) */
 export interface RoadTilePlacement {
   type: RoadTileType;
-  row: number;
-  col: number;
-  /** Solution rotation (0, 90, 180, 270) */
+  x: number;  // Column (0-based, left to right)
+  y: number;  // Row (0-based, top to bottom)
+  /** Solution rotation state (0, 1, 2, 3) where 0=0°, 1=90°, 2=180°, 3=270° */
   solutionRotation: number;
-  /** Initial scrambled rotation */
+  /** Initial scrambled rotation state (0, 1, 2, 3) */
   initialRotation: number;
 }
 
@@ -23,7 +26,7 @@ export interface LevelConfig {
   exits: ExitPlacement[];
   roadTiles: RoadTilePlacement[];
   /** County for theming */
-  county: string;
+  county: County;
   /** Story clue revealed on completion */
   clue: string;
   /** Optional celebration image URL */
@@ -33,7 +36,7 @@ export interface LevelConfig {
 /** Chapter configuration */
 export interface ChapterConfig {
   chapterNumber: number;
-  county: string;
+  county: County;
   countyLandmarks: LandmarkType[];
   levels: LevelConfig[];
   storyHeadline: string;

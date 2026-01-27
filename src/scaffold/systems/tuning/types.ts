@@ -85,6 +85,10 @@ export interface TuningState<S extends ScaffoldTuning, G extends GameTuningBase>
   loadError: Accessor<string | null>;
   source: Accessor<{ scaffold: TuningSource; game: TuningSource }>;
 
+  // Default values
+  scaffoldDefaults: S;
+  gameDefaults: G;
+
   // Mutators
   setScaffoldPath: (path: string, value: unknown) => void;
   setGamePath: (path: string, value: unknown) => void;
@@ -95,6 +99,8 @@ export interface TuningState<S extends ScaffoldTuning, G extends GameTuningBase>
   load: () => Promise<void>;
   save: () => void;
   reset: () => void;
+  /** Reset a specific path to its default value */
+  resetPath: (path: string, isScaffold: boolean) => void;
   exportJson: () => string;
   importJson: (json: string) => boolean;
 }

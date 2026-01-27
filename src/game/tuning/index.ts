@@ -13,6 +13,8 @@ export type {
   ScoringConfig,
   GameScreensConfig,
   LandmarkCountRange,
+  GeneratorConfig,
+  LevelTransitionConfig,
 } from './types';
 
 // Constants
