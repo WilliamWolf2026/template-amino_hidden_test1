@@ -5,8 +5,8 @@ import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, CompanionCharacter, DialogueBox, LevelGenerationService } from '~/game/citylines';
-import { getTileBundleName, CITYLINES_DEFAULTS, type CityLinesTuning } from '~/game/tuning';
+import { CityLinesGame, CompanionCharacter, DialogueBox, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
+import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
@@ -35,9 +35,33 @@ export function GameScreen() {
   let isCompanionAnimating = false;
   let isShowingCompletionClue = false; // Track if currently showing level completion
 
-  // Current level (generated procedurally)
+  // Helper: Generate level with progressive difficulty
+  const generateLevelWithProgression = (levelNumber: number) => {
+    const baseTuning = tuning.game();
+    const difficulty = getDifficultyForLevel(levelNumber);
+    const generatorConfig = difficultyToGeneratorConfig(difficulty, {
+      sidePushRadius: baseTuning.generator.sidePushRadius,
+      sidePushFactor: baseTuning.generator.sidePushFactor,
+      wriggleDistanceMagnifier: baseTuning.generator.wriggleDistanceMagnifier,
+      wriggleExtentChaosFactor: baseTuning.generator.wriggleExtentChaosFactor,
+      wrigglePasses: baseTuning.generator.wrigglePasses,
+    });
+
+    console.log(`[Progressive Difficulty] Level ${levelNumber}:`, {
+      gridSize: difficulty.gridSize,
+      landmarks: `${difficulty.landmarkCount.min}-${difficulty.landmarkCount.max}`,
+      detourProbability: difficulty.detourProbability,
+      minPathLength: difficulty.minPathLength,
+      wriggleFactor: generatorConfig.wriggleFactor.toFixed(3),
+      wriggleExtent: generatorConfig.wriggleExtent.toFixed(2),
+    });
+
+    return LevelGenerationService.generateLevel(levelNumber, generatorConfig);
+  };
+
+  // Current level (generated procedurally with progressive difficulty)
   const [currentLevel, setCurrentLevel] = createSignal(
-    LevelGenerationService.generateLevel(1, CITYLINES_DEFAULTS.generator)
+    generateLevelWithProgression(1)
   );
 
   // Accessibility: aria-live announcements
@@ -308,10 +332,9 @@ export function GameScreen() {
               const controller = game.getCompletionController();
               controller.continue();
 
-              // Generate new level
-              const newLevel = LevelGenerationService.generateLevel(
-                currentLevel().levelNumber + 1,
-                tuning.game().generator
+              // Generate new level with progressive difficulty
+              const newLevel = generateLevelWithProgression(
+                currentLevel().levelNumber + 1
               );
               setCurrentLevel(newLevel);
 

@@ -127,8 +127,15 @@ export class LevelGenerationService {
       });
     });
 
-    // Convert entry point to exit (facing into grid)
-    const entryFacingEdge = this.determineEntryFacing(entryPoint, connectionMap);
+    // Convert entry point to exit (with all connected edges)
+    const entryKey = `${entryPoint.x},${entryPoint.y}`;
+    const entryConnections = connectionMap.get(entryKey) || [];
+    const entryConnectableEdges = this.getConnectedEdges(entryPoint, entryConnections);
+
+    // Fallback to first connection direction if we can't determine edges
+    const entryFacingEdge = entryConnectableEdges.length > 0
+      ? entryConnectableEdges[0]
+      : this.determineEntryFacing(entryPoint, connectionMap);
 
     return {
       levelNumber,
@@ -140,6 +147,7 @@ export class LevelGenerationService {
         {
           position: entryPoint,
           facingEdge: entryFacingEdge,
+          connectableEdges: entryConnectableEdges.length > 0 ? entryConnectableEdges : undefined,
         },
       ],
       roadTiles,

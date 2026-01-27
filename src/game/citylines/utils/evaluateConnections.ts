@@ -41,6 +41,8 @@ export interface ExitData {
   position: GridPosition;
   /** Which edge the exit faces (into the grid) */
   facingEdge: Edge;
+  /** Which edges can connect to this exit (defaults to just facingEdge if not provided) */
+  connectableEdges?: Edge[];
 }
 
 /** Result of connection evaluation */
@@ -297,8 +299,9 @@ export function evaluateConnections(
     visited[exitIndex] = 1;
     queue[queueEnd++] = exitIndex;
 
-    // Exits are considered part of the tile map (they have one facing edge)
-    tileEdgesByIndex[exitIndex] = [exit.facingEdge];
+    // Exits are considered part of the tile map
+    // Use connectableEdges if provided, otherwise fall back to just facingEdge
+    tileEdgesByIndex[exitIndex] = exit.connectableEdges ?? [exit.facingEdge];
   }
   
   // BFS traversal

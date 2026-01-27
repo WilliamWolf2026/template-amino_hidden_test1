@@ -190,7 +190,8 @@ export class CityLinesGame extends Container {
         exitConfig.position,
         exitConfig.facingEdge,
         this.gpuLoader,
-        this.tileSize
+        this.tileSize,
+        exitConfig.connectableEdges
       );
       this.exits.push(exit);
       this.exitsContainer.addChild(exit);
@@ -492,6 +493,7 @@ export class CityLinesGame extends Container {
     const exits: ExitData[] = this.exits.map(e => ({
       position: e.gridPosition,
       facingEdge: e.facingEdge,
+      connectableEdges: e.connectableEdges,
     }));
 
     // Evaluate connections (pure, efficient)
