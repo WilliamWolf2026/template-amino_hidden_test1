@@ -15,3 +15,9 @@ export * from './ui';
 
 // Animations
 export * from './animations';
+
+// Controllers
+export * from './controllers';
+
+// Utilities
+export * from './utils';
