@@ -14,12 +14,21 @@ export interface GameState {
   damage: (amount: number) => void;
   heal: (amount: number) => void;
 
+  // Chapter progress (for HUD display)
+  currentLevel: () => number;
+  setCurrentLevel: (level: number) => void;
+  totalLevels: () => number;
+  setTotalLevels: (total: number) => void;
+  incrementLevel: () => void;
+
   reset: () => void;
 }
 
 function createGameState(): GameState {
   const [score, setScore] = createSignal(0);
   const [health, setHealth] = createSignal(100);
+  const [currentLevel, setCurrentLevel] = createSignal(0);
+  const [totalLevels, setTotalLevels] = createSignal(10);
 
   return {
     score,
@@ -31,9 +40,17 @@ function createGameState(): GameState {
     damage: (amount: number) => setHealth((h) => Math.max(0, h - amount)),
     heal: (amount: number) => setHealth((h) => Math.min(100, h + amount)),
 
+    currentLevel,
+    setCurrentLevel,
+    totalLevels,
+    setTotalLevels,
+    incrementLevel: () => setCurrentLevel((l) => l + 1),
+
     reset: () => {
       setScore(0);
       setHealth(100);
+      setCurrentLevel(0);
+      setTotalLevels(10);
     },
   };
 }
