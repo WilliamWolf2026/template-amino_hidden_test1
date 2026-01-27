@@ -1,10 +1,11 @@
 import { onMount, onCleanup, createEffect, createSignal } from 'solid-js';
-import { Application } from 'pixi.js';
+import { Application, Graphics, Container, BlurFilter } from 'pixi.js';
+import gsap from 'gsap';
 import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, type LevelConfig } from '~/game/citylines';
+import { CityLinesGame, type LevelConfig, CompanionCharacter, DialogueBox } from '~/game/citylines';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
@@ -19,6 +20,7 @@ export function GameScreen() {
   const [pixiApp, setPixiApp] = createSignal<Application | null>(null);
   const [gameInstance, setGameInstance] = createSignal<CityLinesGame | null>(null);
   const [audioManager, setAudioManager] = createSignal<GameAudioManager | null>(null);
+  let resizeHandler: (() => void) | null = null;
 
   onMount(async () => {
     if (!containerRef) return;
@@ -56,6 +58,11 @@ export function GameScreen() {
       background.anchor.set(0.5);
       background.x = app.screen.width / 2;
       background.y = app.screen.height / 2;
+
+      // Add blur filter to background
+      const blurFilter = new BlurFilter({ strength: 8 });
+      background.filters = [blurFilter];
+
       app.stage.addChild(background);
 
       const tileSize = gameTuning.grid.tileSize;
@@ -112,6 +119,135 @@ export function GameScreen() {
       });
 
       console.log('[GameScreen] City Lines game loaded');
+
+      // TEMP TEST: Create companion dialogue group (character + dialogue box together)
+      const companionGroup = new Container();
+      companionGroup.label = 'companion-dialogue-group';
+
+      // Create dialogue box with text
+      const testDialogueBox = new DialogueBox(gpuLoader, app.screen.width, app.screen.height, 2.5);
+      testDialogueBox.setText("Hi there, let's solve some tile puzzles. Blah blah blah, New Jersey something, something.");
+      testDialogueBox.alpha = 1; // Make visible (constructor sets to 0)
+
+      // Position dialogue box at center of screen
+      testDialogueBox.x = 0; // Relative to group
+      testDialogueBox.y = 0;
+      companionGroup.addChild(testDialogueBox);
+
+      // Create character - positioned relative to dialogue box
+      const testCompanion = new CompanionCharacter('news_hound', gpuLoader, 'full');
+      testCompanion.alpha = 1; // Make visible
+
+      // Calculate character dimensions
+      const charWidth = 222 * 0.8;   // 177.6px
+      const charHeight = 243 * 0.8;  // 194.4px
+
+      // Position character on left side, with 3/4 above dialogue box
+      const dialogueBoxLeftEdge = -(testDialogueBox.getWidth() / 2);
+      testCompanion.x = dialogueBoxLeftEdge + (charWidth / 2); // Left edge aligned
+      testCompanion.y = -testDialogueBox.getHeight() - (charHeight * 0.25); // 3/4 above, 1/4 below
+
+      // Add character BEFORE dialogue box (behind it)
+      companionGroup.addChildAt(testCompanion, 0);
+
+      // Calculate vertical center offset for the group
+      // Dialogue box bottom is at y=0, character top is at testCompanion.y - charHeight/2
+      const groupTop = testCompanion.y - (charHeight / 2);
+      const groupBottom = 0; // Dialogue box bottom
+      const groupVerticalCenter = (groupTop + groupBottom) / 2;
+
+      // Position group at center of screen, adjusted for group's vertical center
+      companionGroup.x = app.screen.width / 2;
+      companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
+
+      // Add dark overlay (blocks clicks)
+      const darkOverlay = new Graphics();
+      darkOverlay.rect(0, 0, app.screen.width, app.screen.height);
+      darkOverlay.fill({ color: 0x000000, alpha: 0 }); // Start transparent
+      darkOverlay.eventMode = 'static';
+      darkOverlay.cursor = 'pointer';
+      darkOverlay.on('pointertap', () => {
+        // Dismiss dialogue with slide-left + fade animation
+        gsap.to(companionGroup, {
+          x: -400, // Slide off to the left
+          alpha: 0, // Fade out
+          duration: 0.4,
+          ease: 'power2.in',
+        });
+
+        // Fade out dark overlay
+        gsap.to(darkOverlay, {
+          alpha: 0,
+          duration: 0.3,
+          ease: 'power2.in',
+          onComplete: () => {
+            darkOverlay.eventMode = 'none';
+            companionGroup.visible = false;
+          },
+        });
+      });
+      app.stage.addChild(darkOverlay);
+
+      // Add group to stage (starts off-screen right)
+      companionGroup.x = app.screen.width + 400; // Off-screen right
+      companionGroup.y = app.screen.height / 2 - groupVerticalCenter; // Set initial y position
+      companionGroup.alpha = 1;
+      app.stage.addChild(companionGroup);
+
+      // Animate group sliding in from right
+      setTimeout(() => {
+        // Fade in dark overlay
+        gsap.to(darkOverlay, {
+          alpha: 0.85,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+
+        // Calculate target position
+        const groupTop = testCompanion.y - (charHeight / 2);
+        const groupBottom = 0;
+        const groupVerticalCenter = (groupTop + groupBottom) / 2;
+
+        // Slide group from right
+        gsap.to(companionGroup, {
+          x: app.screen.width / 2,
+          y: app.screen.height / 2 - groupVerticalCenter,
+          duration: 0.5,
+          ease: 'power2.out',
+          delay: 0.2,
+        });
+      }, 500);
+
+      // Resize handler for responsive behavior
+      resizeHandler = () => {
+        // Update dark overlay size
+        darkOverlay.clear();
+        darkOverlay.rect(0, 0, app.screen.width, app.screen.height);
+        darkOverlay.fill({ color: 0x000000, alpha: darkOverlay.alpha });
+
+        // Update dialogue box dimensions
+        testDialogueBox.resize(app.screen.width, app.screen.height);
+
+        // Recalculate character position relative to new dialogue box size
+        const dialogueBoxLeftEdge = -(testDialogueBox.getWidth() / 2);
+        testCompanion.x = dialogueBoxLeftEdge + (charWidth / 2);
+        testCompanion.y = -testDialogueBox.getHeight() - (charHeight * 0.25);
+
+        // Recalculate vertical center offset
+        const groupTop = testCompanion.y - (charHeight / 2);
+        const groupBottom = 0;
+        const groupVerticalCenter = (groupTop + groupBottom) / 2;
+
+        // Reposition group at center
+        if (companionGroup.visible) {
+          companionGroup.x = app.screen.width / 2;
+          companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
+        }
+      };
+
+      window.addEventListener('resize', resizeHandler);
+
+      console.log('[GameScreen] TEST: Companion dialogue group with slide-in');
     }
   });
 
@@ -192,6 +328,11 @@ export function GameScreen() {
     const app = pixiApp();
     if (app) {
       app.ticker.stop();
+    }
+
+    // Clean up resize listener
+    if (resizeHandler) {
+      window.removeEventListener('resize', resizeHandler);
     }
   });
 
