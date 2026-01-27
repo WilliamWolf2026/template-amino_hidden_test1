@@ -1,6 +1,6 @@
 import { Container, NineSliceSprite, Text } from 'pixi.js';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { getAtlasName } from '../utils/atlasHelper';
+import { getAtlasName } from '../../utils/atlasHelper';
 import { DIALOGUE_BOX_BASE_SIZE, POSITIONING } from './CompanionConfig';
 
 /**

@@ -8,7 +8,6 @@ import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, sampleLevel, CompanionCharacter, DialogueBox } from '~/game/citylines';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
-import { CompletionOverlay } from './components';
 import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
 import { getCountyConfig } from '~/game/citylines/data/counties';
@@ -28,14 +27,16 @@ export function GameScreen() {
   const [progressBar, setProgressBar] = createSignal<ProgressBar | null>(null);
   let resizeHandler: (() => void) | null = null;
 
+  // Companion dialogue references (reused for both intro and completion)
+  let companionGroup: Container | null = null;
+  let companionDialogueBox: DialogueBox | null = null;
+  let companionCharacter: CompanionCharacter | null = null;
+  let darkOverlay: Graphics | null = null;
+  let isCompanionAnimating = false;
+  let isShowingCompletionClue = false; // Track if currently showing level completion
+
   // Accessibility: aria-live announcements
   let ariaLiveRef: HTMLDivElement | undefined;
-
-  // Completion overlay state
-  const [overlayOpen, setOverlayOpen] = createSignal(false);
-  const [clueText, setClueText] = createSignal('');
-  const [celebrationImageUrl, setCelebrationImageUrl] = createSignal<string | undefined>();
-  const [canContinue, setCanContinue] = createSignal(false);
 
   onMount(async () => {
     if (!containerRef) return;
@@ -167,59 +168,85 @@ export function GameScreen() {
         console.log('[GameScreen] Landmark connected:', landmark);
       });
 
-      // Wire completion events
+      // Wire completion events - reuse companion dialogue to show clue
       game.onGameEvent('completionStart', (clue) => {
-        setOverlayOpen(true);
-        setClueText(clue);
-        setCanContinue(false);
+        console.log('[GameScreen] Level complete! Showing companion with clue:', clue);
 
-        const config = game.getCurrentLevelConfig();
-        setCelebrationImageUrl(config?.celebrationImageUrl);
-      });
+        if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
 
-      game.onGameEvent('clueTimerEnd', () => {
-        setCanContinue(true);
-      });
+        // Update clue text (reusing the same dialogue box)
+        companionDialogueBox.setText(clue);
 
-      game.onGameEvent('completionEnd', () => {
-        setOverlayOpen(false);
+        // Show companion group again
+        companionGroup.visible = true;
+        companionGroup.x = app.screen.width + 400; // Reset to off-screen right
+        companionGroup.alpha = 1;
+
+        // Mark that we're showing completion clue (for dismiss handler)
+        isShowingCompletionClue = true;
+
+        // Start animation
+        isCompanionAnimating = true;
+
+        // Fade in dark overlay
+        gsap.to(darkOverlay, {
+          alpha: companionConfig.overlayAlpha,
+          duration: companionConfig.overlayFadeInDuration / 1000,
+          ease: 'power2.out',
+        });
+
+        // Slide companion in from right (same animation as intro)
+        setTimeout(() => {
+          gsap.to(companionGroup, {
+            x: app.screen.width / 2,
+            duration: companionConfig.slideInDuration / 1000,
+            ease: companionConfig.slideInEasing,
+            delay: 0.2,
+            onComplete: () => {
+              isCompanionAnimating = false;
+              if (darkOverlay) {
+                darkOverlay.eventMode = 'static'; // Enable clicks
+              }
+            },
+          });
+        }, companionConfig.slideInDelay);
       });
 
       console.log('[GameScreen] City Lines game loaded');
 
-      // TEMP TEST: Create companion dialogue group (character + dialogue box together)
-      const companionGroup = new Container();
+      // Create companion dialogue group (reused for intro and completion)
+      companionGroup = new Container();
       companionGroup.label = 'companion-dialogue-group';
 
-      // Create dialogue box with text
-      const testDialogueBox = new DialogueBox(gpuLoader, app.screen.width, app.screen.height, 2.5);
-      testDialogueBox.setText("Hi there, let's solve some tile puzzles. Blah blah blah, New Jersey something, something.");
-      testDialogueBox.alpha = 1; // Make visible (constructor sets to 0)
+      // Create dialogue box with text (store reference for reuse)
+      companionDialogueBox = new DialogueBox(gpuLoader, app.screen.width, app.screen.height, 2.5);
+      companionDialogueBox.setText("Hi there, let's solve some tile puzzles. Blah blah blah, New Jersey something, something.");
+      companionDialogueBox.alpha = 1; // Make visible (constructor sets to 0)
 
       // Position dialogue box at center of screen
-      testDialogueBox.x = 0; // Relative to group
-      testDialogueBox.y = 0;
-      companionGroup.addChild(testDialogueBox);
+      companionDialogueBox.x = 0; // Relative to group
+      companionDialogueBox.y = 0;
+      companionGroup.addChild(companionDialogueBox);
 
-      // Create character - positioned relative to dialogue box
-      const testCompanion = new CompanionCharacter('news_hound', gpuLoader, 'full');
-      testCompanion.alpha = 1; // Make visible
+      // Create character - positioned relative to dialogue box (store reference for reuse)
+      companionCharacter = new CompanionCharacter('news_hound', gpuLoader, 'full');
+      companionCharacter.alpha = 1; // Make visible
 
       // Calculate character dimensions
       const charWidth = 222 * 0.8;   // 177.6px
       const charHeight = 243 * 0.8;  // 194.4px
 
       // Position character on left side, with 3/4 above dialogue box
-      const dialogueBoxLeftEdge = -(testDialogueBox.getWidth() / 2);
-      testCompanion.x = dialogueBoxLeftEdge + (charWidth / 2); // Left edge aligned
-      testCompanion.y = -testDialogueBox.getHeight() - (charHeight * 0.25); // 3/4 above, 1/4 below
+      const dialogueBoxLeftEdge = -(companionDialogueBox.getWidth() / 2);
+      companionCharacter.x = dialogueBoxLeftEdge + (charWidth / 2); // Left edge aligned
+      companionCharacter.y = -companionDialogueBox.getHeight() - (charHeight * 0.25); // 3/4 above, 1/4 below
 
       // Add character BEFORE dialogue box (behind it)
-      companionGroup.addChildAt(testCompanion, 0);
+      companionGroup.addChildAt(companionCharacter, 0);
 
       // Calculate vertical center offset for the group
-      // Dialogue box bottom is at y=0, character top is at testCompanion.y - charHeight/2
-      const groupTop = testCompanion.y - (charHeight / 2);
+      // Dialogue box bottom is at y=0, character top is at companionCharacter.y - charHeight/2
+      const groupTop = companionCharacter.y - (charHeight / 2);
       const groupBottom = 0; // Dialogue box bottom
       const groupVerticalCenter = (groupTop + groupBottom) / 2;
 
@@ -227,51 +254,74 @@ export function GameScreen() {
       companionGroup.x = app.screen.width / 2;
       companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
 
-      // Add dark overlay (blocks clicks)
-      const darkOverlay = new Graphics();
+      // Get companion animation settings from tuning
+      const companionConfig = gameTuning.companion;
+
+      // Add dark overlay (blocks clicks, positioned UNDER companion group)
+      darkOverlay = new Graphics();
       darkOverlay.rect(0, 0, app.screen.width, app.screen.height);
-      darkOverlay.fill({ color: 0x000000, alpha: 0 }); // Start transparent
-      darkOverlay.eventMode = 'static';
+      darkOverlay.fill({ color: 0x000000, alpha: 1.0 }); // Fill with solid black
+      darkOverlay.alpha = 0; // Start transparent (animate this property)
+      darkOverlay.eventMode = 'none'; // Start disabled, enable after animation completes
       darkOverlay.cursor = 'pointer';
       darkOverlay.on('pointertap', () => {
+        // Prevent clicks during animation
+        if (isCompanionAnimating || !darkOverlay) return;
+
+        isCompanionAnimating = true;
+        darkOverlay.eventMode = 'none'; // Disable further clicks
+
         // Dismiss dialogue with slide-left + fade animation
         gsap.to(companionGroup, {
           x: -400, // Slide off to the left
           alpha: 0, // Fade out
-          duration: 0.4,
-          ease: 'power2.in',
+          duration: companionConfig.slideOutDuration / 1000,
+          ease: companionConfig.slideOutEasing,
         });
 
         // Fade out dark overlay
         gsap.to(darkOverlay, {
           alpha: 0,
-          duration: 0.3,
+          duration: companionConfig.overlayFadeOutDuration / 1000,
           ease: 'power2.in',
           onComplete: () => {
-            darkOverlay.eventMode = 'none';
-            companionGroup.visible = false;
+            if (companionGroup) {
+              companionGroup.visible = false;
+            }
+            isCompanionAnimating = false;
+
+            // If we were showing completion clue, reload the level
+            if (isShowingCompletionClue) {
+              isShowingCompletionClue = false;
+              const controller = game.getCompletionController();
+              controller.continue();
+              game.loadLevel(sampleLevel);
+              game.x = app.screen.width / 2;
+              game.y = app.screen.height / 2;
+            }
           },
         });
       });
       app.stage.addChild(darkOverlay);
 
-      // Add group to stage (starts off-screen right)
+      // Add companion group to stage ABOVE overlay (starts off-screen right)
       companionGroup.x = app.screen.width + 400; // Off-screen right
       companionGroup.y = app.screen.height / 2 - groupVerticalCenter; // Set initial y position
       companionGroup.alpha = 1;
       app.stage.addChild(companionGroup);
 
       // Animate group sliding in from right
+      isCompanionAnimating = true;
       setTimeout(() => {
         // Fade in dark overlay
         gsap.to(darkOverlay, {
-          alpha: 0.85,
-          duration: 0.4,
+          alpha: companionConfig.overlayAlpha,
+          duration: companionConfig.overlayFadeInDuration / 1000,
           ease: 'power2.out',
         });
 
         // Calculate target position
-        const groupTop = testCompanion.y - (charHeight / 2);
+        const groupTop = companionCharacter.y - (charHeight / 2);
         const groupBottom = 0;
         const groupVerticalCenter = (groupTop + groupBottom) / 2;
 
@@ -279,34 +329,45 @@ export function GameScreen() {
         gsap.to(companionGroup, {
           x: app.screen.width / 2,
           y: app.screen.height / 2 - groupVerticalCenter,
-          duration: 0.5,
-          ease: 'power2.out',
+          duration: companionConfig.slideInDuration / 1000,
+          ease: companionConfig.slideInEasing,
           delay: 0.2,
+          onComplete: () => {
+            // Enable clicks after animation completes
+            isCompanionAnimating = false;
+            if (darkOverlay) {
+              darkOverlay.eventMode = 'static';
+            }
+          },
         });
-      }, 500);
+      }, companionConfig.slideInDelay);
 
       // Resize handler for responsive behavior
       resizeHandler = () => {
         // Update dark overlay size
-        darkOverlay.clear();
-        darkOverlay.rect(0, 0, app.screen.width, app.screen.height);
-        darkOverlay.fill({ color: 0x000000, alpha: darkOverlay.alpha });
+        if (darkOverlay) {
+          const currentAlpha = darkOverlay.alpha; // Preserve current alpha
+          darkOverlay.clear();
+          darkOverlay.rect(0, 0, app.screen.width, app.screen.height);
+          darkOverlay.fill({ color: 0x000000, alpha: 1.0 }); // Always solid black
+          darkOverlay.alpha = currentAlpha; // Restore alpha
+        }
 
         // Update dialogue box dimensions
-        testDialogueBox.resize(app.screen.width, app.screen.height);
+        companionDialogueBox.resize(app.screen.width, app.screen.height);
 
         // Recalculate character position relative to new dialogue box size
-        const dialogueBoxLeftEdge = -(testDialogueBox.getWidth() / 2);
-        testCompanion.x = dialogueBoxLeftEdge + (charWidth / 2);
-        testCompanion.y = -testDialogueBox.getHeight() - (charHeight * 0.25);
+        const dialogueBoxLeftEdge = -(companionDialogueBox.getWidth() / 2);
+        companionCharacter.x = dialogueBoxLeftEdge + (charWidth / 2);
+        companionCharacter.y = -companionDialogueBox.getHeight() - (charHeight * 0.25);
 
         // Recalculate vertical center offset
-        const groupTop = testCompanion.y - (charHeight / 2);
+        const groupTop = companionCharacter.y - (charHeight / 2);
         const groupBottom = 0;
         const groupVerticalCenter = (groupTop + groupBottom) / 2;
 
         // Reposition group at center
-        if (companionGroup.visible) {
+        if (companionGroup && companionGroup.visible) {
           companionGroup.x = app.screen.width / 2;
           companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
         }
@@ -314,28 +375,9 @@ export function GameScreen() {
 
       window.addEventListener('resize', resizeHandler);
 
-      console.log('[GameScreen] TEST: Companion dialogue group with slide-in');
+      console.log('[GameScreen] Companion dialogue setup complete (reused for intro and completion)');
     }
   });
-
-  // Handle continue button
-  const handleContinue = () => {
-    const game = gameInstance();
-    if (!game) return;
-
-    const controller = game.getCompletionController();
-    controller.continue();
-
-    // Reset the same level
-    game.loadLevel(sampleLevel);
-
-    // Re-center game (pivot is at grid center, so position at screen center)
-    const app = pixiApp();
-    if (app) {
-      game.x = app.screen.width / 2;
-      game.y = app.screen.height / 2;
-    }
-  };
 
   // Reactive: Background color changes
   createEffect(() => {
@@ -379,7 +421,7 @@ export function GameScreen() {
     const game = gameInstance();
     if (!game) return;
 
-    const { tileRotateDuration, tileRotateEasing } = tuning.game().animation;
+    const { tileRotateDuration, tileRotateEasing } = tuning.game().grid;
     game.setRotationAnimationConfig({
       duration: tileRotateDuration,
       easing: tileRotateEasing,
@@ -455,14 +497,7 @@ export function GameScreen() {
       {/* Pause overlay */}
       <PauseOverlay />
 
-      {/* Completion overlay */}
-      <CompletionOverlay
-        open={overlayOpen()}
-        clueText={clueText()}
-        celebrationImageUrl={celebrationImageUrl()}
-        canContinue={canContinue()}
-        onContinue={handleContinue}
-      />
+      {/* Level completion companion is now handled by Pixi (completionCompanionGroup) */}
     </div>
   );
 }
