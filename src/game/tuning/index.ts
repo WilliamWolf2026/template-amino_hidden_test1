@@ -9,6 +9,7 @@ export type {
   VisualsConfig,
   SpritesConfig,
   GameAnimationConfig,
+  CompanionAnimationConfig,
   ScoringConfig,
   GameScreensConfig,
   LandmarkCountRange,

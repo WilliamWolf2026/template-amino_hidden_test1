@@ -47,6 +47,8 @@ export interface GridConfig {
   padding: number;
   cellGap: number;
   nineSlice: NineSliceConfig;
+  tileRotateDuration: number;
+  tileRotateEasing: string;
 }
 
 export interface LandmarkCountRange {
@@ -81,10 +83,22 @@ export interface SpritesConfig {
 }
 
 export interface GameAnimationConfig {
-  tileRotateDuration: number;
-  tileRotateEasing: string;
   connectionPulseDuration: number;
   levelCompleteDelay: number;
+}
+
+export interface CompanionAnimationConfig {
+  // Slide-in animation timing
+  slideInDelay: number;
+  slideInDuration: number;
+  slideInEasing: string;
+  // Slide-out animation timing
+  slideOutDuration: number;
+  slideOutEasing: string;
+  // Overlay fade timing
+  overlayFadeInDuration: number;
+  overlayFadeOutDuration: number;
+  overlayAlpha: number;
 }
 
 export interface ScoringConfig {
@@ -110,6 +124,7 @@ export interface CityLinesTuning extends GameTuningBase {
   visuals: VisualsConfig;
   sprites: SpritesConfig;
   animation: GameAnimationConfig;
+  companion: CompanionAnimationConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
 }
@@ -134,6 +149,8 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
       rightWidth: 20,
       bottomHeight: 20,
     },
+    tileRotateDuration: 600,
+    tileRotateEasing: 'elastic.out(1, 0.5)',
   },
   difficulty: {
     easy: {
@@ -173,10 +190,18 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     connectionIndicatorOffset: 0.42,
   },
   animation: {
-    tileRotateDuration: 200,
-    tileRotateEasing: 'elastic.out(1, 0.5)',
     connectionPulseDuration: 300,
     levelCompleteDelay: 500,
+  },
+  companion: {
+    slideInDelay: 500,
+    slideInDuration: 500,
+    slideInEasing: 'elastic.out(1, 0.5)',
+    slideOutDuration: 400,
+    slideOutEasing: 'power2.in',
+    overlayFadeInDuration: 400,
+    overlayFadeOutDuration: 300,
+    overlayAlpha: 0.6,
   },
   scoring: {
     baseScore: 100,

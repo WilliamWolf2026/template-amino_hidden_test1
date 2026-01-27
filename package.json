@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "vinxi dev",
     "build": "vinxi build",
+    "build:qa": "vinxi build --mode qa",
     "start": "vinxi start"
   },
   "dependencies": {
