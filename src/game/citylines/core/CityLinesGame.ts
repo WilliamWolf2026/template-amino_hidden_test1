@@ -1,4 +1,4 @@
-import { Container, NineSliceSprite } from 'pixi.js';
+import { AnimatedSprite, Container, NineSliceSprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
@@ -70,6 +70,7 @@ export class CityLinesGame extends Container {
   private gridContainer: Container;
   private decorationsContainer: Container;
   private roadTilesContainer: Container;
+  private vfxContainer: Container;
   private landmarksContainer: Container;
   private exitsContainer: Container;
 
@@ -116,16 +117,20 @@ export class CityLinesGame extends Container {
     this.roadTilesContainer = new Container();
     this.roadTilesContainer.label = 'roadTiles';
 
+    this.vfxContainer = new Container();
+    this.vfxContainer.label = 'vfx';
+
     this.landmarksContainer = new Container();
     this.landmarksContainer.label = 'landmarks';
 
     this.exitsContainer = new Container();
     this.exitsContainer.label = 'exits';
 
-    // Layer order: grid -> decorations -> roads -> exits -> landmarks
+    // Layer order: grid -> decorations -> roads -> vfx -> exits -> landmarks
     this.addChild(this.gridContainer);
     this.addChild(this.decorationsContainer);
     this.addChild(this.roadTilesContainer);
+    this.addChild(this.vfxContainer);
     this.addChild(this.exitsContainer);
     this.addChild(this.landmarksContainer);
 
@@ -256,15 +261,58 @@ export class CityLinesGame extends Container {
 
     // Rotate tile
     tile.rotate(this.rotationAnimationConfig);
-    
+
+    // Play rotation VFX
+    this.playRotateVFX(tile);
+
     // Increment move counter
     this.moveCount++;
 
     // Update connections
     this.updateConnections();
-    
+
     // Emit event
     this.emitEvent('tileRotated');
+  }
+
+  /** Play rotation VFX on a tile */
+  private playRotateVFX(tile: RoadTile): void {
+    // Check if VFX sheet is loaded
+    if (!this.gpuLoader.hasSheet('vfx-rotate')) {
+      return;
+    }
+
+    // Create animated sprite from spritesheet
+    const vfx = this.gpuLoader.createAnimatedSprite('vfx-rotate', 'rotate');
+
+    // Position at tile center
+    vfx.anchor.set(0.5);
+    vfx.x = tile.x;
+    vfx.y = tile.y;
+
+    // VFX 160% of tile size, flipped horizontally for clockwise spin
+    const vfxScale = (this.tileSize / 256) * 1.6;
+    vfx.scale.set(-vfxScale, vfxScale);
+    vfx.alpha = 1;
+
+    // Random initial rotation for visual variety
+    vfx.rotation = Math.random() * Math.PI * 2;
+
+    // Animation settings - faster than tile rotation
+    // 24 frames, 60fps ticker: animationSpeed = frames / (duration_ms * 0.06) * 1.5
+    const duration = this.rotationAnimationConfig?.duration ?? 300;
+    vfx.animationSpeed = (24 / (duration * 0.06)) * 1.5;
+    vfx.loop = false;
+
+    // Remove when animation completes
+    vfx.onComplete = () => {
+      this.vfxContainer.removeChild(vfx);
+      vfx.destroy();
+    };
+
+    // Add to VFX layer and play
+    this.vfxContainer.addChild(vfx);
+    vfx.play();
   }
 
   /** Set rotation animation config (from tuning) */

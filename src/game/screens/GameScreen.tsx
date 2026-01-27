@@ -62,6 +62,9 @@ export function GameScreen() {
     const tileBundleName = getTileBundleName(tileTheme);
     await coordinator.loadBundle(tileBundleName);
 
+    // Load VFX bundle
+    await coordinator.loadBundle('vfx-rotate');
+
     // Create City Lines game
     if (gpuLoader.hasSheet(tileBundleName)) {
       // Add background - fit height, maintain aspect ratio, center horizontally
