@@ -26,6 +26,10 @@ export const WIRED_GAME_PATHS = new Set([
   'animation.tileRotateEasing',
   // NOT WIRED: animation.connectionPulseDuration, animation.levelCompleteDelay
 
+  // VFX - wired in GameScreen.tsx
+  'vfx.rotateAlpha',
+  'vfx.rotateSizePercent',
+
   // Scoring - not wired (game logic)
   // NOT WIRED: scoring.*
 

@@ -179,6 +179,11 @@ function inferBindingParams(key: string, value: number): Partial<BindingParams> 
     return { min: 0.1, max: 3, step: 0.05 };
   }
 
+  // Size percent: 10-500%
+  if (keyLower.includes('sizepercent')) {
+    return { min: 10, max: 500, step: 5 };
+  }
+
   // Size (tile size, etc): 1-500
   if (keyLower.includes('size')) {
     return { min: 1, max: 500, step: 1 };

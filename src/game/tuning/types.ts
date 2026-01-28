@@ -87,6 +87,11 @@ export interface GameAnimationConfig {
   levelCompleteDelay: number;
 }
 
+export interface VfxConfig {
+  rotateAlpha: number;
+  rotateSizePercent: number;
+}
+
 export interface ScoringConfig {
   baseScore: number;
   timeBonus: number;
@@ -110,6 +115,7 @@ export interface CityLinesTuning extends GameTuningBase {
   visuals: VisualsConfig;
   sprites: SpritesConfig;
   animation: GameAnimationConfig;
+  vfx: VfxConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
 }
@@ -177,6 +183,10 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     tileRotateEasing: 'elastic.out(1, 0.5)',
     connectionPulseDuration: 300,
     levelCompleteDelay: 500,
+  },
+  vfx: {
+    rotateAlpha: 1,
+    rotateSizePercent: 200,
   },
   scoring: {
     baseScore: 100,

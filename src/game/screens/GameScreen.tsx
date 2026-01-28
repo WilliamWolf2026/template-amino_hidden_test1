@@ -253,6 +253,18 @@ export function GameScreen() {
     });
   });
 
+  // Reactive: VFX config changes
+  createEffect(() => {
+    const game = gameInstance();
+    if (!game) return;
+
+    const { rotateAlpha, rotateSizePercent } = tuning.game().vfx;
+    game.setVfxConfig({
+      alpha: rotateAlpha,
+      sizePercent: rotateSizePercent,
+    });
+  });
+
   // Progress bar theme changes
   createEffect(() => {
     const bar = progressBar();

@@ -80,6 +80,9 @@ export class CityLinesGame extends Container {
   // Animation config for tile rotation (from tuning)
   private rotationAnimationConfig?: { duration: number; easing: string };
 
+  // VFX config (from tuning)
+  private vfxConfig = { alpha: 1, sizePercent: 200 };
+
   // Completion lifecycle
   private completionController: LevelCompletionController;
   private currentLevelConfig: LevelConfig | null = null;
@@ -290,10 +293,10 @@ export class CityLinesGame extends Container {
     vfx.x = tile.x;
     vfx.y = tile.y;
 
-    // VFX 160% of tile size, flipped horizontally for clockwise spin
-    const vfxScale = (this.tileSize / 256) * 1.6;
+    // VFX size based on tuning, flipped horizontally for clockwise spin
+    const vfxScale = (this.tileSize / 256) * (this.vfxConfig.sizePercent / 100);
     vfx.scale.set(-vfxScale, vfxScale);
-    vfx.alpha = 1;
+    vfx.alpha = this.vfxConfig.alpha;
 
     // Random initial rotation for visual variety
     vfx.rotation = Math.random() * Math.PI * 2;
@@ -318,6 +321,11 @@ export class CityLinesGame extends Container {
   /** Set rotation animation config (from tuning) */
   setRotationAnimationConfig(config: { duration: number; easing: string }): void {
     this.rotationAnimationConfig = config;
+  }
+
+  /** Set VFX config (from tuning) */
+  setVfxConfig(config: { alpha: number; sizePercent: number }): void {
+    this.vfxConfig = config;
   }
 
   /** Clear current level */
