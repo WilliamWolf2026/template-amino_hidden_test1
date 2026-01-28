@@ -26,6 +26,28 @@ export const WIRED_GAME_PATHS = new Set([
   'animation.tileRotateEasing',
   // NOT WIRED: animation.connectionPulseDuration, animation.levelCompleteDelay
 
+  // Level Transition - applied on level load (not live-wired)
+  'levelTransition.startDelay',
+  'levelTransition.elementDuration',
+  'levelTransition.diagonalStagger',
+  'levelTransition.elementStagger',
+  'levelTransition.elementEasing',
+  'levelTransition.backgroundEasing',
+  'levelTransition.animateBackground',
+
+  // Generator - requires manual regeneration (regenerateLevel button)
+  'generator.width',
+  'generator.height',
+  'generator.exitPoints',
+  'generator.pointsSpacing',
+  'generator.sidePushRadius',
+  'generator.sidePushFactor',
+  'generator.wriggleFactor',
+  'generator.wriggleDistanceMagnifier',
+  'generator.wriggleExtent',
+  'generator.wriggleExtentChaosFactor',
+  'generator.wrigglePasses',
+
   // Scoring - not wired (game logic)
   // NOT WIRED: scoring.*
 

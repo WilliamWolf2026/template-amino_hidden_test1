@@ -7,6 +7,9 @@ export * from './data';
 // Core game classes
 export * from './core';
 
+// Services
+export * from './services';
+
 // Systems
 export * from './systems';
 

@@ -13,18 +13,19 @@ export const sampleLevel: LevelConfig = {
   county: 'atlantic',
   clue: 'Unlikely championship victory',
   landmarks: [
-    { type: 'diner', position: { row: 1, col: 1 } },
-    { type: 'gas_station', position: { row: 2, col: 2 } },
+    { type: 'diner', position: { x: 1, y: 1 } },
+    { type: 'gas_station', position: { x: 2, y: 2 } },
   ],
   exits: [
-    { position: { row: 0, col: 3 }, facingEdge: 'south' },
+    { position: { x: 3, y: 0 }, facingEdge: 'south' },
   ],
   roadTiles: [
-    { type: 'straight', row: 1, col: 3, solutionRotation: 0, initialRotation: 90 },
-    { type: 't_junction', row: 2, col: 3, solutionRotation: 180, initialRotation: 0 },
-    { type: 'corner', row: 3, col: 3, solutionRotation: 270, initialRotation: 90 },
-    { type: 'straight', row: 3, col: 2, solutionRotation: 90, initialRotation: 0 },
-    { type: 'corner', row: 3, col: 1, solutionRotation: 0, initialRotation: 180 },
-    { type: 'straight', row: 2, col: 1, solutionRotation: 0, initialRotation: 90 },
+    // Rotation states: 0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°
+    { type: 'straight', x: 3, y: 1, solutionRotation: 0, initialRotation: 1 },
+    { type: 't_junction', x: 3, y: 2, solutionRotation: 2, initialRotation: 0 },
+    { type: 'corner', x: 3, y: 3, solutionRotation: 3, initialRotation: 1 },
+    { type: 'straight', x: 2, y: 3, solutionRotation: 1, initialRotation: 0 },
+    { type: 'corner', x: 1, y: 3, solutionRotation: 0, initialRotation: 2 },
+    { type: 'straight', x: 1, y: 2, solutionRotation: 0, initialRotation: 1 },
   ],
 };

@@ -113,6 +113,48 @@ export interface GameScreensConfig {
   loadingBackgroundColor: string;
 }
 
+export interface LevelTransitionConfig {
+  /** Delay before transition starts (ms) @min 0 @max 1000 @step 50 */
+  startDelay: number;
+  /** Duration of each element's animation (ms) @min 100 @max 1000 @step 50 */
+  elementDuration: number;
+  /** Delay between diagonal waves (ms) @min 0 @max 200 @step 10 */
+  diagonalStagger: number;
+  /** Delay between elements in same diagonal (ms) @min 0 @max 100 @step 5 */
+  elementStagger: number;
+  /** Easing function for element pop-in */
+  elementEasing: string;
+  /** Easing function for background resize */
+  backgroundEasing: string;
+  /** Whether to animate background resize */
+  animateBackground: boolean;
+}
+
+export interface GeneratorConfig {
+  /** Grid width (4-6 per GDD, max 12) @min 4 @max 12 @step 1 */
+  width: number;
+  /** Grid height (4-6 per GDD, max 12) @min 4 @max 12 @step 1 */
+  height: number;
+  /** Number of exit points (landmarks) @min 1 @max 4 @step 1 */
+  exitPoints: number;
+  /** Points spacing (must be < (width+height)/2, conservative max for small grids) @min 1 @max 4 @step 1 */
+  pointsSpacing: number;
+  /** Side push radius (must be <= max(width,height)/2, conservative max for small grids) @min 0 @max 2 @step 1 */
+  sidePushRadius: number;
+  /** Side push factor @min 0 @max 2 @step 0.1 */
+  sidePushFactor: number;
+  /** Wriggle factor (path curvature) @min 0 @max 1 @step 0.001 */
+  wriggleFactor: number;
+  /** Wriggle distance magnifier @min 0 @max 10 @step 0.5 */
+  wriggleDistanceMagnifier: number;
+  /** Wriggle extent (curve intensity) @min 0 @max 1 @step 0.05 */
+  wriggleExtent: number;
+  /** Wriggle extent chaos factor @min 0 @max 1 @step 0.05 */
+  wriggleExtentChaosFactor: number;
+  /** Number of wriggle passes @min 1 @max 5 @step 1 */
+  wrigglePasses: number;
+}
+
 export interface CityLinesTuning extends GameTuningBase {
   theme: ThemeConfig;
   grid: GridConfig;
@@ -127,6 +169,8 @@ export interface CityLinesTuning extends GameTuningBase {
   companion: CompanionAnimationConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
+  generator: GeneratorConfig;
+  levelTransition: LevelTransitionConfig;
 }
 
 // ============================================
@@ -212,5 +256,27 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
   screens: {
     startBackgroundColor: '#BCE083',
     loadingBackgroundColor: '#BCE083',
+  },
+  generator: {
+    width: 4,
+    height: 4,
+    exitPoints: 1,
+    pointsSpacing: 3,
+    sidePushRadius: 2,
+    sidePushFactor: 1,
+    wriggleFactor: 0.999,
+    wriggleDistanceMagnifier: 4,
+    wriggleExtent: 0.7,
+    wriggleExtentChaosFactor: 0.8,
+    wrigglePasses: 2,
+  },
+  levelTransition: {
+    startDelay: 200,
+    elementDuration: 300,
+    diagonalStagger: 50,
+    elementStagger: 20,
+    elementEasing: 'back.out(1.2)',
+    backgroundEasing: 'power2.out',
+    animateBackground: true,
   },
 };

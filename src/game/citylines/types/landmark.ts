@@ -45,4 +45,6 @@ export interface ExitPlacement {
   position: GridPosition;
   /** Which edge the exit faces (into the grid) */
   facingEdge: Edge;
+  /** Optional: Which edges can connect to this exit (defaults to just facingEdge) */
+  connectableEdges?: Edge[];
 }

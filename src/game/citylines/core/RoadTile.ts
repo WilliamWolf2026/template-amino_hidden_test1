@@ -8,8 +8,8 @@ import { getAtlasName } from '../utils/atlasHelper';
 /** Map tile type to sprite frames */
 const TILE_SPRITES: Record<RoadTileType, { default: string; completed: string }> = {
   straight: { default: 'tile_a.png', completed: 'tile_a_completed.png' },
-  corner: { default: 'tile_b.png', completed: 'tile_b_completed.png' },
-  t_junction: { default: 'tile_c.png', completed: 'tile_c_completed.png' },
+  corner: { default: 'tile_c.png', completed: 'tile_c_completed.png' },
+  t_junction: { default: 'tile_b.png', completed: 'tile_b_completed.png' },
 };
 
 /**
@@ -32,12 +32,12 @@ function rotateEdge(edge: Edge, times: number): Edge {
 export class RoadTile extends Container {
   readonly type: RoadTileType;
   readonly gridPosition: GridPosition;
-  readonly solutionRotation: number;
+  readonly solutionRotation: number; // Rotation state (0, 1, 2, 3)
 
   private defaultSprite: Sprite;
   private completedSprite: Sprite;
-  private _currentRotation: number;
-  private _visualRotation: number; // Cumulative rotation for animations (never wraps)
+  private _currentRotation: number; // Rotation state (0, 1, 2, 3) - aligned with generator
+  private _visualRotation: number; // Cumulative degrees for smooth animations (never wraps)
   private _isConnected = false;
   private tileSize: number;
 
@@ -46,8 +46,8 @@ export class RoadTile extends Container {
     position: GridPosition,
     gpuLoader: PixiLoader,
     tileSize: number,
-    solutionRotation: number,
-    initialRotation: number
+    solutionRotation: number, // Rotation state (0, 1, 2, 3)
+    initialRotation: number // Rotation state (0, 1, 2, 3)
   ) {
     super();
 
@@ -55,12 +55,12 @@ export class RoadTile extends Container {
     this.gridPosition = position;
     this.solutionRotation = solutionRotation;
     this._currentRotation = initialRotation;
-    this._visualRotation = initialRotation; // Start cumulative rotation at initial value
+    this._visualRotation = initialRotation * 90; // Convert state to degrees for animation
     this.tileSize = tileSize;
 
-    // Position on grid
-    this.x = position.col * tileSize + tileSize / 2;
-    this.y = position.row * tileSize + tileSize / 2;
+    // Position on grid (x = column, y = row)
+    this.x = position.x * tileSize + tileSize / 2;
+    this.y = position.y * tileSize + tileSize / 2;
 
     const sprites = TILE_SPRITES[type];
 
@@ -91,17 +91,16 @@ export class RoadTile extends Container {
   }
 
   get currentRotation(): number {
-    return this._currentRotation;
+    return this._currentRotation; // Returns rotation state (0, 1, 2, 3)
   }
 
   get isConnected(): boolean {
     return this._isConnected;
   }
 
-  /** Get connected edges based on current rotation */
+  /** Get connected edges based on current rotation state */
   getConnectedEdges(): Edge[] {
-    const rotationSteps = this._currentRotation / 90;
-    return BASE_CONNECTIONS[this.type].map((edge) => rotateEdge(edge, rotationSteps));
+    return BASE_CONNECTIONS[this.type].map((edge) => rotateEdge(edge, this._currentRotation));
   }
 
   /** Check if correctly oriented (matches solution) */
@@ -111,8 +110,8 @@ export class RoadTile extends Container {
 
   /** Rotate 90 degrees clockwise with optional animation */
   rotate(animationConfig?: { duration: number; easing: string }): void {
-    this._currentRotation = (this._currentRotation + 90) % 360;
-    this._visualRotation += 90; // Cumulative, never wraps - ensures always clockwise
+    this._currentRotation = (this._currentRotation + 1) % 4; // Increment rotation state
+    this._visualRotation += 90; // Cumulative degrees for animation
 
     if (animationConfig && animationConfig.duration > 0) {
       const targetRadians = (this._visualRotation * Math.PI) / 180;
@@ -154,8 +153,8 @@ export class RoadTile extends Container {
   /** Update tile size (for live tuning) */
   setTileSize(newSize: number): void {
     this.tileSize = newSize;
-    this.x = this.gridPosition.col * newSize + newSize / 2;
-    this.y = this.gridPosition.row * newSize + newSize / 2;
+    this.x = this.gridPosition.x * newSize + newSize / 2;
+    this.y = this.gridPosition.y * newSize + newSize / 2;
     this.defaultSprite.width = newSize;
     this.defaultSprite.height = newSize;
     this.completedSprite.width = newSize;
@@ -172,8 +171,8 @@ export class RoadTile extends Container {
   ): void {
     this.tileSize = tileSize;
     const effectiveSize = tileSize + cellGap;
-    const targetX = padding + this.gridPosition.col * effectiveSize + tileSize / 2;
-    const targetY = padding + this.gridPosition.row * effectiveSize + tileSize / 2;
+    const targetX = padding + this.gridPosition.x * effectiveSize + tileSize / 2;
+    const targetY = padding + this.gridPosition.y * effectiveSize + tileSize / 2;
 
     if (duration > 0) {
       gsap.to(this, {
