@@ -60,30 +60,32 @@ export const DIFFICULTY_PRESETS: Record<string, DifficultySettings> = {
 
 /**
  * Progressive difficulty curve for chapter levels (10 levels per chapter)
- * Each chapter starts easy and ramps up to hard by level 10
- * Resets at the start of each new chapter
+ * Based on GDD Progression section:
+ * - Levels 1-2: 4×4 grid, 2-3 landmarks
+ * - Levels 3-6: 5×5 grid, 3-5 landmarks
+ * - Levels 7-10: 6×6 grid, 5-7 landmarks
  */
 export const CHAPTER_LEVEL_PROGRESSION: DifficultySettings[] = [
-  // Level 1: Easy start (4x4, 2 landmarks, minimal wriggle)
+  // Level 1: 4x4, 2 landmarks (GDD: 2-3)
   { gridSize: 4, landmarkCount: { min: 2, max: 2 }, detourProbability: 0.1, minPathLength: 3 },
-  // Level 2: Still easy
-  { gridSize: 4, landmarkCount: { min: 2, max: 2 }, detourProbability: 0.1, minPathLength: 3 },
-  // Level 3: Introduce slight wriggle, optional 3rd landmark
+  // Level 2: 4x4, 2-3 landmarks (GDD: 2-3)
   { gridSize: 4, landmarkCount: { min: 2, max: 3 }, detourProbability: 0.15, minPathLength: 3 },
-  // Level 4: Jump to 5x5, 3 landmarks
+  // Level 3: 5x5, 3 landmarks (GDD: 3-5)
   { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.2, minPathLength: 4 },
-  // Level 5: Medium difficulty, more wriggle
-  { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.25, minPathLength: 4 },
-  // Level 6: Peak of 5x5 difficulty
-  { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.3, minPathLength: 4 },
-  // Level 7: Jump to 6x6, significant wriggle
-  { gridSize: 6, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.4, minPathLength: 5 },
-  // Level 8: Hard, optional 4th landmark
-  { gridSize: 6, landmarkCount: { min: 3, max: 4 }, detourProbability: 0.5, minPathLength: 5 },
-  // Level 9: Very hard, 4 landmarks
-  { gridSize: 6, landmarkCount: { min: 4, max: 4 }, detourProbability: 0.55, minPathLength: 5 },
-  // Level 10: Chapter finale, maximum difficulty
-  { gridSize: 6, landmarkCount: { min: 4, max: 4 }, detourProbability: 0.6, minPathLength: 5 },
+  // Level 4: 5x5, 3-4 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 3, max: 4 }, detourProbability: 0.25, minPathLength: 4 },
+  // Level 5: 5x5, 4 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 4, max: 4 }, detourProbability: 0.3, minPathLength: 4 },
+  // Level 6: 5x5, 4-5 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 4, max: 5 }, detourProbability: 0.35, minPathLength: 4 },
+  // Level 7: 6x6, 5 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 5, max: 5 }, detourProbability: 0.4, minPathLength: 5 },
+  // Level 8: 6x6, 5-6 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 5, max: 6 }, detourProbability: 0.5, minPathLength: 5 },
+  // Level 9: 6x6, 6 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 6, max: 6 }, detourProbability: 0.55, minPathLength: 5 },
+  // Level 10: 6x6, 6-7 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 6, max: 7 }, detourProbability: 0.6, minPathLength: 5 },
 ];
 
 /**
@@ -139,11 +141,23 @@ export function difficultyToGeneratorConfig(
     Math.random() * (difficulty.landmarkCount.max - difficulty.landmarkCount.min + 1)
   ) + difficulty.landmarkCount.min;
 
+  // Calculate appropriate pointsSpacing based on grid size and landmark count
+  // With many landmarks on a small grid, we need reduced spacing to fit them all
+  // Formula: scale down spacing as landmark density increases
+  const gridArea = difficulty.gridSize * difficulty.gridSize;
+  const landmarkDensity = landmarkCount / gridArea;
+
+  // Base spacing from minPathLength, but scale down for high density
+  // At low density (2 landmarks on 6x6 = 0.055), use full minPathLength
+  // At high density (7 landmarks on 6x6 = 0.194), reduce to ~40% of minPathLength
+  const densityFactor = Math.max(0.4, 1 - (landmarkDensity * 3));
+  const adjustedSpacing = Math.max(2, Math.floor(difficulty.minPathLength * densityFactor));
+
   return {
     width: difficulty.gridSize,
     height: difficulty.gridSize,
     exitPoints: landmarkCount,
-    pointsSpacing: difficulty.minPathLength,
+    pointsSpacing: adjustedSpacing,
     sidePushRadius: baseConfig.sidePushRadius,
     sidePushFactor: baseConfig.sidePushFactor,
 
