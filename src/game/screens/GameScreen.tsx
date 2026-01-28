@@ -7,7 +7,7 @@ import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, CompanionCharacter, DialogueBox, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
+import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
@@ -35,7 +35,10 @@ export function GameScreen() {
   let companionCharacter: CompanionCharacter | null = null;
   let darkOverlay: Graphics | null = null;
   let isCompanionAnimating = false;
-  let isShowingCompletionClue = false; // Track if currently showing level completion
+  let isShowingCompletionClue = false; // Track if currently showing level completion (chapter end overlay)
+
+  // Pixi-based CluePopup for levels 1-9
+  let cluePopup: CluePopup | null = null;
 
   // Helper: Generate level with progressive difficulty
   const generateLevelWithProgression = (levelNumber: number) => {
@@ -151,6 +154,10 @@ export function GameScreen() {
       app.stage.addChild(bar);
       setProgressBar(bar);
 
+      // Create CluePopup for levels 1-9 (Pixi-based)
+      cluePopup = new CluePopup(gpuLoader);
+      app.stage.addChild(cluePopup);
+
       // TEMPORARY DEBUG SUPPORT - Chapter Progress Fill Bar Ticket Only
       // TODO: Remove this block once real multi-level chapter progression is implemented
       // This debug logic allows testing progress bar states via URL params:
@@ -209,53 +216,91 @@ export function GameScreen() {
         console.log('[GameScreen] Landmark connected:', landmark);
       });
 
-      // Wire completion events - reuse companion dialogue to show clue
-      game.onGameEvent('completionStart', (clue) => {
-        console.log('[GameScreen] Level complete! Showing companion with clue:', clue);
+      // Wire completion events - show CluePopup for levels 1-9, full overlay for chapter end (level 10)
+      game.onGameEvent('completionStart', (clue, levelNumber) => {
+        const isChapterEnd = levelNumber % 10 === 0; // Level 10, 20, 30, etc.
+        console.log('[GameScreen] Level complete!', { levelNumber, isChapterEnd, clue });
 
-        // Play news reveal sound when companion shows clue
+        // Play news reveal sound
         manager.playNewsReveal();
 
-        if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
+        if (isChapterEnd) {
+          // Chapter end (level 10, 20, etc.) - show full companion overlay
+          if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
 
-        // Update clue text (reusing the same dialogue box)
-        companionDialogueBox.setText(clue);
+          // Update clue text (reusing the same dialogue box)
+          companionDialogueBox.setText(clue);
 
-        // Show companion group again
-        companionGroup.visible = true;
-        companionGroup.x = app.screen.width + 400; // Reset to off-screen right
-        companionGroup.alpha = 1;
+          // Show companion group again
+          companionGroup.visible = true;
+          companionGroup.x = app.screen.width + 400; // Reset to off-screen right
+          companionGroup.alpha = 1;
 
-        // Mark that we're showing completion clue (for dismiss handler)
-        isShowingCompletionClue = true;
+          // Mark that we're showing completion clue (for dismiss handler)
+          isShowingCompletionClue = true;
 
-        // Start animation
-        isCompanionAnimating = true;
+          // Start animation
+          isCompanionAnimating = true;
 
-        // Fade in dark overlay
-        gsap.to(darkOverlay, {
-          alpha: companionConfig.overlayAlpha,
-          duration: companionConfig.overlayFadeInDuration / 1000,
-          ease: 'power2.out',
-        });
-
-        // Slide companion in from right (same animation as intro)
-        setTimeout(() => {
-          gsap.to(companionGroup, {
-            x: app.screen.width / 2,
-            duration: companionConfig.slideInDuration / 1000,
-            ease: companionConfig.slideInEasing,
-            delay: 0.2,
-            onComplete: () => {
-              isCompanionAnimating = false;
-              if (darkOverlay) {
-                darkOverlay.eventMode = 'static'; // Enable clicks
-              }
-              // Play dog bark after slide-in completes
-              manager.playDogBark();
-            },
+          // Fade in dark overlay
+          gsap.to(darkOverlay, {
+            alpha: companionConfig.overlayAlpha,
+            duration: companionConfig.overlayFadeInDuration / 1000,
+            ease: 'power2.out',
           });
-        }, companionConfig.slideInDelay);
+
+          // Slide companion in from right (same animation as intro)
+          setTimeout(() => {
+            gsap.to(companionGroup, {
+              x: app.screen.width / 2,
+              duration: companionConfig.slideInDuration / 1000,
+              ease: companionConfig.slideInEasing,
+              delay: 0.2,
+              onComplete: () => {
+                isCompanionAnimating = false;
+                if (darkOverlay) {
+                  darkOverlay.eventMode = 'static'; // Enable clicks
+                }
+                // Play dog bark after slide-in completes
+                manager.playDogBark();
+              },
+            });
+          }, companionConfig.slideInDelay);
+        } else {
+          // Regular level (1-9) - show lightweight Pixi CluePopup
+          if (cluePopup) {
+            manager.playDogPant();
+            // Calculate grid top position (game is centered, pivot at grid center)
+            const gridPixelSize = game.getGridPixelSize();
+            const gridTop = app.screen.height / 2 - gridPixelSize / 2;
+            cluePopup.show(
+              clue,
+              app.screen.width,
+              gridTop,
+              gameTuning.cluePopup.displayDuration,
+              () => {
+                // On dismiss - continue to next level
+                const controller = game.getCompletionController();
+                controller.continue();
+
+                // Generate new level with progressive difficulty
+                const newLevel = generateLevelWithProgression(
+                  currentLevel().levelNumber + 1
+                );
+                setCurrentLevel(newLevel);
+
+                game.loadLevel(newLevel);
+                game.x = app.screen.width / 2;
+                game.y = app.screen.height / 2;
+
+                // Play level transition animation
+                game.playLevelTransition().catch(err => {
+                  console.error('[GameScreen] Level transition animation error:', err);
+                });
+              }
+            );
+          }
+        }
       });
 
       console.log('[GameScreen] City Lines game loaded');
@@ -665,12 +710,14 @@ export function GameScreen() {
       {/* Pause overlay */}
       <PauseOverlay />
 
+      {/* CluePopup is now Pixi-based, rendered in the Pixi stage */}
+
       {/* Wolf Games logo at bottom center */}
       <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
         <Logo />
       </div>
 
-      {/* Level completion companion is now handled by Pixi (completionCompanionGroup) */}
+      {/* Level completion companion overlay is handled by Pixi (for chapter end only) */}
     </div>
   );
 }

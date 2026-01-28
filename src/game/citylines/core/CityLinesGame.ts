@@ -39,7 +39,7 @@ export interface CityLinesGameEvents {
   levelComplete: (payload: LevelCompletePayload) => void;
   landmarkConnected: (landmark: Landmark) => void;
   tileRotated: () => void;
-  completionStart: (clue: string) => void;
+  completionStart: (clue: string, levelNumber: number) => void;
   clueTimerEnd: () => void;
   completionEnd: () => void;
 }
@@ -107,7 +107,7 @@ export class CityLinesGame extends Container {
     // Create completion controller
     this.completionController = createLevelCompletionController({
       events: {
-        onCompletionStart: (clue) => this.emitEvent('completionStart', clue),
+        onCompletionStart: (clue, levelNumber) => this.emitEvent('completionStart', clue, levelNumber),
         onClueTimerEnd: () => this.emitEvent('clueTimerEnd'),
         onCompletionEnd: () => this.emitEvent('completionEnd'),
         onLevelComplete: (payload) => this.emitEvent('levelComplete', payload),

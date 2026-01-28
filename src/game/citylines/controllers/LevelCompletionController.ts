@@ -18,8 +18,8 @@ export type CompletionState =
 
 /** Events emitted by the controller */
 export interface CompletionEvents {
-  /** Fires when completion sequence starts (show overlay) */
-  onCompletionStart: (clue: string) => void;
+  /** Fires when completion sequence starts (show overlay or popup) */
+  onCompletionStart: (clue: string, levelNumber: number) => void;
   
   /** Fires after clue timer expires (show continue button) */
   onClueTimerEnd: () => void;
@@ -137,17 +137,17 @@ export function createLevelCompletionController(
     if (state !== 'playing') {
       return;
     }
-    
+
     // Transition to completing state
     state = 'completing';
     canContinue = false;
-    
+
     // Emit level complete event (exactly once)
     if (!hasEmittedLevelComplete) {
       hasEmittedLevelComplete = true;
       events.onLevelComplete({ levelId, moves, durationMs });
     }
-    
+
     // Trigger audio
     playLevelCompleteSound();
 
@@ -155,8 +155,8 @@ export function createLevelCompletionController(
     timerId = window.setTimeout(() => {
       timerId = null;
 
-      // Notify UI to show overlay
-      events.onCompletionStart(clue);
+      // Notify UI to show overlay or popup (pass levelId so UI can determine chapter end)
+      events.onCompletionStart(clue, levelId);
 
       // Schedule clue timer
       timerId = window.setTimeout(() => {

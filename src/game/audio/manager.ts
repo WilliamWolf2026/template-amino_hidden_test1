@@ -6,6 +6,7 @@ import {
   SOUND_LANDMARK_CONNECT,
   SOUND_NEWS_REVEAL,
   SOUND_DOG_BARK,
+  SOUND_DOG_PANT,
   MUSIC_TRACKS,
   type SoundDefinition,
 } from './sounds';
@@ -65,6 +66,14 @@ export class GameAudioManager {
    */
   playDogBark(): void {
     this.playSound(SOUND_DOG_BARK);
+  }
+
+  /**
+   * Play dog pant sound
+   * Triggered when clue popup appears after level completion
+   */
+  playDogPant(): void {
+    this.playSound(SOUND_DOG_PANT);
   }
 
   /**

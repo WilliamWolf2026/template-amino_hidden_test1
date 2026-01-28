@@ -75,6 +75,16 @@ export const SOUND_DOG_BARK: SoundDefinition = {
   volume: 0.5,
 };
 
+/**
+ * Dog pant sound
+ * Plays when clue popup appears after level completion
+ */
+export const SOUND_DOG_PANT: SoundDefinition = {
+  channel: 'citylines-sfx',
+  sprite: 'dog_pant',
+  volume: 0.5,
+};
+
 // ============================================================================
 // MUSIC TRACKS
 // ============================================================================
