@@ -242,17 +242,17 @@
     },
     "tile_a_completed.png": {
       "frame": {
-        "x": 2,
-        "y": 765,
-        "w": 128,
+        "x": 650,
+        "y": 327,
+        "w": 115,
         "h": 128
       },
       "rotated": false,
-      "trimmed": false,
+      "trimmed": true,
       "spriteSourceSize": {
-        "x": 0,
+        "x": 7,
         "y": 0,
-        "w": 128,
+        "w": 115,
         "h": 128
       },
       "sourceSize": {
@@ -266,7 +266,7 @@
     },
     "tile_b.png": {
       "frame": {
-        "x": 134,
+        "x": 2,
         "y": 765,
         "w": 128,
         "h": 128
@@ -290,17 +290,17 @@
     },
     "tile_b_completed.png": {
       "frame": {
-        "x": 266,
-        "y": 650,
-        "w": 128,
+        "x": 134,
+        "y": 765,
+        "w": 117,
         "h": 128
       },
       "rotated": false,
-      "trimmed": false,
+      "trimmed": true,
       "spriteSourceSize": {
-        "x": 0,
+        "x": 11,
         "y": 0,
-        "w": 128,
+        "w": 117,
         "h": 128
       },
       "sourceSize": {
@@ -314,31 +314,7 @@
     },
     "tile_c.png": {
       "frame": {
-        "x": 398,
-        "y": 668,
-        "w": 128,
-        "h": 128
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 128,
-        "h": 128
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "tile_c_completed.png": {
-      "frame": {
-        "x": 530,
+        "x": 255,
         "y": 668,
         "w": 128,
         "h": 128
@@ -362,8 +338,8 @@
     },
     "house.png": {
       "frame": {
-        "x": 778,
-        "y": 2,
+        "x": 387,
+        "y": 668,
         "w": 126,
         "h": 122
       },
@@ -386,8 +362,8 @@
     },
     "progress_bar_back.png": {
       "frame": {
-        "x": 266,
-        "y": 782,
+        "x": 255,
+        "y": 800,
         "w": 126,
         "h": 54
       },
@@ -410,8 +386,8 @@
     },
     "progress_bar_fill.png": {
       "frame": {
-        "x": 756,
-        "y": 128,
+        "x": 385,
+        "y": 800,
         "w": 126,
         "h": 54
       },
@@ -434,8 +410,8 @@
     },
     "progress_bar_top.png": {
       "frame": {
-        "x": 756,
-        "y": 186,
+        "x": 515,
+        "y": 794,
         "w": 126,
         "h": 54
       },
@@ -458,8 +434,8 @@
     },
     "tree.png": {
       "frame": {
-        "x": 756,
-        "y": 244,
+        "x": 645,
+        "y": 668,
         "w": 97,
         "h": 126
       },
@@ -482,8 +458,8 @@
     },
     "gas_station.png": {
       "frame": {
-        "x": 756,
-        "y": 374,
+        "x": 517,
+        "y": 668,
         "w": 122,
         "h": 114
       },
@@ -506,8 +482,8 @@
     },
     "exit.png": {
       "frame": {
-        "x": 756,
-        "y": 492,
+        "x": 778,
+        "y": 2,
         "w": 120,
         "h": 102
       },
@@ -530,8 +506,8 @@
     },
     "market.png": {
       "frame": {
-        "x": 756,
-        "y": 598,
+        "x": 769,
+        "y": 108,
         "w": 120,
         "h": 113
       },
@@ -552,10 +528,34 @@
         "y": 0.5
       }
     },
+    "tile_c_completed.png": {
+      "frame": {
+        "x": 769,
+        "y": 225,
+        "w": 116,
+        "h": 120
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 12,
+        "y": 0,
+        "w": 116,
+        "h": 120
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "school.png": {
       "frame": {
-        "x": 662,
-        "y": 715,
+        "x": 769,
+        "y": 349,
         "w": 117,
         "h": 118
       },
@@ -578,8 +578,8 @@
     },
     "flower_a.png": {
       "frame": {
-        "x": 396,
-        "y": 837,
+        "x": 650,
+        "y": 471,
         "w": 54,
         "h": 54
       },
@@ -602,8 +602,8 @@
     },
     "flower_b.png": {
       "frame": {
-        "x": 454,
-        "y": 837,
+        "x": 708,
+        "y": 459,
         "w": 54,
         "h": 54
       },
@@ -626,8 +626,8 @@
     },
     "flower_c.png": {
       "frame": {
-        "x": 512,
-        "y": 837,
+        "x": 645,
+        "y": 798,
         "w": 54,
         "h": 54
       },
@@ -655,7 +655,7 @@
     "image": "tiles_citylines_v1.png",
     "format": "RGBA8888",
     "size": {
-      "w": 906,
+      "w": 900,
       "h": 895
     },
     "scale": 1

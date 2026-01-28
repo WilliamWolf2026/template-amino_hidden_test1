@@ -98,6 +98,15 @@ export interface CompanionAnimationConfig {
   overlayAlpha: number;
 }
 
+export interface CluePopupConfig {
+  /** Duration popup is displayed before auto-dismiss (ms) @min 1000 @max 10000 @step 500 */
+  displayDuration: number;
+  /** Fade in duration (ms) @min 100 @max 1000 @step 50 */
+  fadeInDuration: number;
+  /** Fade out duration (ms) @min 100 @max 1000 @step 50 */
+  fadeOutDuration: number;
+}
+
 export interface ScoringConfig {
   baseScore: number;
   timeBonus: number;
@@ -165,6 +174,7 @@ export interface CityLinesTuning extends GameTuningBase {
   animation: GameAnimationConfig;
   vfx: VfxConfig;
   companion: CompanionAnimationConfig;
+  cluePopup: CluePopupConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
   generator: GeneratorConfig;
@@ -240,6 +250,11 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     overlayFadeInDuration: 400,
     overlayFadeOutDuration: 300,
     overlayAlpha: 0.6,
+  },
+  cluePopup: {
+    displayDuration: 3000,
+    fadeInDuration: 400,
+    fadeOutDuration: 300,
   },
   scoring: {
     baseScore: 100,

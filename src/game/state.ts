@@ -27,7 +27,7 @@ export interface GameState {
 function createGameState(): GameState {
   const [score, setScore] = createSignal(0);
   const [health, setHealth] = createSignal(100);
-  const [currentLevel, setCurrentLevel] = createSignal(0);
+  const [currentLevel, setCurrentLevel] = createSignal(1); // Start at 1 (1-based levels)
   const [totalLevels, setTotalLevels] = createSignal(10);
 
   return {
@@ -49,7 +49,7 @@ function createGameState(): GameState {
     reset: () => {
       setScore(0);
       setHealth(100);
-      setCurrentLevel(0);
+      setCurrentLevel(1); // Reset to 1 (1-based levels)
       setTotalLevels(10);
     },
   };

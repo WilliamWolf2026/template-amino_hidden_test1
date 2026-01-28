@@ -388,11 +388,11 @@ There is an infinite level genarator integrated in the game. Here is how it work
 
 ### Difficulty Scaling
 
-| Level Range  | Grid Size | Landmarks | Min Path | Detour % |
-| ------------ | --------- | --------- | -------- | -------- |
-| 4-5 (Easy)   | 4×4       | 2         | 3        | 10%      |
-| 6-8 (Medium) | 5×5       | 3         | 4        | 30%      |
-| 9+ (Hard)    | 6×6       | 3         | 5        | 60%      |
+| Level Range | Grid Size | Landmarks | Min Path | Detour % |
+| ----------- | --------- | --------- | -------- | -------- |
+| 1-2         | 4×4       | 2-3       | 3        | 10-15%   |
+| 3-6         | 5×5       | 3-5       | 4        | 20-35%   |
+| 7-10        | 6×6       | 5-7       | 5        | 40-60%   |
 
 ---
 
