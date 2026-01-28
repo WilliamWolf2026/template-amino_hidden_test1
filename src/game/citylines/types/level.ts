@@ -89,6 +89,38 @@ export const CHAPTER_LEVEL_PROGRESSION: DifficultySettings[] = [
 ];
 
 /**
+ * Continuous difficulty progression (absolute level numbers, does not reset)
+ * Based on GDD Difficulty Scaling table:
+ * - Level 4-5 (Easy): 4×4 grid, 2 landmarks, 10% detour
+ * - Level 6-8 (Medium): 5×5 grid, 3 landmarks, 30% detour
+ * - Level 9+ (Hard): 6×6 grid, 3 landmarks, 60% detour
+ *
+ * Note: Levels 1-3 use tutorial settings (3×3, 1-2 landmarks)
+ */
+export const CONTINUOUS_DIFFICULTY_THRESHOLDS = {
+  tutorial: { maxLevel: 3, settings: { gridSize: 3, landmarkCount: { min: 1, max: 2 }, detourProbability: 0.05, minPathLength: 2 } as DifficultySettings },
+  easy: { maxLevel: 5, settings: { gridSize: 4, landmarkCount: { min: 2, max: 2 }, detourProbability: 0.1, minPathLength: 3 } as DifficultySettings },
+  medium: { maxLevel: 8, settings: { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.3, minPathLength: 4 } as DifficultySettings },
+  hard: { maxLevel: Infinity, settings: { gridSize: 6, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.6, minPathLength: 5 } as DifficultySettings },
+};
+
+/**
+ * Get difficulty using continuous progression (does not reset per chapter)
+ * Uses absolute level numbers with fixed thresholds
+ *
+ * @param levelNumber - Absolute level number (1-based)
+ * @returns Difficulty settings for this level
+ */
+export function getContinuousDifficulty(levelNumber: number): DifficultySettings {
+  const { tutorial, easy, medium, hard } = CONTINUOUS_DIFFICULTY_THRESHOLDS;
+
+  if (levelNumber <= tutorial.maxLevel) return tutorial.settings;
+  if (levelNumber <= easy.maxLevel) return easy.settings;
+  if (levelNumber <= medium.maxLevel) return medium.settings;
+  return hard.settings;
+}
+
+/**
  * Get difficulty settings for a given level number
  * Levels progress 1-10 per chapter, then reset
  *
