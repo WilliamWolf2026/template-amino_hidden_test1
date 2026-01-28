@@ -3,6 +3,9 @@ import { audioState } from '~/scaffold/systems/audio';
 import {
   SOUND_TILE_ROTATE,
   SOUND_LEVEL_COMPLETE,
+  SOUND_LANDMARK_CONNECT,
+  SOUND_NEWS_REVEAL,
+  SOUND_DOG_BARK,
   MUSIC_TRACKS,
   type SoundDefinition,
 } from './sounds';
@@ -38,6 +41,30 @@ export class GameAudioManager {
    */
   playLevelComplete(): void {
     this.playSound(SOUND_LEVEL_COMPLETE);
+  }
+
+  /**
+   * Play landmark connected sound
+   * Triggered when a landmark becomes connected to the exit
+   */
+  playLandmarkConnect(): void {
+    this.playSound(SOUND_LANDMARK_CONNECT);
+  }
+
+  /**
+   * Play news reveal sound
+   * Triggered when companion shows completion clue
+   */
+  playNewsReveal(): void {
+    this.playSound(SOUND_NEWS_REVEAL);
+  }
+
+  /**
+   * Play dog bark sound
+   * Triggered when companion character appears
+   */
+  playDogBark(): void {
+    this.playSound(SOUND_DOG_BARK);
   }
 
   /**

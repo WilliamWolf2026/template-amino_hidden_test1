@@ -202,14 +202,18 @@ export function GameScreen() {
         // Analytics would go here
       });
 
-      // landmarkConnected has no sound per GDD (future: news reveal)
+      // Play sound when landmark becomes connected
       game.onGameEvent('landmarkConnected', (landmark) => {
         console.log('[GameScreen] Landmark connected:', landmark);
+        manager.playLandmarkConnect();
       });
 
       // Wire completion events - reuse companion dialogue to show clue
       game.onGameEvent('completionStart', (clue) => {
         console.log('[GameScreen] Level complete! Showing companion with clue:', clue);
+
+        // Play news reveal sound when companion shows clue
+        manager.playNewsReveal();
 
         if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
 
@@ -246,6 +250,8 @@ export function GameScreen() {
               if (darkOverlay) {
                 darkOverlay.eventMode = 'static'; // Enable clicks
               }
+              // Play dog bark after slide-in completes
+              manager.playDogBark();
             },
           });
         }, companionConfig.slideInDelay);
@@ -389,6 +395,8 @@ export function GameScreen() {
             if (darkOverlay) {
               darkOverlay.eventMode = 'static';
             }
+            // Play dog bark after slide-in completes
+            manager.playDogBark();
           },
         });
       }, companionConfig.slideInDelay);
