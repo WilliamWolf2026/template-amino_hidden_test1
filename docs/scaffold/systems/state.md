@@ -179,6 +179,6 @@ const gameState = createRoot(() => {
 
 ## See Also
 
-- [Architecture](architecture.md) — Provider hierarchy
-- [Screen System](screens.md) — Screen navigation state
+- [Architecture](../architecture.md) — Provider hierarchy
+- [Screen System](./screens.md) — Screen navigation state
 - [SolidJS Docs](https://docs.solidjs.com/concepts/signals) — Signal fundamentals

@@ -222,6 +222,6 @@ async function loadOptionalBundle(bundleName: string) {
 
 ## See Also
 
-- [Architecture](architecture.md) — Provider hierarchy
-- [Configuration](configuration.md) — Sentry/PostHog setup
+- [Architecture](../architecture.md) — Provider hierarchy
+- [Configuration](../../guides/configuration.md) — Sentry/PostHog setup
 - [Sentry Docs](https://docs.sentry.io/platforms/javascript/guides/solid/)

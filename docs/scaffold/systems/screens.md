@@ -176,6 +176,6 @@ export function GameScreen() {
 
 ## See Also
 
-- [Architecture](architecture.md) — Overall scaffold structure
-- [State Management](state-management.md) — Signals and reactive state
-- [Asset Management](assets.md) — Loading assets per screen
+- [Architecture](../architecture.md) — Overall scaffold structure
+- [State Management](./state.md) — Signals and reactive state
+- [Asset Management](./assets.md) — Loading assets per screen

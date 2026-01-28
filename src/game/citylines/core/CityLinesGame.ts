@@ -313,11 +313,9 @@ export class CityLinesGame extends Container {
     vfx.x = tile.x;
     vfx.y = tile.y;
 
-    // VFX size: snap to nearest power of 2 to avoid texture blur
-    // Texture is 256x256, we want displayed size to be power of 2
+    // VFX size calculation (linear scaling, no power-of-2 snapping)
     const desiredSize = this.tileSize * (this.vfxConfig.sizePercent / 100);
-    const nearestPow2 = Math.pow(2, Math.round(Math.log2(desiredSize)));
-    const vfxScale = nearestPow2 / 256;
+    const vfxScale = desiredSize / 256;
     vfx.scale.set(-vfxScale, vfxScale); // Negative X for clockwise spin
     vfx.alpha = this.vfxConfig.alpha;
 

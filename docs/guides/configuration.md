@@ -100,7 +100,7 @@ export const manifest: Manifest = {
 };
 ```
 
-See [Asset Management](assets.md) for bundle prefix conventions.
+See [Asset Management](../scaffold/systems/assets.md) for bundle prefix conventions.
 
 ## Environment Variables
 
@@ -208,6 +208,6 @@ function DevTools() {
 
 ## See Also
 
-- [Architecture](architecture.md) — Overall structure
-- [Asset Management](assets.md) — Manifest configuration
-- [Screen System](screens.md) — Screen configuration
+- [Architecture](../scaffold/architecture.md) — Overall structure
+- [Asset Management](../scaffold/systems/assets.md) — Manifest configuration
+- [Screen System](../scaffold/systems/screens.md) — Screen configuration

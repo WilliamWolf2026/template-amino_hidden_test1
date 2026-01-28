@@ -8,7 +8,7 @@ import type { ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
 type PaneInstance = Pane & any;
 
 // Show in development and QA modes, but not production
-const SHOW_TUNING_PANEL = import.meta.env.DEV || import.meta.env.MODE === 'qa';
+const SHOW_TUNING_PANEL = !import.meta.env.PROD;
 
 // Global keyboard listener for backtick toggle
 const [isPanelOpen, setIsPanelOpen] = createSignal(false);
@@ -30,7 +30,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   const tuning = useTuning<ScaffoldTuning, G>();
 
   // Get position from tuning state, with fallback
-  const getPosition = () => tuning.scaffold().tuningPanel?.position || 'left';
+  const getPosition = () => tuning.scaffold.tuningPanel?.position || 'left';
 
   // Position classes for left, center, right
   const positionClasses = {

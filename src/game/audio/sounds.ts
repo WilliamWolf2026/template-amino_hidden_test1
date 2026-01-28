@@ -45,6 +45,36 @@ export const SOUND_LEVEL_COMPLETE: SoundDefinition = {
   volume: 0.8,
 };
 
+/**
+ * Landmark connected sound
+ * Plays when a landmark becomes connected to the exit
+ */
+export const SOUND_LANDMARK_CONNECT: SoundDefinition = {
+  channel: 'citylines-sfx',
+  sprite: 'landmark_connect',
+  volume: 0.6,
+};
+
+/**
+ * News reveal sound
+ * Plays when companion shows completion clue
+ */
+export const SOUND_NEWS_REVEAL: SoundDefinition = {
+  channel: 'citylines-sfx',
+  sprite: 'news_reveal',
+  volume: 0.7,
+};
+
+/**
+ * Dog bark sound
+ * Plays when companion character appears
+ */
+export const SOUND_DOG_BARK: SoundDefinition = {
+  channel: 'citylines-sfx',
+  sprite: 'dog_bark',
+  volume: 0.5,
+};
+
 // ============================================================================
 // MUSIC TRACKS
 // ============================================================================

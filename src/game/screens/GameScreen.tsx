@@ -1,8 +1,10 @@
 import { onMount, onCleanup, createEffect, createSignal } from 'solid-js';
 import { Application, Graphics, Container, BlurFilter } from 'pixi.js';
 import gsap from 'gsap';
+
 import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
+import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, CompanionCharacter, DialogueBox, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
@@ -37,7 +39,7 @@ export function GameScreen() {
 
   // Helper: Generate level with progressive difficulty
   const generateLevelWithProgression = (levelNumber: number) => {
-    const baseTuning = tuning.game();
+    const baseTuning = tuning.game;
     const difficulty = getDifficultyForLevel(levelNumber);
     const generatorConfig = difficultyToGeneratorConfig(difficulty, {
       sidePushRadius: baseTuning.generator.sidePushRadius,
@@ -71,7 +73,7 @@ export function GameScreen() {
     if (!containerRef) return;
 
     // Get initial tuning values
-    const gameTuning = tuning.game();
+    const gameTuning = tuning.game;
 
     // Create Pixi application
     const app = new Application();
@@ -202,7 +204,7 @@ export function GameScreen() {
         // Analytics would go here
       });
 
-      // landmarkConnected has no sound per GDD (future: news reveal)
+      // Landmark connected event (no sound - too noisy during gameplay)
       game.onGameEvent('landmarkConnected', (landmark) => {
         console.log('[GameScreen] Landmark connected:', landmark);
       });
@@ -210,6 +212,9 @@ export function GameScreen() {
       // Wire completion events - reuse companion dialogue to show clue
       game.onGameEvent('completionStart', (clue) => {
         console.log('[GameScreen] Level complete! Showing companion with clue:', clue);
+
+        // Play news reveal sound when companion shows clue
+        manager.playNewsReveal();
 
         if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
 
@@ -246,6 +251,8 @@ export function GameScreen() {
               if (darkOverlay) {
                 darkOverlay.eventMode = 'static'; // Enable clicks
               }
+              // Play dog bark after slide-in completes
+              manager.playDogBark();
             },
           });
         }, companionConfig.slideInDelay);
@@ -389,6 +396,8 @@ export function GameScreen() {
             if (darkOverlay) {
               darkOverlay.eventMode = 'static';
             }
+            // Play dog bark after slide-in completes
+            manager.playDogBark();
           },
         });
       }, companionConfig.slideInDelay);
@@ -430,26 +439,58 @@ export function GameScreen() {
     }
   });
 
+  // Track previous background color for comparison guard
+  let prevBgColor = '';
+
   // Reactive: Background color changes
   createEffect(() => {
     const app = pixiApp();
     if (!app) return;
 
-    const bgColor = tuning.game().visuals.backgroundColor;
+    const bgColor = tuning.game.visuals.backgroundColor;
+
+    // Guard: Skip if unchanged
+    if (bgColor === prevBgColor) return;
+
+    prevBgColor = bgColor;
     app.renderer.background.color = bgColor;
   });
 
+  // Track previous grid values for comparison guards
+  let prevGridValues = { tileSize: -1, padding: -1, cellGap: -1 };
+
   // Reactive: Grid layout changes (tile size, padding, cell gap)
+  // With stores, this effect only runs when grid values actually change
   createEffect(() => {
     const app = pixiApp();
     const game = gameInstance();
     if (!app || !game) return;
 
-    const { tileSize, padding, cellGap } = tuning.game().grid;
+    const { tileSize, padding, cellGap } = tuning.game.grid;
 
-    // Update game layout with animation (pivot updates automatically for center-based scaling)
-    game.setTileSize(tileSize);
-    game.setGridLayout(padding, cellGap);
+    // Guard: Check what actually changed
+    const tileSizeChanged = tileSize !== prevGridValues.tileSize;
+    const layoutChanged = padding !== prevGridValues.padding || cellGap !== prevGridValues.cellGap;
+
+    // Skip if nothing changed (can happen on initial mount)
+    if (!tileSizeChanged && !layoutChanged) {
+      return;
+    }
+
+    // Update previous values
+    prevGridValues = { tileSize, padding, cellGap };
+
+    // Only call the method that needs updating to avoid double updateLayout calls
+    if (layoutChanged && tileSizeChanged) {
+      // Both changed - call setGridLayout with animate=false, then setTileSize with animation
+      // This prevents two competing animations
+      game.setGridLayout(padding, cellGap, false);
+      game.setTileSize(tileSize);
+    } else if (layoutChanged) {
+      game.setGridLayout(padding, cellGap);
+    } else if (tileSizeChanged) {
+      game.setTileSize(tileSize);
+    }
 
     // Keep game at screen center (pivot is at grid center)
     game.x = app.screen.width / 2;
@@ -458,33 +499,68 @@ export function GameScreen() {
     console.log('[Tuning] Grid layout updated:', { tileSize, padding, cellGap });
   });
 
+  // Track previous 9-slice values for comparison guards
+  let prevNineSlice = { leftWidth: -1, topHeight: -1, rightWidth: -1, bottomHeight: -1 };
+
   // Reactive: 9-slice border changes
+  // With stores, this effect only runs when nineSlice values actually change
   createEffect(() => {
     const game = gameInstance();
     if (!game) return;
 
-    const { nineSlice } = tuning.game().grid;
+    const { nineSlice } = tuning.game.grid;
+
+    // Guard: Check if anything actually changed
+    const changed =
+      nineSlice.leftWidth !== prevNineSlice.leftWidth ||
+      nineSlice.topHeight !== prevNineSlice.topHeight ||
+      nineSlice.rightWidth !== prevNineSlice.rightWidth ||
+      nineSlice.bottomHeight !== prevNineSlice.bottomHeight;
+
+    if (!changed) return;
+
+    prevNineSlice = { ...nineSlice };
     game.setNineSlice(nineSlice);
   });
+
+  // Track previous rotation config for comparison guards
+  let prevRotationConfig = { duration: -1, easing: '' };
 
   // Reactive: Rotation animation config changes
   createEffect(() => {
     const game = gameInstance();
     if (!game) return;
 
-    const { tileRotateDuration, tileRotateEasing } = tuning.game().grid;
+    const { tileRotateDuration, tileRotateEasing } = tuning.game.grid;
+
+    // Guard: Skip if unchanged
+    if (tileRotateDuration === prevRotationConfig.duration && tileRotateEasing === prevRotationConfig.easing) {
+      return;
+    }
+
+    prevRotationConfig = { duration: tileRotateDuration, easing: tileRotateEasing };
     game.setRotationAnimationConfig({
       duration: tileRotateDuration,
       easing: tileRotateEasing,
     });
   });
 
+  // Track previous VFX config for comparison guards
+  let prevVfxConfig = { alpha: -1, sizePercent: -1 };
+
   // Reactive: VFX config changes
   createEffect(() => {
     const game = gameInstance();
     if (!game) return;
 
-    const { rotateAlpha, rotateSizePercent } = tuning.game().vfx;
+    const { rotateAlpha, rotateSizePercent } = tuning.game.vfx;
+
+    // Guard: Skip if unchanged
+    if (rotateAlpha === prevVfxConfig.alpha && rotateSizePercent === prevVfxConfig.sizePercent) {
+      return;
+    }
+
+    prevVfxConfig = { alpha: rotateAlpha, sizePercent: rotateSizePercent };
     game.setVfxConfig({
       alpha: rotateAlpha,
       sizePercent: rotateSizePercent,
@@ -496,7 +572,7 @@ export function GameScreen() {
     const bar = progressBar();
     if (!bar) return;
 
-    const { tileTheme } = tuning.game().theme;
+    const { tileTheme } = tuning.game.theme;
     const game = gameInstance();
     if (!game) return;
 
@@ -535,7 +611,7 @@ export function GameScreen() {
 
     const newLevel = LevelGenerationService.generateLevel(
       currentLevel().levelNumber,
-      tuning.game().generator
+      tuning.game.generator
     );
     setCurrentLevel(newLevel);
 
@@ -588,6 +664,11 @@ export function GameScreen() {
 
       {/* Pause overlay */}
       <PauseOverlay />
+
+      {/* Wolf Games logo at bottom center */}
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <Logo />
+      </div>
 
       {/* Level completion companion is now handled by Pixi (completionCompanionGroup) */}
     </div>

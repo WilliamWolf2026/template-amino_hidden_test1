@@ -12,7 +12,7 @@ import volumeMutedIcon from './assets/icon_volume_muted.svg';
 import wrenchIcon from './assets/icon_wrench.svg';
 
 // Show tuning button in dev and QA, but not production
-const SHOW_TUNING_BUTTON = import.meta.env.DEV || import.meta.env.MODE === 'qa';
+const SHOW_TUNING_BUTTON = !import.meta.env.PROD;
 
 // Settings Menu Configuration
 const SETTINGS_CONFIG = {

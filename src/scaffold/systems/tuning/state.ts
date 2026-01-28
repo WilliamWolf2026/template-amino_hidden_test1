@@ -1,4 +1,5 @@
 import { createSignal, createRoot, batch } from 'solid-js';
+import { createStore, produce, reconcile } from 'solid-js/store';
 import type { ScaffoldTuning, GameTuningBase, TuningState, TuningSource } from './types';
 import { SCAFFOLD_DEFAULTS } from './types';
 import {
@@ -10,22 +11,24 @@ import {
 } from './loader';
 
 /**
- * Set a nested path in an object immutably
+ * Set a nested path in an object using produce (for stores)
  */
-function setPath<T extends object>(obj: T, path: string, value: unknown): T {
+function setStorePath<T extends object>(
+  setStore: (fn: (state: T) => void) => void,
+  path: string,
+  value: unknown
+): void {
   const keys = path.split('.');
-  const result = { ...obj };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let current: any = result;
-
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = keys[i];
-    current[key] = { ...current[key] };
-    current = current[key];
-  }
-
-  current[keys[keys.length - 1]] = value;
-  return result;
+  setStore(
+    produce((state: T) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let current: any = state;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+      }
+      current[keys[keys.length - 1]] = value;
+    })
+  );
 }
 
 /**
@@ -35,8 +38,10 @@ export function createTuningState<
   S extends ScaffoldTuning = ScaffoldTuning,
   G extends GameTuningBase = GameTuningBase
 >(scaffoldDefaults: S, gameDefaults: G): TuningState<S, G> {
-  const [scaffold, setScaffold] = createSignal<S>(scaffoldDefaults);
-  const [game, setGame] = createSignal<G>(gameDefaults);
+  // Use stores for fine-grained reactivity - only the specific path that changes
+  // will trigger effects that access that path
+  const [scaffoldStore, setScaffoldStore] = createStore<S>(structuredClone(scaffoldDefaults));
+  const [gameStore, setGameStore] = createStore<G>(structuredClone(gameDefaults));
   const [isLoaded, setIsLoaded] = createSignal(false);
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [source, setSource] = createSignal<{ scaffold: TuningSource; game: TuningSource }>({
@@ -56,8 +61,9 @@ export function createTuningState<
       ]);
 
       batch(() => {
-        setScaffold(scaffoldResult.data as S);
-        setGame(gameResult.data as G);
+        // Use reconcile to efficiently update stores with loaded data
+        setScaffoldStore(reconcile(scaffoldResult.data as S));
+        setGameStore(reconcile(gameResult.data as G));
         setSource({
           scaffold: scaffoldResult.source,
           game: gameResult.source,
@@ -75,17 +81,17 @@ export function createTuningState<
   };
 
   const setScaffoldPath = (path: string, value: unknown): void => {
-    setScaffold((prev) => setPath(prev, path, value));
+    setStorePath(setScaffoldStore, path, value);
   };
 
   const setGamePath = (path: string, value: unknown): void => {
-    setGame((prev) => setPath(prev, path, value));
+    setStorePath(setGameStore, path, value);
   };
 
   const reset = (): void => {
     batch(() => {
-      setScaffold(originalScaffold);
-      setGame(originalGame);
+      setScaffoldStore(reconcile(structuredClone(originalScaffold)));
+      setGameStore(reconcile(structuredClone(originalGame)));
       clearTuningStorage();
     });
   };
@@ -120,15 +126,16 @@ export function createTuningState<
   };
 
   const save = (): void => {
-    saveToStorage(STORAGE_KEYS.SCAFFOLD, scaffold());
-    saveToStorage(STORAGE_KEYS.GAME, game());
+    // Stores are directly accessible as objects (unwrapped for serialization)
+    saveToStorage(STORAGE_KEYS.SCAFFOLD, JSON.parse(JSON.stringify(scaffoldStore)));
+    saveToStorage(STORAGE_KEYS.GAME, JSON.parse(JSON.stringify(gameStore)));
   };
 
   const exportJson = (): string => {
     return JSON.stringify(
       {
-        scaffold: scaffold(),
-        game: game(),
+        scaffold: scaffoldStore,
+        game: gameStore,
         exportedAt: new Date().toISOString(),
       },
       null,
@@ -140,8 +147,8 @@ export function createTuningState<
     try {
       const data = JSON.parse(json);
       batch(() => {
-        if (data.scaffold) setScaffold(data.scaffold);
-        if (data.game) setGame(data.game);
+        if (data.scaffold) setScaffoldStore(reconcile(data.scaffold));
+        if (data.game) setGameStore(reconcile(data.game));
       });
       return true;
     } catch (error) {
@@ -155,18 +162,16 @@ export function createTuningState<
    * Used for URL params that should take effect but not persist.
    */
   const applyGameOverrides = (overrides: Record<string, unknown>): void => {
-    setGame((prev) => {
-      let result = prev;
-      for (const [path, value] of Object.entries(overrides)) {
-        result = setPath(result, path, value);
-      }
-      return result;
-    });
+    for (const [path, value] of Object.entries(overrides)) {
+      setStorePath(setGameStore, path, value);
+    }
   };
 
   return {
-    scaffold,
-    game,
+    // Stores are accessed directly (not as functions) for fine-grained reactivity
+    // Accessing tuning.game.grid.tileSize will only trigger effects when that value changes
+    scaffold: scaffoldStore,
+    game: gameStore,
     isLoaded,
     loadError,
     source,
