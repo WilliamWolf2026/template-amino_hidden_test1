@@ -1,6 +1,7 @@
 import { onMount, createSignal } from 'solid-js';
 import { useScreen } from '~/scaffold/systems/screens';
 import { useAssets } from '~/scaffold/systems/assets';
+import { Spinner } from '~/scaffold/ui/Spinner';
 import { ProgressBar } from '~/scaffold/ui/ProgressBar';
 import { Logo } from '~/scaffold/ui/Logo';
 
@@ -12,14 +13,12 @@ export function LoadingScreen() {
 
   onMount(async () => {
     try {
-      setProgress(20);
+      setProgress(10);
       await loadBoot();
-
-      setProgress(60);
+      setProgress(50);
       await loadTheme();
-      setThemeLoaded(true);
-
       setProgress(100);
+      setThemeLoaded(true);
 
       // Brief pause to show completion
       await new Promise((r) => setTimeout(r, 500));
@@ -32,13 +31,15 @@ export function LoadingScreen() {
 
   return (
     <div class="fixed inset-0 flex flex-col items-center justify-center bg-[#BCE083]">
-      <h1 class="text-4xl font-bold text-white mb-8">GAME</h1>
-      <ProgressBar progress={progress()} label="Loading..." />
+      <Spinner size="xl" />
+      <div class="mt-8 w-64">
+        <ProgressBar progress={progress()} />
+      </div>
 
       {/* Logo at bottom center */}
       {themeLoaded() && (
         <div class="absolute bottom-8">
-          <Logo class="opacity-50" />
+          <Logo />
         </div>
       )}
     </div>

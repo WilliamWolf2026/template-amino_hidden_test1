@@ -65,14 +65,6 @@ export interface DifficultyConfig {
 
 export interface VisualsConfig {
   backgroundColor: string;
-  roadConnectedTint: string;
-  roadDisconnectedTint: string;
-  landmarkConnectedScale: number;
-  landmarkConnectedAlpha: number;
-  landmarkDisconnectedAlpha: number;
-  highlightColor: string;
-  connectedIndicatorColor: string;
-  disconnectedIndicatorColor: string;
 }
 
 export interface SpritesConfig {
@@ -224,14 +216,6 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
   },
   visuals: {
     backgroundColor: '#58A23B',
-    roadConnectedTint: '#ffffff',
-    roadDisconnectedTint: '#888888',
-    landmarkConnectedScale: 1.1,
-    landmarkConnectedAlpha: 1.0,
-    landmarkDisconnectedAlpha: 0.9,
-    highlightColor: '#ffcc00',
-    connectedIndicatorColor: '#27ae60',
-    disconnectedIndicatorColor: '#cccccc',
   },
   sprites: {
     landmarkScale: 0.85,

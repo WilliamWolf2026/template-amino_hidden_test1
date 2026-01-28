@@ -1,4 +1,5 @@
 import type { Accessor } from 'solid-js';
+import type { Store } from 'solid-js/store';
 
 // ============================================
 // SCAFFOLD TUNING TYPES
@@ -78,9 +79,10 @@ export interface TuningLoadResult<T> {
 }
 
 export interface TuningState<S extends ScaffoldTuning, G extends GameTuningBase> {
-  // Accessors (reactive signals)
-  scaffold: Accessor<S>;
-  game: Accessor<G>;
+  // Stores for fine-grained reactivity - access paths directly (e.g., tuning.game.grid.tileSize)
+  // Only effects that access specific paths will re-run when those paths change
+  scaffold: Store<S>;
+  game: Store<G>;
   isLoaded: Accessor<boolean>;
   loadError: Accessor<string | null>;
   source: Accessor<{ scaffold: TuningSource; game: TuningSource }>;

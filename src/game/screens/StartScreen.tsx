@@ -295,7 +295,7 @@ export function StartScreen() {
     containerRef.appendChild(app.canvas);
 
     // Load tile bundle based on theme setting
-    const tileTheme = tuning.game().theme.tileTheme;
+    const tileTheme = tuning.game.theme.tileTheme;
     setAtlasName(tileTheme); // Set global atlas name for all game entities
     const tileBundleName = getTileBundleName(tileTheme);
     await coordinator.loadBundle(tileBundleName);
@@ -429,7 +429,7 @@ export function StartScreen() {
 
       {/* Logo at bottom center */}
       <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <Logo class="opacity-50" />
+        <Logo />
       </div>
     </div>
   );

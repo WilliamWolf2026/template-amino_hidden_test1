@@ -701,7 +701,7 @@ export function bindTuningToPane<S extends ScaffoldTuning, G extends GameTuningB
   // Bind scaffold tuning
   bindObjectToPane(
     scaffoldPane,
-    state.scaffold() as Record<string, unknown>,
+    state.scaffold as Record<string, unknown>,
     (path, value) => {
       state.setScaffoldPath(path, value);
       onChange?.();
@@ -716,7 +716,7 @@ export function bindTuningToPane<S extends ScaffoldTuning, G extends GameTuningB
   // Bind game tuning
   bindObjectToPane(
     gamePane,
-    state.game() as Record<string, unknown>,
+    state.game as Record<string, unknown>,
     (path, value) => {
       state.setGamePath(path, value);
       onChange?.();

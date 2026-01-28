@@ -17,9 +17,8 @@ export const WIRED_GAME_PATHS = new Set([
   'grid.nineSlice.bottomHeight',
   // NOT WIRED: grid.defaultGridSize (requires level reload)
 
-  // Visuals - partially wired
+  // Visuals - wired
   'visuals.backgroundColor',
-  // NOT WIRED: roadConnectedTint, roadDisconnectedTint, landmarkConnectedScale, etc.
 
   // Animation - wired in GameScreen.tsx
   'animation.tileRotateDuration',

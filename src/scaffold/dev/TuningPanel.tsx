@@ -30,7 +30,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   const tuning = useTuning<ScaffoldTuning, G>();
 
   // Get position from tuning state, with fallback
-  const getPosition = () => tuning.scaffold().tuningPanel?.position || 'left';
+  const getPosition = () => tuning.scaffold.tuningPanel?.position || 'left';
 
   // Position classes for left, center, right
   const positionClasses = {
