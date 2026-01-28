@@ -12,10 +12,10 @@ export const OPPOSITE_EDGE: Record<Edge, Edge> = {
   west: 'east',
 };
 
-/** Grid coordinate */
+/** Grid coordinate (aligned with LevelGenerator format: x = column, y = row) */
 export interface GridPosition {
-  row: number;
-  col: number;
+  x: number;  // Column (0-based, left to right)
+  y: number;  // Row (0-based, top to bottom)
 }
 
 /** Grid size options per GDD */
@@ -25,22 +25,22 @@ export type GridSize = 4 | 5 | 6;
 export function getAdjacentPosition(pos: GridPosition, edge: Edge): GridPosition {
   switch (edge) {
     case 'north':
-      return { row: pos.row - 1, col: pos.col };
+      return { x: pos.x, y: pos.y - 1 };
     case 'south':
-      return { row: pos.row + 1, col: pos.col };
+      return { x: pos.x, y: pos.y + 1 };
     case 'east':
-      return { row: pos.row, col: pos.col + 1 };
+      return { x: pos.x + 1, y: pos.y };
     case 'west':
-      return { row: pos.row, col: pos.col - 1 };
+      return { x: pos.x - 1, y: pos.y };
   }
 }
 
 /** Check if position is within grid bounds */
 export function isInBounds(pos: GridPosition, gridSize: GridSize): boolean {
-  return pos.row >= 0 && pos.row < gridSize && pos.col >= 0 && pos.col < gridSize;
+  return pos.y >= 0 && pos.y < gridSize && pos.x >= 0 && pos.x < gridSize;
 }
 
-/** Generate position key for Map lookups */
+/** Generate position key for Map lookups (matches LevelGenerator format) */
 export function posKey(pos: GridPosition): string {
-  return `${pos.row},${pos.col}`;
+  return `${pos.x},${pos.y}`;
 }

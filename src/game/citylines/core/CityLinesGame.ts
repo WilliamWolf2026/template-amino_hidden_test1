@@ -8,7 +8,7 @@ import { posKey } from '../types';
 import { DecorationSystem } from '../systems';
 import { getAtlasName } from '../utils/atlasHelper';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import type { NineSliceConfig } from '~/game/tuning';
+import type { NineSliceConfig, LevelTransitionConfig } from '~/game/tuning';
 import {
   createLevelCompletionController,
   type LevelCompletionController,
@@ -83,6 +83,11 @@ export class CityLinesGame extends Container {
   // VFX config (from tuning)
   private vfxConfig = { alpha: 1, sizePercent: 200 };
 
+  // Level transition animation
+  private levelTransitionConfig?: LevelTransitionConfig;
+  private isTransitioning: boolean = false;
+  private originalScales: Map<Container, { x: number; y: number }> = new Map();
+
   // Completion lifecycle
   private completionController: LevelCompletionController;
   private currentLevelConfig: LevelConfig | null = null;
@@ -129,12 +134,13 @@ export class CityLinesGame extends Container {
     this.exitsContainer = new Container();
     this.exitsContainer.label = 'exits';
 
-    // Layer order: grid -> decorations -> roads -> vfx -> exits -> landmarks
+    // Layer order (bottom to top): grid -> exits -> roads -> vfx -> decorations -> landmarks
+    // VFX plays on top of roads, decorations above for visual pop
     this.addChild(this.gridContainer);
-    this.addChild(this.decorationsContainer);
+    this.addChild(this.exitsContainer);
     this.addChild(this.roadTilesContainer);
     this.addChild(this.vfxContainer);
-    this.addChild(this.exitsContainer);
+    this.addChild(this.decorationsContainer);
     this.addChild(this.landmarksContainer);
 
     this.label = 'citylines-game';
@@ -192,7 +198,8 @@ export class CityLinesGame extends Container {
         exitConfig.position,
         exitConfig.facingEdge,
         this.gpuLoader,
-        this.tileSize
+        this.tileSize,
+        exitConfig.connectableEdges
       );
       this.exits.push(exit);
       this.exitsContainer.addChild(exit);
@@ -212,10 +219,13 @@ export class CityLinesGame extends Container {
     }
 
     // Create road tiles
+    const tileTypeCounts = { straight: 0, corner: 0, t_junction: 0 };
     for (const tileConfig of config.roadTiles) {
+      tileTypeCounts[tileConfig.type]++;
+
       const roadTile = new RoadTile(
         tileConfig.type,
-        { row: tileConfig.row, col: tileConfig.col },
+        { x: tileConfig.x, y: tileConfig.y },
         this.gpuLoader,
         this.tileSize,
         tileConfig.solutionRotation,
@@ -228,6 +238,7 @@ export class CityLinesGame extends Container {
       this.roadTiles.push(roadTile);
       this.roadTilesContainer.addChild(roadTile);
     }
+    console.log('[CityLinesGame] Loaded tiles:', tileTypeCounts);
 
     // Initial connection check
     this.updateConnections();
@@ -248,17 +259,20 @@ export class CityLinesGame extends Container {
       this.gridSize,
       occupiedPositions,
       config.county,
-      config.levelNumber
+      config.levelNumber,
+      undefined, // use default density
+      this.padding,
+      this.cellGap
     );
 
-    // Set pivot to center for center-based scaling
-    this.updatePivot(false);
+    // Update layout to apply padding/cellGap to all elements
+    this.updateLayout(false);
   }
 
   /** Handle tile rotation */
   private handleTileRotate(tile: RoadTile): void {
-    // Block input during completion sequence
-    if (this.completionController.isInputBlocked) {
+    // Block input during completion sequence or level transition
+    if (this.completionController.isInputBlocked || this.isTransitioning) {
       return;
     }
 
@@ -271,11 +285,17 @@ export class CityLinesGame extends Container {
     // Increment move counter
     this.moveCount++;
 
-    // Update connections
-    this.updateConnections();
-
     // Emit event
     this.emitEvent('tileRotated');
+
+    // Update visuals immediately (tile colors change right away)
+    this.updateConnectionVisuals();
+
+    // Delay level completion check until tile rotation animation finishes
+    const rotationDuration = this.rotationAnimationConfig?.duration ?? 300;
+    gsap.delayedCall(rotationDuration / 1000, () => {
+      this.checkLevelCompletion();
+    });
   }
 
   /** Play rotation VFX on a tile */
@@ -293,9 +313,12 @@ export class CityLinesGame extends Container {
     vfx.x = tile.x;
     vfx.y = tile.y;
 
-    // VFX size based on tuning, flipped horizontally for clockwise spin
-    const vfxScale = (this.tileSize / 256) * (this.vfxConfig.sizePercent / 100);
-    vfx.scale.set(-vfxScale, vfxScale);
+    // VFX size: snap to nearest power of 2 to avoid texture blur
+    // Texture is 256x256, we want displayed size to be power of 2
+    const desiredSize = this.tileSize * (this.vfxConfig.sizePercent / 100);
+    const nearestPow2 = Math.pow(2, Math.round(Math.log2(desiredSize)));
+    const vfxScale = nearestPow2 / 256;
+    vfx.scale.set(-vfxScale, vfxScale); // Negative X for clockwise spin
     vfx.alpha = this.vfxConfig.alpha;
 
     // Random initial rotation for visual variety
@@ -328,6 +351,166 @@ export class CityLinesGame extends Container {
     this.vfxConfig = config;
   }
 
+  /** Set level transition animation config (from tuning) */
+  setLevelTransitionConfig(config: LevelTransitionConfig): void {
+    this.levelTransitionConfig = config;
+  }
+
+  /** Group all elements by their diagonal index (x + y) for wave animation */
+  private groupElementsByDiagonal(): Map<number, Container[]> {
+    const groups = new Map<number, Container[]>();
+
+    // Add road tiles
+    this.roadTiles.forEach(tile => {
+      const diagonal = tile.gridPosition.x + tile.gridPosition.y;
+      if (!groups.has(diagonal)) groups.set(diagonal, []);
+      groups.get(diagonal)!.push(tile);
+    });
+
+    // Add landmarks
+    this.landmarks.forEach(landmark => {
+      const diagonal = landmark.gridPosition.x + landmark.gridPosition.y;
+      if (!groups.has(diagonal)) groups.set(diagonal, []);
+      groups.get(diagonal)!.push(landmark);
+    });
+
+    // Add exits
+    this.exits.forEach(exit => {
+      const diagonal = exit.gridPosition.x + exit.gridPosition.y;
+      if (!groups.has(diagonal)) groups.set(diagonal, []);
+      groups.get(diagonal)!.push(exit);
+    });
+
+    // Add decorations
+    const decorations = this.decorationSystem.getDecorationsByDiagonal();
+    decorations.forEach((decos, diagonal) => {
+      if (!groups.has(diagonal)) groups.set(diagonal, []);
+      groups.get(diagonal)!.push(...decos);
+    });
+
+    return groups;
+  }
+
+  /** Set all elements to initial animation state (scale=0, alpha=0) */
+  private setElementsToInitialState(): void {
+    // Clear previous scales
+    this.originalScales.clear();
+
+    // Tiles - store original scale
+    this.roadTiles.forEach(tile => {
+      this.originalScales.set(tile, { x: tile.scale.x, y: tile.scale.y });
+      tile.scale.set(0);
+      tile.alpha = 0;
+    });
+
+    // Landmarks - store original scale
+    this.landmarks.forEach(landmark => {
+      this.originalScales.set(landmark, { x: landmark.scale.x, y: landmark.scale.y });
+      landmark.scale.set(0);
+      landmark.alpha = 0;
+    });
+
+    // Exits - store original scale
+    this.exits.forEach(exit => {
+      this.originalScales.set(exit, { x: exit.scale.x, y: exit.scale.y });
+      exit.scale.set(0);
+      exit.alpha = 0;
+    });
+
+    // Decorations
+    this.decorationSystem.setInitialState();
+  }
+
+  /** Create GSAP timeline for diagonal wave animation */
+  private createDiagonalWaveTimeline(config: LevelTransitionConfig): gsap.core.Timeline {
+    const timeline = gsap.timeline({ paused: true });
+
+    // Group elements by diagonal index
+    const diagonalGroups = this.groupElementsByDiagonal();
+
+    // Sort diagonals (0 to max)
+    const sortedDiagonals = Array.from(diagonalGroups.keys()).sort((a, b) => a - b);
+
+    // Add animations for each diagonal
+    sortedDiagonals.forEach((diagonalIndex, groupIndex) => {
+      const elements = diagonalGroups.get(diagonalIndex)!;
+      const groupStartTime = groupIndex * (config.diagonalStagger / 1000);
+
+      elements.forEach((element, elementIndex) => {
+        const elementDelay = groupStartTime + (elementIndex * config.elementStagger / 1000);
+
+        // Get target scale (original scale before animation)
+        let targetScale = { x: 1, y: 1 };
+
+        // Check if we have stored original scale for this element
+        const storedScale = this.originalScales.get(element);
+        if (storedScale) {
+          targetScale = storedScale;
+        } else {
+          // For decorations, get scale from decoration system
+          const decorationScale = this.decorationSystem.getOriginalScale(element as any);
+          if (decorationScale) {
+            targetScale = decorationScale;
+          }
+        }
+
+        timeline.to(element.scale, {
+          x: targetScale.x,
+          y: targetScale.y,
+          duration: config.elementDuration / 1000,
+          ease: config.elementEasing,
+        }, elementDelay);
+
+        timeline.to(element, {
+          alpha: 1,
+          duration: config.elementDuration / 1000,
+          ease: config.elementEasing,
+        }, elementDelay);
+      });
+    });
+
+    return timeline;
+  }
+
+  /** Play level transition animation (diagonal wave from top-left to bottom-right) */
+  playLevelTransition(): Promise<void> {
+    if (!this.levelTransitionConfig) {
+      // No config, skip animation
+      return Promise.resolve();
+    }
+
+    const config = this.levelTransitionConfig;
+    this.isTransitioning = true;
+
+    return new Promise((resolve) => {
+      // 1. Set all elements to initial state (scale=0, alpha=0)
+      this.setElementsToInitialState();
+
+      // 2. Animate background (if grid size changed)
+      if (config.animateBackground && this.gridBackground) {
+        const totalSize = this.getGridPixelSize();
+        gsap.to(this.gridBackground, {
+          width: totalSize,
+          height: totalSize,
+          duration: config.elementDuration / 1000,
+          ease: config.backgroundEasing,
+        });
+      }
+
+      // 3. Create staggered animations for all elements
+      const timeline = this.createDiagonalWaveTimeline(config);
+
+      // 4. Start animation after delay
+      gsap.delayedCall(config.startDelay / 1000, () => {
+        timeline.play();
+        timeline.eventCallback('onComplete', () => {
+          this.isTransitioning = false;
+          resolve();
+        });
+      });
+    });
+  }
+
   /** Clear current level */
   clearLevel(): void {
     // Clear grid background
@@ -357,8 +540,8 @@ export class CityLinesGame extends Container {
     this.roadTiles = [];
   }
 
-  /** Run connection evaluation and update visuals */
-  private updateConnections(): void {
+  /** Evaluate connections and return result */
+  private evaluateCurrentConnections() {
     // Convert game objects to evaluation format
     const tiles: TileData[] = this.roadTiles.map(t => ({
       type: t.type,
@@ -375,17 +558,22 @@ export class CityLinesGame extends Container {
     const exits: ExitData[] = this.exits.map(e => ({
       position: e.gridPosition,
       facingEdge: e.facingEdge,
+      connectableEdges: e.connectableEdges,
     }));
 
-    // Evaluate connections (pure, efficient)
-    const result = evaluateConnections(this.gridSize, tiles, landmarks, exits);
+    return evaluateConnections(this.gridSize, tiles, landmarks, exits);
+  }
+
+  /** Update visual state of tiles and landmarks (immediate feedback) */
+  private updateConnectionVisuals(): void {
+    const result = this.evaluateCurrentConnections();
 
     // Track previously connected for landmark events
     const previouslyConnected = this.landmarks.filter(l => l.isConnectedToExit);
 
     // Update road tile visuals (green chain rule from GDD)
     for (const tile of this.roadTiles) {
-      const index = tile.gridPosition.row * this.gridSize + tile.gridPosition.col;
+      const index = tile.gridPosition.y * this.gridSize + tile.gridPosition.x;
       const isConnected = result.connectedTiles.has(index);
       tile.setConnected(isConnected);
     }
@@ -394,15 +582,20 @@ export class CityLinesGame extends Container {
     for (let i = 0; i < this.landmarks.length; i++) {
       const landmark = this.landmarks[i];
       const isConnected = result.connectedLandmarkIds.has(i);
-      
+
       // Set connected state
       landmark.setConnected([], isConnected);
-      
+
       // Emit event for newly connected landmarks
       if (isConnected && !previouslyConnected.includes(landmark)) {
         this.emitEvent('landmarkConnected', landmark);
       }
     }
+  }
+
+  /** Check if level is complete and trigger completion sequence */
+  private checkLevelCompletion(): void {
+    const result = this.evaluateCurrentConnections();
 
     // Check if level solved
     if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig) {
@@ -414,6 +607,12 @@ export class CityLinesGame extends Container {
         this.currentLevelConfig.clue
       );
     }
+  }
+
+  /** Run connection evaluation and update visuals (used for initial load) */
+  private updateConnections(): void {
+    this.updateConnectionVisuals();
+    this.checkLevelCompletion();
   }
 
   /** Check if all landmarks are connected */

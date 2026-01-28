@@ -94,6 +94,8 @@ export class DecorationSystem {
   private tileSize: number;
   private container: Container;
   private decorations: Sprite[] = [];
+  private decorationPositions: Map<Sprite, GridPosition> = new Map();
+  private decorationScales: Map<Sprite, { x: number; y: number }> = new Map();
 
   constructor(gpuLoader: PixiLoader, tileSize: number) {
     this.gpuLoader = gpuLoader;
@@ -129,7 +131,9 @@ export class DecorationSystem {
     occupiedPositions: Set<string>,
     county: County,
     levelSeed: number,
-    density: DecorationDensity = DEFAULT_DENSITY
+    density: DecorationDensity = DEFAULT_DENSITY,
+    padding: number = 0,
+    cellGap: number = 0
   ): void {
     this.clear();
 
@@ -138,7 +142,8 @@ export class DecorationSystem {
     // Iterate through all grid cells
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
-        const pos: GridPosition = { row, col };
+        // GridPosition uses {x, y} format where x=col, y=row
+        const pos: GridPosition = { x: col, y: row };
         const key = posKey(pos);
 
         // Skip occupied cells
@@ -158,9 +163,10 @@ export class DecorationSystem {
           const spriteFrame = this.selectDecoration(county, rng);
           const sprite = this.gpuLoader.createSprite(getAtlasName(), spriteFrame);
 
-          // Base position at cell center
-          const cellCenterX = col * this.tileSize + this.tileSize / 2;
-          const cellCenterY = row * this.tileSize + this.tileSize / 2;
+          // Base position at cell center (accounting for padding and cell gap)
+          const effectiveSize = this.tileSize + cellGap;
+          const cellCenterX = padding + col * effectiveSize + this.tileSize / 2;
+          const cellCenterY = padding + row * effectiveSize + this.tileSize / 2;
 
           // Random offset within cell (avoid edges)
           const margin = this.tileSize * 0.15;
@@ -174,7 +180,11 @@ export class DecorationSystem {
           // Scale decorations to fit nicely
           const baseScale = this.tileSize / 128;
           const scaleVariation = 0.7 + rng.next() * 0.6; // 0.7 to 1.3
-          sprite.scale.set(baseScale * scaleVariation * 0.5); // 50% of tile size
+          const finalScale = baseScale * scaleVariation * 0.5; // 50% of tile size
+          sprite.scale.set(finalScale);
+
+          // Store original scale for animation
+          this.decorationScales.set(sprite, { x: finalScale, y: finalScale });
 
           // Slight random rotation for flowers
           if (spriteFrame.startsWith('flower')) {
@@ -183,6 +193,7 @@ export class DecorationSystem {
 
           this.container.addChild(sprite);
           this.decorations.push(sprite);
+          this.decorationPositions.set(sprite, pos); // Track position for diagonal grouping
         }
       }
     }
@@ -194,7 +205,40 @@ export class DecorationSystem {
       decoration.destroy();
     }
     this.decorations = [];
+    this.decorationPositions.clear();
+    this.decorationScales.clear();
     this.container.removeChildren();
+  }
+
+  /** Get decorations grouped by diagonal index (for level transition animation) */
+  getDecorationsByDiagonal(): Map<number, Sprite[]> {
+    const groups = new Map<number, Sprite[]>();
+
+    this.decorations.forEach(sprite => {
+      const pos = this.decorationPositions.get(sprite);
+      if (pos) {
+        const diagonal = pos.x + pos.y;
+        if (!groups.has(diagonal)) {
+          groups.set(diagonal, []);
+        }
+        groups.get(diagonal)!.push(sprite);
+      }
+    });
+
+    return groups;
+  }
+
+  /** Get original scale for a decoration sprite */
+  getOriginalScale(sprite: Sprite): { x: number; y: number } | undefined {
+    return this.decorationScales.get(sprite);
+  }
+
+  /** Set all decorations to initial state (scale=0, alpha=0) for level transition */
+  setInitialState(): void {
+    this.decorations.forEach(sprite => {
+      sprite.scale.set(0);
+      sprite.alpha = 0;
+    });
   }
 
   /** Destroy the system */

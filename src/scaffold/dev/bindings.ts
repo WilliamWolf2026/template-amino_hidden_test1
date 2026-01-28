@@ -243,6 +243,59 @@ function inferBindingParams(key: string, value: number): Partial<BindingParams> 
 }
 
 /**
+ * Add a reset button next to a binding
+ */
+function addResetButton(
+  bindingElement: HTMLElement,
+  defaultValue: unknown,
+  currentObj: Record<string, unknown>,
+  key: string,
+  onUpdate: (value: unknown) => void
+): void {
+  setTimeout(() => {
+    // Create reset button
+    const resetBtn = document.createElement('button');
+    resetBtn.innerHTML = '↻';
+    resetBtn.title = `Reset to default: ${JSON.stringify(defaultValue)}`;
+    resetBtn.style.cssText = `
+      margin-left: 4px;
+      padding: 2px 6px;
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    `;
+
+    // Hover effects
+    resetBtn.onmouseenter = () => {
+      resetBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+      resetBtn.style.color = 'rgba(255, 255, 255, 0.9)';
+    };
+    resetBtn.onmouseleave = () => {
+      resetBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+      resetBtn.style.color = 'rgba(255, 255, 255, 0.5)';
+    };
+
+    // Reset functionality
+    resetBtn.onclick = (e) => {
+      e.stopPropagation();
+      currentObj[key] = defaultValue;
+      onUpdate(defaultValue);
+      console.log(`[Tuning] Reset ${key} to default:`, defaultValue);
+    };
+
+    // Find the value container and append button
+    const valueContainer = bindingElement.querySelector('.tp-lblv_v');
+    if (valueContainer) {
+      valueContainer.appendChild(resetBtn);
+    }
+  }, 0);
+}
+
+/**
  * Create a Tweakpane binding for a single value
  */
 function createBinding(
@@ -250,9 +303,9 @@ function createBinding(
   key: string,
   value: unknown,
   onUpdate: (value: unknown) => void,
-  options: { fullPath: string; isScaffold: boolean }
+  options: { fullPath: string; isScaffold: boolean; defaultValue: unknown }
 ): void {
-  const { fullPath, isScaffold } = options;
+  const { fullPath, isScaffold, defaultValue } = options;
   const isWired = isScaffold ? isScaffoldPathWired(fullPath) : isGamePathWired(fullPath);
 
   const label = formatLabel(key);
@@ -270,6 +323,7 @@ function createBinding(
     const binding = parent.addBinding(obj, key, { label });
     binding.on('change', (ev: { value: boolean }) => onUpdate(ev.value));
     applyUnwiredStyle(binding);
+    addResetButton(binding.element, defaultValue, obj, key, onUpdate);
     return;
   }
 
@@ -286,6 +340,7 @@ function createBinding(
       });
       binding.on('change', (ev: { value: number }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -307,6 +362,7 @@ function createBinding(
       });
       binding.on('change', (ev: { value: number }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -314,6 +370,7 @@ function createBinding(
     const binding = parent.addBinding(obj, key, params);
     binding.on('change', (ev: { value: number }) => onUpdate(ev.value));
     applyUnwiredStyle(binding);
+    addResetButton(binding.element, defaultValue, obj, key, onUpdate);
     return;
   }
 
@@ -323,6 +380,7 @@ function createBinding(
       const binding = parent.addBinding(obj, key, { label, view: 'color' });
       binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -340,6 +398,7 @@ function createBinding(
       });
       binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -351,6 +410,7 @@ function createBinding(
       });
       binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -362,6 +422,7 @@ function createBinding(
       });
       binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -373,6 +434,7 @@ function createBinding(
       });
       binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
       applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
       return;
     }
 
@@ -392,12 +454,44 @@ function createBinding(
 
       // Picker container
       const pickerContainer = document.createElement('div');
-      pickerContainer.style.cssText = 'flex: 1.5;';
+      pickerContainer.style.cssText = 'flex: 1.5; display: flex; align-items: center;';
 
       const picker = new EasingPicker(value as string, (newValue) => {
         onUpdate(newValue);
       });
       pickerContainer.appendChild(picker.element);
+
+      // Add reset button for easing picker
+      const resetBtn = document.createElement('button');
+      resetBtn.innerHTML = '↻';
+      resetBtn.title = `Reset to default: ${defaultValue}`;
+      resetBtn.style.cssText = `
+        margin-left: 4px;
+        padding: 2px 6px;
+        font-size: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.2s;
+      `;
+      resetBtn.onmouseenter = () => {
+        resetBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+        resetBtn.style.color = 'rgba(255, 255, 255, 0.9)';
+      };
+      resetBtn.onmouseleave = () => {
+        resetBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+        resetBtn.style.color = 'rgba(255, 255, 255, 0.5)';
+      };
+      resetBtn.onclick = (e) => {
+        e.stopPropagation();
+        picker.setValue(defaultValue as string);
+        onUpdate(defaultValue);
+        console.log(`[Tuning] Reset ${key} to default:`, defaultValue);
+      };
+      pickerContainer.appendChild(resetBtn);
+
       container.appendChild(pickerContainer);
 
       // Inject into parent folder
@@ -422,6 +516,7 @@ function createBinding(
     const binding = parent.addBinding(obj, key, { label });
     binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
     applyUnwiredStyle(binding);
+    addResetButton(binding.element, defaultValue, obj, key, onUpdate);
   }
 }
 
@@ -437,15 +532,34 @@ function styleUnwiredFolder(element: HTMLElement): void {
 }
 
 /**
+ * Get a nested value from an object by path
+ */
+function getValueByPath(obj: Record<string, unknown>, path: string): unknown {
+  const keys = path.split('.');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let current: any = obj;
+  for (const key of keys) {
+    if (current === undefined || current === null) return undefined;
+    current = current[key];
+  }
+  return current;
+}
+
+/**
  * Recursively bind an object to Tweakpane folders
  */
 function bindObjectToPane(
   parent: FolderOrPane,
   obj: Record<string, unknown>,
   onUpdate: (path: string, value: unknown) => void,
-  options: { pathPrefix?: string; isScaffold: boolean }
+  options: {
+    pathPrefix?: string;
+    isScaffold: boolean;
+    defaults: Record<string, unknown>;
+    onResetFolder?: (folderPath: string) => void;
+  }
 ): void {
-  const { pathPrefix = '', isScaffold } = options;
+  const { pathPrefix = '', isScaffold, defaults, onResetFolder } = options;
 
   for (const [key, value] of Object.entries(obj)) {
     // Skip version field
@@ -468,15 +582,58 @@ function bindObjectToPane(
         setTimeout(() => styleUnwiredFolder(folder.element), 0);
       }
 
+      // Add folder-level reset button
+      setTimeout(() => {
+        const titleElement = folder.element.querySelector('.tp-fldv_t');
+        if (titleElement) {
+          const resetBtn = document.createElement('button');
+          resetBtn.innerHTML = '↻';
+          resetBtn.title = `Reset all values in ${formatLabel(key)} to defaults`;
+          resetBtn.style.cssText = `
+            margin-left: 8px;
+            padding: 2px 6px;
+            font-size: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+          `;
+          resetBtn.onmouseenter = () => {
+            resetBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+            resetBtn.style.color = 'rgba(255, 255, 255, 0.9)';
+          };
+          resetBtn.onmouseleave = () => {
+            resetBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+            resetBtn.style.color = 'rgba(255, 255, 255, 0.5)';
+          };
+          resetBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (onResetFolder) {
+              onResetFolder(path);
+              console.log(`[Tuning] Reset folder "${path}" to defaults`);
+            }
+          };
+          titleElement.appendChild(resetBtn);
+        }
+      }, 0);
+
       bindObjectToPane(folder, value as Record<string, unknown>, onUpdate, {
         pathPrefix: path,
         isScaffold,
+        defaults,
+        onResetFolder,
       });
     } else {
+      // Get default value for this path
+      const defaultValue = getValueByPath(defaults, path);
+
       // Create binding for primitive values
       createBinding(parent, key, value, (newValue) => onUpdate(path, newValue), {
         fullPath: path,
         isScaffold,
+        defaultValue,
       });
     }
   }
@@ -511,17 +668,65 @@ export function bindTuningToPane<S extends ScaffoldTuning, G extends GameTuningB
   // Apply game section styling
   setTimeout(() => styleSectionFolder(gamePane.element, 'game'), 0);
 
+  // Helper to reset a folder (all values under a path)
+  const resetFolder = (folderPath: string, isScaffold: boolean): void => {
+    const defaults = isScaffold ? state.scaffoldDefaults : state.gameDefaults;
+    const folderDefaults = getValueByPath(defaults as Record<string, unknown>, folderPath);
+
+    if (folderDefaults && typeof folderDefaults === 'object') {
+      // Recursively reset all values in this folder
+      const resetRecursive = (obj: Record<string, unknown>, pathPrefix: string): void => {
+        for (const [key, value] of Object.entries(obj)) {
+          const fullPath = pathPrefix ? `${pathPrefix}.${key}` : key;
+          if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            resetRecursive(value as Record<string, unknown>, fullPath);
+          } else {
+            if (isScaffold) {
+              state.setScaffoldPath(fullPath, value);
+            } else {
+              state.setGamePath(fullPath, value);
+            }
+          }
+        }
+      };
+
+      resetRecursive(folderDefaults as Record<string, unknown>, folderPath);
+      onChange?.();
+
+      // Reload to update UI
+      window.location.reload();
+    }
+  };
+
   // Bind scaffold tuning
-  bindObjectToPane(scaffoldPane, state.scaffold() as Record<string, unknown>, (path, value) => {
-    state.setScaffoldPath(path, value);
-    onChange?.();
-  }, { isScaffold: true });
+  bindObjectToPane(
+    scaffoldPane,
+    state.scaffold() as Record<string, unknown>,
+    (path, value) => {
+      state.setScaffoldPath(path, value);
+      onChange?.();
+    },
+    {
+      isScaffold: true,
+      defaults: state.scaffoldDefaults as Record<string, unknown>,
+      onResetFolder: (path) => resetFolder(path, true),
+    }
+  );
 
   // Bind game tuning
-  bindObjectToPane(gamePane, state.game() as Record<string, unknown>, (path, value) => {
-    state.setGamePath(path, value);
-    onChange?.();
-  }, { isScaffold: false });
+  bindObjectToPane(
+    gamePane,
+    state.game() as Record<string, unknown>,
+    (path, value) => {
+      state.setGamePath(path, value);
+      onChange?.();
+    },
+    {
+      isScaffold: false,
+      defaults: state.gameDefaults as Record<string, unknown>,
+      onResetFolder: (path) => resetFolder(path, false),
+    }
+  );
 }
 
 /**
@@ -554,4 +759,11 @@ export function addPresetControls<S extends ScaffoldTuning, G extends GameTuning
     // Refresh the pane - this requires rebuilding
     window.location.reload();
   });
+
+  // Regenerate Level button (if function is available on window)
+  if (typeof window !== 'undefined' && (window as any).regenerateLevel) {
+    presetsFolder.addButton({ title: '🔄 Regenerate Level' }).on('click', () => {
+      (window as any).regenerateLevel();
+    });
+  }
 }

@@ -8,7 +8,7 @@
  * Performance characteristics:
  * - O(n) where n = grid cells (6x6 = 36 max)
  * - Minimal heap allocations (reusable queue, typed arrays)
- * - Index-based position representation (row * size + col)
+ * - Index-based position representation (y * size + x)
  * - No object creation in hot path
  */
 
@@ -19,7 +19,7 @@ import { EDGES } from '../types';
 export interface TileData {
   /** Tile type (straight, corner, t_junction) */
   type: RoadTileType;
-  /** Current rotation in degrees (0, 90, 180, 270) */
+  /** Current rotation state (0, 1, 2, 3) - aligned with generator */
   rotation: number;
   /** Grid position */
   position: GridPosition;
@@ -41,6 +41,8 @@ export interface ExitData {
   position: GridPosition;
   /** Which edge the exit faces (into the grid) */
   facingEdge: Edge;
+  /** Which edges can connect to this exit (defaults to just facingEdge if not provided) */
+  connectableEdges?: Edge[];
 }
 
 /** Result of connection evaluation */
@@ -63,12 +65,12 @@ const BASE_CONNECTIONS: Record<RoadTileType, readonly Edge[]> = {
   t_junction: ['north', 'east', 'south'], // T facing right
 } as const;
 
-/** Edge to direction offset mapping (row, col) */
+/** Edge to direction offset mapping (dy, dx) where dy=vertical, dx=horizontal */
 const EDGE_OFFSETS: Record<Edge, readonly [number, number]> = {
-  north: [-1, 0],
-  south: [1, 0],
-  east: [0, 1],
-  west: [0, -1],
+  north: [-1, 0],  // y decreases (move up)
+  south: [1, 0],   // y increases (move down)
+  east: [0, 1],    // x increases (move right)
+  west: [0, -1],   // x decreases (move left)
 } as const;
 
 /** Opposite edges for adjacency checking */
@@ -92,59 +94,58 @@ function rotateEdge(edge: Edge, steps: number): Edge {
 }
 
 /**
- * Get connected edges for a tile based on type and rotation.
- * 
+ * Get connected edges for a tile based on type and rotation state.
+ *
  * @param type - Tile type
- * @param rotation - Rotation in degrees (0, 90, 180, 270)
+ * @param rotation - Rotation state (0, 1, 2, 3) - aligned with generator
  * @returns Array of connected edges
  */
 function getTileEdges(type: RoadTileType, rotation: number): readonly Edge[] {
   const baseEdges = BASE_CONNECTIONS[type];
-  const steps = rotation / 90;
-  
-  if (steps === 0) {
+
+  if (rotation === 0) {
     return baseEdges;
   }
-  
-  return baseEdges.map(edge => rotateEdge(edge, steps));
+
+  return baseEdges.map(edge => rotateEdge(edge, rotation));
 }
 
 /**
  * Convert grid position to flat index.
- * 
- * @param row - Row coordinate
- * @param col - Column coordinate
+ *
+ * @param x - X coordinate (column)
+ * @param y - Y coordinate (row)
  * @param gridSize - Grid size
- * @returns Flat index (row * gridSize + col)
+ * @returns Flat index (y * gridSize + x)
  */
-function positionToIndex(row: number, col: number, gridSize: GridSize): number {
-  return row * gridSize + col;
+function positionToIndex(x: number, y: number, gridSize: GridSize): number {
+  return y * gridSize + x;
 }
 
 /**
  * Convert flat index to grid position.
- * 
+ *
  * @param index - Flat index
  * @param gridSize - Grid size
  * @returns Grid position
  */
 function indexToPosition(index: number, gridSize: GridSize): GridPosition {
   return {
-    row: Math.floor(index / gridSize),
-    col: index % gridSize,
+    x: index % gridSize,
+    y: Math.floor(index / gridSize),
   };
 }
 
 /**
  * Check if position is within grid bounds.
- * 
- * @param row - Row coordinate
- * @param col - Column coordinate
+ *
+ * @param x - X coordinate (column)
+ * @param y - Y coordinate (row)
  * @param gridSize - Grid size
  * @returns True if in bounds
  */
-function isInBounds(row: number, col: number, gridSize: GridSize): boolean {
-  return row >= 0 && row < gridSize && col >= 0 && col < gridSize;
+function isInBounds(x: number, y: number, gridSize: GridSize): boolean {
+  return y >= 0 && y < gridSize && x >= 0 && x < gridSize;
 }
 
 /**
@@ -164,29 +165,22 @@ function assertInvariants(
     console.error(`[evaluateConnections] Invalid grid size: ${gridSize} (expected 4, 5, or 6)`);
   }
   
-  // Check tile rotations are multiples of 90
+  // Check tile rotations are valid states
   for (const tile of tiles) {
-    if (tile.rotation % 90 !== 0) {
+    if (!Number.isInteger(tile.rotation) || tile.rotation < 0 || tile.rotation > 3) {
       console.error(
-        `[evaluateConnections] Invalid rotation: ${tile.rotation} at ` +
-        `(${tile.position.row}, ${tile.position.col}) - must be multiple of 90`
-      );
-    }
-    
-    if (tile.rotation < 0 || tile.rotation >= 360) {
-      console.error(
-        `[evaluateConnections] Rotation out of range: ${tile.rotation} at ` +
-        `(${tile.position.row}, ${tile.position.col}) - must be 0-359`
+        `[evaluateConnections] Invalid rotation state: ${tile.rotation} at ` +
+        `(${tile.position.x}, ${tile.position.y}) - must be 0, 1, 2, or 3`
       );
     }
   }
   
   // Check tile positions are in bounds
   for (const tile of tiles) {
-    const { row, col } = tile.position;
-    if (!isInBounds(row, col, gridSize)) {
+    const { x, y } = tile.position;
+    if (!isInBounds(x, y, gridSize)) {
       console.error(
-        `[evaluateConnections] Tile position out of bounds: (${row}, ${col}) ` +
+        `[evaluateConnections] Tile position out of bounds: (${x}, ${y}) ` +
         `for grid size ${gridSize}`
       );
     }
@@ -194,10 +188,10 @@ function assertInvariants(
   
   // Check landmark positions are in bounds
   for (const landmark of landmarks) {
-    const { row, col } = landmark.position;
-    if (!isInBounds(row, col, gridSize)) {
+    const { x, y } = landmark.position;
+    if (!isInBounds(x, y, gridSize)) {
       console.error(
-        `[evaluateConnections] Landmark position out of bounds: (${row}, ${col}) ` +
+        `[evaluateConnections] Landmark position out of bounds: (${x}, ${y}) ` +
         `for grid size ${gridSize}`
       );
     }
@@ -209,7 +203,7 @@ function assertInvariants(
     if (landmarkIds.has(landmark.id)) {
       console.error(
         `[evaluateConnections] Duplicate landmark ID: ${landmark.id} at ` +
-        `(${landmark.position.row}, ${landmark.position.col})`
+        `(${landmark.position.x}, ${landmark.position.y})`
       );
     }
     landmarkIds.add(landmark.id);
@@ -217,10 +211,10 @@ function assertInvariants(
   
   // Check exit positions are in bounds
   for (const exit of exits) {
-    const { row, col } = exit.position;
-    if (!isInBounds(row, col, gridSize)) {
+    const { x, y } = exit.position;
+    if (!isInBounds(x, y, gridSize)) {
       console.error(
-        `[evaluateConnections] Exit position out of bounds: (${row}, ${col}) ` +
+        `[evaluateConnections] Exit position out of bounds: (${x}, ${y}) ` +
         `for grid size ${gridSize}`
       );
     }
@@ -272,14 +266,14 @@ export function evaluateConnections(
   // Array is faster than Map for small grids (max 36 cells)
   const tileEdgesByIndex = new Array<readonly Edge[] | null>(maxCells);
   for (const tile of tiles) {
-    const index = positionToIndex(tile.position.row, tile.position.col, gridSize);
+    const index = positionToIndex(tile.position.x, tile.position.y, gridSize);
     tileEdgesByIndex[index] = getTileEdges(tile.type, tile.rotation);
   }
   
   // Build landmark lookup by index
   const landmarkByIndex = new Map<number, LandmarkData>();
   for (const landmark of landmarks) {
-    const index = positionToIndex(landmark.position.row, landmark.position.col, gridSize);
+    const index = positionToIndex(landmark.position.x, landmark.position.y, gridSize);
     landmarkByIndex.set(index, landmark);
   }
   
@@ -298,15 +292,16 @@ export function evaluateConnections(
   
   // Initialize queue with exit positions
   for (const exit of exits) {
-    const exitIndex = positionToIndex(exit.position.row, exit.position.col, gridSize);
-    
+    const exitIndex = positionToIndex(exit.position.x, exit.position.y, gridSize);
+
     if (visited[exitIndex]) continue;
-    
+
     visited[exitIndex] = 1;
     queue[queueEnd++] = exitIndex;
-    
-    // Exits are considered part of the tile map (they have one facing edge)
-    tileEdgesByIndex[exitIndex] = [exit.facingEdge];
+
+    // Exits are considered part of the tile map
+    // Use connectableEdges if provided, otherwise fall back to just facingEdge
+    tileEdgesByIndex[exitIndex] = exit.connectableEdges ?? [exit.facingEdge];
   }
   
   // BFS traversal
@@ -317,21 +312,21 @@ export function evaluateConnections(
     if (!currentEdges) continue;
     
     // Mark this tile as connected (unless it's an exit-only cell)
-    if (tiles.some(t => positionToIndex(t.position.row, t.position.col, gridSize) === currentIndex)) {
+    if (tiles.some(t => positionToIndex(t.position.x, t.position.y, gridSize) === currentIndex)) {
       connectedTiles.add(currentIndex);
     }
     
     const currentPos = indexToPosition(currentIndex, gridSize);
-    
+
     // Check each edge of current tile
     for (const edge of currentEdges) {
-      const [dRow, dCol] = EDGE_OFFSETS[edge];
-      const adjRow = currentPos.row + dRow;
-      const adjCol = currentPos.col + dCol;
-      
-      if (!isInBounds(adjRow, adjCol, gridSize)) continue;
-      
-      const adjIndex = positionToIndex(adjRow, adjCol, gridSize);
+      const [dy, dx] = EDGE_OFFSETS[edge];
+      const adjY = currentPos.y + dy;
+      const adjX = currentPos.x + dx;
+
+      if (!isInBounds(adjX, adjY, gridSize)) continue;
+
+      const adjIndex = positionToIndex(adjX, adjY, gridSize);
       
       if (visited[adjIndex]) continue;
       
@@ -384,7 +379,7 @@ export function isTileConnected(
   position: GridPosition,
   gridSize: GridSize
 ): boolean {
-  const index = positionToIndex(position.row, position.col, gridSize);
+  const index = positionToIndex(position.x, position.y, gridSize);
   return result.connectedTiles.has(index);
 }
 

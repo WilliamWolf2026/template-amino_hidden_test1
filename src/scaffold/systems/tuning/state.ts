@@ -90,6 +90,35 @@ export function createTuningState<
     });
   };
 
+  /**
+   * Get the default value for a specific path
+   */
+  const getDefaultValue = (path: string, isScaffold: boolean): unknown => {
+    const keys = path.split('.');
+    const defaults = isScaffold ? originalScaffold : originalGame;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let current: any = defaults;
+    for (const key of keys) {
+      if (current === undefined || current === null) return undefined;
+      current = current[key];
+    }
+    return current;
+  };
+
+  /**
+   * Reset a specific path to its default value
+   */
+  const resetPath = (path: string, isScaffold: boolean): void => {
+    const defaultValue = getDefaultValue(path, isScaffold);
+    if (defaultValue !== undefined) {
+      if (isScaffold) {
+        setScaffoldPath(path, defaultValue);
+      } else {
+        setGamePath(path, defaultValue);
+      }
+    }
+  };
+
   const save = (): void => {
     saveToStorage(STORAGE_KEYS.SCAFFOLD, scaffold());
     saveToStorage(STORAGE_KEYS.GAME, game());
@@ -141,12 +170,15 @@ export function createTuningState<
     isLoaded,
     loadError,
     source,
+    scaffoldDefaults: originalScaffold,
+    gameDefaults: originalGame,
     setScaffoldPath,
     setGamePath,
     applyGameOverrides,
     load,
     save,
     reset,
+    resetPath,
     exportJson,
     importJson,
   };

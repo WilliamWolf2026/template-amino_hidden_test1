@@ -10,9 +10,12 @@ export type {
   SpritesConfig,
   GameAnimationConfig,
   VfxConfig,
+  CompanionAnimationConfig,
   ScoringConfig,
   GameScreensConfig,
   LandmarkCountRange,
+  GeneratorConfig,
+  LevelTransitionConfig,
 } from './types';
 
 // Constants
