@@ -87,6 +87,11 @@ export interface GameAnimationConfig {
   levelCompleteDelay: number;
 }
 
+export interface VfxConfig {
+  rotateAlpha: number;
+  rotateSizePercent: number;
+}
+
 export interface CompanionAnimationConfig {
   // Slide-in animation timing
   slideInDelay: number;
@@ -166,6 +171,7 @@ export interface CityLinesTuning extends GameTuningBase {
   visuals: VisualsConfig;
   sprites: SpritesConfig;
   animation: GameAnimationConfig;
+  vfx: VfxConfig;
   companion: CompanionAnimationConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
@@ -236,6 +242,10 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
   animation: {
     connectionPulseDuration: 300,
     levelCompleteDelay: 500,
+  },
+  vfx: {
+    rotateAlpha: 1,
+    rotateSizePercent: 165,
   },
   companion: {
     slideInDelay: 500,

@@ -21,6 +21,9 @@ export const manifest: Manifest = {
     // SCENES
     // { name: 'scene-gameplay', assets: ['scenes/gameplay/entities.json'] },
 
+    // VFX
+    { name: 'vfx-rotate', assets: ['vfx-rotate.json'] },
+
     // AUDIO (agnostic)
     { name: 'audio-citylines-sfx', assets: ['citylines-sfx.json'] },
 

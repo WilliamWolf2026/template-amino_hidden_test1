@@ -1,4 +1,4 @@
-import { Container, NineSliceSprite } from 'pixi.js';
+import { AnimatedSprite, Container, NineSliceSprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
@@ -70,6 +70,7 @@ export class CityLinesGame extends Container {
   private gridContainer: Container;
   private decorationsContainer: Container;
   private roadTilesContainer: Container;
+  private vfxContainer: Container;
   private landmarksContainer: Container;
   private exitsContainer: Container;
 
@@ -78,6 +79,9 @@ export class CityLinesGame extends Container {
 
   // Animation config for tile rotation (from tuning)
   private rotationAnimationConfig?: { duration: number; easing: string };
+
+  // VFX config (from tuning)
+  private vfxConfig = { alpha: 1, sizePercent: 200 };
 
   // Level transition animation
   private levelTransitionConfig?: LevelTransitionConfig;
@@ -121,17 +125,21 @@ export class CityLinesGame extends Container {
     this.roadTilesContainer = new Container();
     this.roadTilesContainer.label = 'roadTiles';
 
+    this.vfxContainer = new Container();
+    this.vfxContainer.label = 'vfx';
+
     this.landmarksContainer = new Container();
     this.landmarksContainer.label = 'landmarks';
 
     this.exitsContainer = new Container();
     this.exitsContainer.label = 'exits';
 
-    // Layer order (bottom to top): grid -> exits -> roads -> decorations -> landmarks
-    // Decorations are above tiles for visual pop
+    // Layer order (bottom to top): grid -> exits -> roads -> vfx -> decorations -> landmarks
+    // VFX plays on top of roads, decorations above for visual pop
     this.addChild(this.gridContainer);
     this.addChild(this.exitsContainer);
     this.addChild(this.roadTilesContainer);
+    this.addChild(this.vfxContainer);
     this.addChild(this.decorationsContainer);
     this.addChild(this.landmarksContainer);
 
@@ -270,20 +278,77 @@ export class CityLinesGame extends Container {
 
     // Rotate tile
     tile.rotate(this.rotationAnimationConfig);
-    
+
+    // Play rotation VFX
+    this.playRotateVFX(tile);
+
     // Increment move counter
     this.moveCount++;
 
-    // Update connections
-    this.updateConnections();
-    
     // Emit event
     this.emitEvent('tileRotated');
+
+    // Update visuals immediately (tile colors change right away)
+    this.updateConnectionVisuals();
+
+    // Delay level completion check until tile rotation animation finishes
+    const rotationDuration = this.rotationAnimationConfig?.duration ?? 300;
+    gsap.delayedCall(rotationDuration / 1000, () => {
+      this.checkLevelCompletion();
+    });
+  }
+
+  /** Play rotation VFX on a tile */
+  private playRotateVFX(tile: RoadTile): void {
+    // Check if VFX sheet is loaded
+    if (!this.gpuLoader.hasSheet('vfx-rotate')) {
+      return;
+    }
+
+    // Create animated sprite from spritesheet
+    const vfx = this.gpuLoader.createAnimatedSprite('vfx-rotate', 'rotate');
+
+    // Position at tile center
+    vfx.anchor.set(0.5);
+    vfx.x = tile.x;
+    vfx.y = tile.y;
+
+    // VFX size: snap to nearest power of 2 to avoid texture blur
+    // Texture is 256x256, we want displayed size to be power of 2
+    const desiredSize = this.tileSize * (this.vfxConfig.sizePercent / 100);
+    const nearestPow2 = Math.pow(2, Math.round(Math.log2(desiredSize)));
+    const vfxScale = nearestPow2 / 256;
+    vfx.scale.set(-vfxScale, vfxScale); // Negative X for clockwise spin
+    vfx.alpha = this.vfxConfig.alpha;
+
+    // Random initial rotation for visual variety
+    vfx.rotation = Math.random() * Math.PI * 2;
+
+    // Animation settings - faster than tile rotation
+    // 24 frames, 60fps ticker: animationSpeed = frames / (duration_ms * 0.06) * 1.5
+    const duration = this.rotationAnimationConfig?.duration ?? 300;
+    vfx.animationSpeed = (24 / (duration * 0.06)) * 1.5;
+    vfx.loop = false;
+
+    // Remove when animation completes
+    vfx.onComplete = () => {
+      this.vfxContainer.removeChild(vfx);
+      vfx.destroy();
+    };
+
+    // Add to VFX layer and play
+    this.vfxContainer.addChild(vfx);
+    vfx.play();
   }
 
   /** Set rotation animation config (from tuning) */
   setRotationAnimationConfig(config: { duration: number; easing: string }): void {
     this.rotationAnimationConfig = config;
+  }
+
+  /** Set VFX config (from tuning) */
+  setVfxConfig(config: { alpha: number; sizePercent: number }): void {
+    this.vfxConfig = config;
   }
 
   /** Set level transition animation config (from tuning) */
@@ -475,8 +540,8 @@ export class CityLinesGame extends Container {
     this.roadTiles = [];
   }
 
-  /** Run connection evaluation and update visuals */
-  private updateConnections(): void {
+  /** Evaluate connections and return result */
+  private evaluateCurrentConnections() {
     // Convert game objects to evaluation format
     const tiles: TileData[] = this.roadTiles.map(t => ({
       type: t.type,
@@ -496,8 +561,12 @@ export class CityLinesGame extends Container {
       connectableEdges: e.connectableEdges,
     }));
 
-    // Evaluate connections (pure, efficient)
-    const result = evaluateConnections(this.gridSize, tiles, landmarks, exits);
+    return evaluateConnections(this.gridSize, tiles, landmarks, exits);
+  }
+
+  /** Update visual state of tiles and landmarks (immediate feedback) */
+  private updateConnectionVisuals(): void {
+    const result = this.evaluateCurrentConnections();
 
     // Track previously connected for landmark events
     const previouslyConnected = this.landmarks.filter(l => l.isConnectedToExit);
@@ -513,15 +582,20 @@ export class CityLinesGame extends Container {
     for (let i = 0; i < this.landmarks.length; i++) {
       const landmark = this.landmarks[i];
       const isConnected = result.connectedLandmarkIds.has(i);
-      
+
       // Set connected state
       landmark.setConnected([], isConnected);
-      
+
       // Emit event for newly connected landmarks
       if (isConnected && !previouslyConnected.includes(landmark)) {
         this.emitEvent('landmarkConnected', landmark);
       }
     }
+  }
+
+  /** Check if level is complete and trigger completion sequence */
+  private checkLevelCompletion(): void {
+    const result = this.evaluateCurrentConnections();
 
     // Check if level solved
     if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig) {
@@ -533,6 +607,12 @@ export class CityLinesGame extends Container {
         this.currentLevelConfig.clue
       );
     }
+  }
+
+  /** Run connection evaluation and update visuals (used for initial load) */
+  private updateConnections(): void {
+    this.updateConnectionVisuals();
+    this.checkLevelCompletion();
   }
 
   /** Check if all landmarks are connected */

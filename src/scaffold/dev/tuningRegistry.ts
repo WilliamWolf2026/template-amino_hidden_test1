@@ -26,6 +26,10 @@ export const WIRED_GAME_PATHS = new Set([
   'animation.tileRotateEasing',
   // NOT WIRED: animation.connectionPulseDuration, animation.levelCompleteDelay
 
+  // VFX - wired in GameScreen.tsx
+  'vfx.rotateAlpha',
+  'vfx.rotateSizePercent',
+
   // Level Transition - applied on level load (not live-wired)
   'levelTransition.startDelay',
   'levelTransition.elementDuration',

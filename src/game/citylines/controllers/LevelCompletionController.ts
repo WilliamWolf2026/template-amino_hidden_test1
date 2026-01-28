@@ -150,17 +150,21 @@ export function createLevelCompletionController(
     
     // Trigger audio
     playLevelCompleteSound();
-    
-    // Notify UI to show overlay
-    events.onCompletionStart(clue);
-    
-    // Schedule clue timer
-    const totalDelay = celebrationDuration + clueDuration;
+
+    // Delay before showing companion (let tile rotation finish)
     timerId = window.setTimeout(() => {
       timerId = null;
-      canContinue = true;
-      events.onClueTimerEnd();
-    }, totalDelay);
+
+      // Notify UI to show overlay
+      events.onCompletionStart(clue);
+
+      // Schedule clue timer
+      timerId = window.setTimeout(() => {
+        timerId = null;
+        canContinue = true;
+        events.onClueTimerEnd();
+      }, clueDuration);
+    }, celebrationDuration);
   };
   
   /**
