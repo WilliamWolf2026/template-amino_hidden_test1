@@ -107,6 +107,15 @@ export interface CluePopupConfig {
   fadeOutDuration: number;
 }
 
+export interface CompletionPaintConfig {
+  /** Time for pulse to travel between tiles (ms) @min 20 @max 200 @step 10 */
+  staggerDelay: number;
+  /** How long each tile stays bright as pulse passes (ms) @min 50 @max 300 @step 25 */
+  tileDuration: number;
+  /** Easing function (unused in pulse mode) */
+  easing: string;
+}
+
 export interface ScoringConfig {
   baseScore: number;
   timeBonus: number;
@@ -175,6 +184,7 @@ export interface CityLinesTuning extends GameTuningBase {
   vfx: VfxConfig;
   companion: CompanionAnimationConfig;
   cluePopup: CluePopupConfig;
+  completionPaint: CompletionPaintConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
   generator: GeneratorConfig;
@@ -255,6 +265,11 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     displayDuration: 3000,
     fadeInDuration: 400,
     fadeOutDuration: 300,
+  },
+  completionPaint: {
+    staggerDelay: 50,
+    tileDuration: 150,
+    easing: 'power2.out',
   },
   scoring: {
     baseScore: 100,

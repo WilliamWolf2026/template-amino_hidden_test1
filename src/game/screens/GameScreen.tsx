@@ -128,6 +128,9 @@ export function GameScreen() {
       // Configure level transition animation
       game.setLevelTransitionConfig(gameTuning.levelTransition);
 
+      // Configure completion paint animation
+      game.setCompletionPaintConfig(gameTuning.completionPaint);
+
       // Load generated level
       game.loadLevel(currentLevel());
 

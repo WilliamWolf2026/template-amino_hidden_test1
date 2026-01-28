@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, NineSliceSprite } from 'pixi.js';
+import { AnimatedSprite, ColorMatrixFilter, Container, NineSliceSprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
@@ -15,6 +15,7 @@ import {
 } from '../controllers';
 import {
   evaluateConnections,
+  getConnectedTilesInOrder,
   type TileData,
   type LandmarkData,
   type ExitData,
@@ -87,6 +88,10 @@ export class CityLinesGame extends Container {
   private levelTransitionConfig?: LevelTransitionConfig;
   private isTransitioning: boolean = false;
   private originalScales: Map<Container, { x: number; y: number }> = new Map();
+
+  // Completion paint animation config
+  private completionPaintConfig = { staggerDelay: 50, tileDuration: 150, easing: 'power2.out' };
+  private isPaintAnimationPlaying = false;
 
   // Completion lifecycle
   private completionController: LevelCompletionController;
@@ -354,6 +359,11 @@ export class CityLinesGame extends Container {
     this.levelTransitionConfig = config;
   }
 
+  /** Set completion paint animation config (from tuning) */
+  setCompletionPaintConfig(config: { staggerDelay: number; tileDuration: number; easing: string }): void {
+    this.completionPaintConfig = config;
+  }
+
   /** Group all elements by their diagonal index (x + y) for wave animation */
   private groupElementsByDiagonal(): Map<number, Container[]> {
     const groups = new Map<number, Container[]>();
@@ -562,19 +572,15 @@ export class CityLinesGame extends Container {
     return evaluateConnections(this.gridSize, tiles, landmarks, exits);
   }
 
-  /** Update visual state of tiles and landmarks (immediate feedback) */
+  /** Update visual state of landmarks only (tiles are updated via paint animation on completion) */
   private updateConnectionVisuals(): void {
     const result = this.evaluateCurrentConnections();
 
     // Track previously connected for landmark events
     const previouslyConnected = this.landmarks.filter(l => l.isConnectedToExit);
 
-    // Update road tile visuals (green chain rule from GDD)
-    for (const tile of this.roadTiles) {
-      const index = tile.gridPosition.y * this.gridSize + tile.gridPosition.x;
-      const isConnected = result.connectedTiles.has(index);
-      tile.setConnected(isConnected);
-    }
+    // NOTE: Road tiles are NOT updated here during gameplay.
+    // They only change to "completed" state via playCompletionPaintAnimation() when level is won.
 
     // Update landmarks
     for (let i = 0; i < this.landmarks.length; i++) {
@@ -595,16 +601,108 @@ export class CityLinesGame extends Container {
   private checkLevelCompletion(): void {
     const result = this.evaluateCurrentConnections();
 
-    // Check if level solved
-    if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig) {
-      // Start completion sequence with level stats
-      this.completionController.startCompletion(
-        this.currentLevelConfig.levelNumber,
-        this.moveCount,
-        Date.now() - this.levelStartTime,
-        this.currentLevelConfig.clue
-      );
+    // Check if level solved (guard against double-trigger with isPaintAnimationPlaying)
+    if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig && !this.isPaintAnimationPlaying) {
+      this.isPaintAnimationPlaying = true;
+      // Play the paint animation from exit outward, THEN start completion sequence
+      this.playCompletionPaintAnimation().then(() => {
+        this.isPaintAnimationPlaying = false;
+        if (this.currentLevelConfig) {
+          this.completionController.startCompletion(
+            this.currentLevelConfig.levelNumber,
+            this.moveCount,
+            Date.now() - this.levelStartTime,
+            this.currentLevelConfig.clue
+          );
+        }
+      });
     }
+  }
+
+  /**
+   * Play the "paint" animation when level is complete.
+   * Roads instantly swap to completed state in BFS order from exit, with a white flash.
+   */
+  private playCompletionPaintAnimation(): Promise<void> {
+    // Get tiles in BFS order (exit → outward)
+    const tiles: TileData[] = this.roadTiles.map(t => ({
+      type: t.type,
+      rotation: t.currentRotation,
+      position: t.gridPosition,
+    }));
+
+    const landmarks: LandmarkData[] = this.landmarks.map((l, index) => ({
+      id: index,
+      position: l.gridPosition,
+      connectableEdges: l.connectableEdges,
+    }));
+
+    const exits: ExitData[] = this.exits.map(e => ({
+      position: e.gridPosition,
+      facingEdge: e.facingEdge,
+      connectableEdges: e.connectableEdges,
+    }));
+
+    const traversal = getConnectedTilesInOrder(this.gridSize, tiles, landmarks, exits);
+
+    // Build lookup from grid index to RoadTile
+    const tileByIndex = new Map<number, RoadTile>();
+    for (const tile of this.roadTiles) {
+      const index = tile.gridPosition.y * this.gridSize + tile.gridPosition.x;
+      tileByIndex.set(index, tile);
+    }
+
+    const { staggerDelay, tileDuration, easing } = this.completionPaintConfig;
+
+    return new Promise((resolve) => {
+      if (traversal.tilesInOrder.length === 0) {
+        resolve();
+        return;
+      }
+
+      // Calculate total animation duration
+      const maxDistance = Math.max(...traversal.tilesInOrder.map(t => t.distance));
+      const totalDuration = (maxDistance * staggerDelay + tileDuration) / 1000;
+
+      // Animate each tile based on its distance from exit
+      for (const tileInfo of traversal.tilesInOrder) {
+        const roadTile = tileByIndex.get(tileInfo.index);
+        if (!roadTile) continue;
+
+        // Calculate delay based on distance from exit
+        const delay = tileInfo.distance * staggerDelay / 1000;
+
+        // Schedule the traveling pulse - tile changes and flashes as pulse passes through
+        gsap.delayedCall(delay, () => {
+          // Instantly swap to completed state
+          roadTile.setConnected(true);
+
+          // Apply brightness filter for pulse flash
+          const filter = new ColorMatrixFilter();
+          filter.brightness(2, false); // Flash bright
+          roadTile.filters = [filter];
+
+          // Fade brightness back to normal
+          const brightness = { value: 2 };
+          gsap.to(brightness, {
+            value: 1,
+            duration: tileDuration / 1000,
+            ease: easing,
+            onUpdate: () => {
+              filter.brightness(brightness.value, false);
+            },
+            onComplete: () => {
+              roadTile.filters = []; // Remove filter when done
+            },
+          });
+        });
+      }
+
+      // Resolve after all animations complete
+      gsap.delayedCall(totalDuration, () => {
+        resolve();
+      });
+    });
   }
 
   /** Run connection evaluation and update visuals (used for initial load) */
