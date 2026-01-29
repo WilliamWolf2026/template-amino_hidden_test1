@@ -42,7 +42,7 @@ export default function App() {
   return (
     <GlobalBoundary>
       <TuningProvider gameDefaults={CITYLINES_DEFAULTS} urlOverrides={urlOverrides}>
-        <Show when={import.meta.env.VITE_APP_ENV !== 'production'}>
+        <Show when={import.meta.env.VITE_APP_ENV !== 'Production'}>
           <TuningPanel />
         </Show>
         {/* Settings Menu - Top Right */}
