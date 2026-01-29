@@ -135,6 +135,15 @@ export function GameScreen() {
       // Load generated level
       game.loadLevel(currentLevel());
 
+      // Auto-size to viewport (shrink tiles if grid is too large)
+      game.autoSizeToViewport(
+        app.screen.width,
+        app.screen.height,
+        tileSize,  // max tile size from tuning
+        80,        // reserved top (progress bar area)
+        100        // reserved bottom (logo area)
+      );
+
       // Center the game on screen (pivot is at grid center, so position at screen center)
       game.x = app.screen.width / 2;
       game.y = app.screen.height / 2;
@@ -294,6 +303,16 @@ export function GameScreen() {
                 setCurrentLevel(newLevel);
 
                 game.loadLevel(newLevel);
+
+                // Auto-size to viewport (new level may have different grid size)
+                game.autoSizeToViewport(
+                  app.screen.width,
+                  app.screen.height,
+                  gameTuning.grid.tileSize,
+                  80,
+                  100
+                );
+
                 game.x = app.screen.width / 2;
                 game.y = app.screen.height / 2;
 
@@ -398,6 +417,16 @@ export function GameScreen() {
               setCurrentLevel(newLevel);
 
               game.loadLevel(newLevel);
+
+              // Auto-size to viewport (new level may have different grid size)
+              game.autoSizeToViewport(
+                app.screen.width,
+                app.screen.height,
+                gameTuning.grid.tileSize,
+                80,
+                100
+              );
+
               game.x = app.screen.width / 2;
               game.y = app.screen.height / 2;
 
@@ -453,6 +482,19 @@ export function GameScreen() {
 
       // Resize handler for responsive behavior
       resizeHandler = () => {
+        // Auto-size game to new viewport dimensions
+        game.autoSizeToViewport(
+          app.screen.width,
+          app.screen.height,
+          gameTuning.grid.tileSize,  // max tile size from tuning
+          80,        // reserved top (progress bar area)
+          100        // reserved bottom (logo area)
+        );
+
+        // Re-center game
+        game.x = app.screen.width / 2;
+        game.y = app.screen.height / 2;
+
         // Update dark overlay size
         if (darkOverlay) {
           const currentAlpha = darkOverlay.alpha; // Preserve current alpha
@@ -689,6 +731,16 @@ export function GameScreen() {
     setCurrentLevel(newLevel);
 
     game.loadLevel(newLevel);
+
+    // Auto-size to viewport (regenerated level may have different grid size)
+    game.autoSizeToViewport(
+      app.screen.width,
+      app.screen.height,
+      tuning.game.grid.tileSize,
+      80,
+      100
+    );
+
     game.x = app.screen.width / 2;
     game.y = app.screen.height / 2;
 

@@ -827,6 +827,54 @@ export class CityLinesGame extends Container {
     return this.tileSize;
   }
 
+  /**
+   * Calculate optimal tile size to fit grid within available viewport
+   * @param availableWidth - Available width for the grid
+   * @param availableHeight - Available height for the grid
+   * @param maxTileSize - Maximum tile size to use (from tuning)
+   * @returns Optimal tile size that fits within constraints
+   */
+  calculateOptimalTileSize(availableWidth: number, availableHeight: number, maxTileSize: number): number {
+    // Calculate the maximum tile size that fits within available space
+    // Grid size = padding * 2 + gridSize * tileSize + (gridSize - 1) * cellGap
+    // Solving for tileSize: tileSize = (available - padding * 2 - (gridSize - 1) * cellGap) / gridSize
+
+    const maxTileForWidth = (availableWidth - this.padding * 2 - (this.gridSize - 1) * this.cellGap) / this.gridSize;
+    const maxTileForHeight = (availableHeight - this.padding * 2 - (this.gridSize - 1) * this.cellGap) / this.gridSize;
+
+    // Use the smaller of the two to ensure grid fits in both dimensions
+    const fittedSize = Math.floor(Math.min(maxTileForWidth, maxTileForHeight));
+
+    // Don't exceed the configured max tile size, but also don't go below minimum
+    const minTileSize = 48; // Minimum tile size for playability
+    return Math.max(minTileSize, Math.min(fittedSize, maxTileSize));
+  }
+
+  /**
+   * Auto-size tiles to fit within viewport
+   * @param viewportWidth - Current viewport width
+   * @param viewportHeight - Current viewport height
+   * @param maxTileSize - Maximum tile size from tuning
+   * @param reservedTop - Space reserved at top (HUD, etc)
+   * @param reservedBottom - Space reserved at bottom (logo, etc)
+   */
+  autoSizeToViewport(
+    viewportWidth: number,
+    viewportHeight: number,
+    maxTileSize: number,
+    reservedTop: number = 80,
+    reservedBottom: number = 100
+  ): void {
+    const availableWidth = viewportWidth;
+    const availableHeight = viewportHeight - reservedTop - reservedBottom;
+
+    const optimalSize = this.calculateOptimalTileSize(availableWidth, availableHeight, maxTileSize);
+
+    if (optimalSize !== this.tileSize) {
+      this.setTileSize(optimalSize, false);
+    }
+  }
+
   /** Set tile size and update all elements with animation (for live tuning) */
   setTileSize(newSize: number, animate = true): void {
     if (newSize === this.tileSize) return;
@@ -936,6 +984,9 @@ export class CityLinesGame extends Container {
     this.roadTiles.forEach((tile, i) => {
       tile.animateToLayout(this.tileSize, this.padding, this.cellGap, animate ? animDuration : 0, i * stagger);
     });
+
+    // Update decorations
+    this.decorationSystem.updateLayout(this.tileSize, this.padding, this.cellGap);
   }
 
   /** Get total grid pixel size (including padding and gaps) */
