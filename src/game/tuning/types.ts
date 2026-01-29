@@ -112,8 +112,10 @@ export interface CompletionPaintConfig {
   staggerDelay: number;
   /** How long each tile stays bright as pulse passes (ms) @min 50 @max 300 @step 25 */
   tileDuration: number;
-  /** Easing function (unused in pulse mode) */
+  /** Easing function for flash fade */
   easing: string;
+  /** Size of blast VFX as percentage of tile size @min 50 @max 400 @step 10 */
+  blastSizePercent: number;
 }
 
 export interface ScoringConfig {
@@ -270,6 +272,7 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     staggerDelay: 50,
     tileDuration: 150,
     easing: 'power2.out',
+    blastSizePercent: 200,
   },
   scoring: {
     baseScore: 100,

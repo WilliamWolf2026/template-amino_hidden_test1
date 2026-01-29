@@ -321,6 +321,26 @@
       }
     }
   },
+  "animations": {
+    "blast": [
+      "frame_0000",
+      "frame_0001",
+      "frame_0002",
+      "frame_0003",
+      "frame_0004",
+      "frame_0005",
+      "frame_0006",
+      "frame_0007",
+      "frame_0008",
+      "frame_0009",
+      "frame_0010",
+      "frame_0011",
+      "frame_0012",
+      "frame_0013",
+      "frame_0014",
+      "frame_0015"
+    ]
+  },
   "meta": {
     "app": "SpriteViewer",
     "version": "1.0",
@@ -329,6 +349,7 @@
       "w": 2048,
       "h": 512
     },
-    "scale": "1"
+    "scale": "1",
+    "image": "vfx-blast.png"
   }
 }

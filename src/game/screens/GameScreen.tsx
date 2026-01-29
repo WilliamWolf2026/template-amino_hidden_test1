@@ -99,8 +99,9 @@ export function GameScreen() {
     const tileBundleName = getTileBundleName(tileTheme);
     await coordinator.loadBundle(tileBundleName);
 
-    // Load VFX bundle
+    // Load VFX bundles
     await coordinator.loadBundle('vfx-rotate');
+    await coordinator.loadBundle('vfx-blast');
 
     // Create City Lines game
     if (gpuLoader.hasSheet(tileBundleName)) {
@@ -613,6 +614,30 @@ export function GameScreen() {
       alpha: rotateAlpha,
       sizePercent: rotateSizePercent,
     });
+  });
+
+  // Track previous completion paint config for comparison guards
+  let prevCompletionPaint = { staggerDelay: -1, tileDuration: -1, blastSizePercent: -1 };
+
+  // Reactive: Completion paint animation config changes
+  createEffect(() => {
+    const game = gameInstance();
+    if (!game) return;
+
+    const { staggerDelay, tileDuration, easing, blastSizePercent } = tuning.game.completionPaint;
+
+    // Guard: Skip if unchanged
+    if (
+      staggerDelay === prevCompletionPaint.staggerDelay &&
+      tileDuration === prevCompletionPaint.tileDuration &&
+      blastSizePercent === prevCompletionPaint.blastSizePercent
+    ) {
+      return;
+    }
+
+    prevCompletionPaint = { staggerDelay, tileDuration, blastSizePercent };
+    game.setCompletionPaintConfig({ staggerDelay, tileDuration, easing, blastSizePercent });
+    console.log('[Tuning] Completion paint config updated:', { staggerDelay, tileDuration, blastSizePercent });
   });
 
   // Progress bar theme changes

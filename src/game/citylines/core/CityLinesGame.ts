@@ -90,7 +90,7 @@ export class CityLinesGame extends Container {
   private originalScales: Map<Container, { x: number; y: number }> = new Map();
 
   // Completion paint animation config
-  private completionPaintConfig = { staggerDelay: 50, tileDuration: 150, easing: 'power2.out' };
+  private completionPaintConfig = { staggerDelay: 50, tileDuration: 150, easing: 'power2.out', blastSizePercent: 200 };
   private isPaintAnimationPlaying = false;
 
   // Completion lifecycle
@@ -344,6 +344,43 @@ export class CityLinesGame extends Container {
     vfx.play();
   }
 
+  /** Play blast VFX at a position (for completion animation on landmarks) */
+  private playBlastVFX(x: number, y: number): void {
+    // Check if VFX sheet is loaded
+    if (!this.gpuLoader.hasSheet('vfx-blast')) {
+      console.warn('[VFX] vfx-blast sheet not loaded');
+      return;
+    }
+
+    // Create animated sprite from spritesheet
+    const vfx = this.gpuLoader.createAnimatedSprite('vfx-blast', 'blast');
+
+    // Position at center
+    vfx.anchor.set(0.5);
+    vfx.x = x;
+    vfx.y = y;
+
+    // VFX size calculation (uses completionPaint config for blast VFX)
+    const desiredSize = this.tileSize * (this.completionPaintConfig.blastSizePercent / 100);
+    const vfxScale = desiredSize / 256;
+    vfx.scale.set(vfxScale);
+    vfx.alpha = this.vfxConfig.alpha;
+
+    // Animation settings - play at 24fps
+    vfx.animationSpeed = 0.4; // ~24fps at 60fps ticker
+    vfx.loop = false;
+
+    // Remove when animation completes
+    vfx.onComplete = () => {
+      this.removeChild(vfx);
+      vfx.destroy();
+    };
+
+    // Add directly to game container (on top of everything, including landmarks)
+    this.addChild(vfx);
+    vfx.play();
+  }
+
   /** Set rotation animation config (from tuning) */
   setRotationAnimationConfig(config: { duration: number; easing: string }): void {
     this.rotationAnimationConfig = config;
@@ -360,7 +397,7 @@ export class CityLinesGame extends Container {
   }
 
   /** Set completion paint animation config (from tuning) */
-  setCompletionPaintConfig(config: { staggerDelay: number; tileDuration: number; easing: string }): void {
+  setCompletionPaintConfig(config: { staggerDelay: number; tileDuration: number; easing: string; blastSizePercent: number }): void {
     this.completionPaintConfig = config;
   }
 
@@ -660,8 +697,32 @@ export class CityLinesGame extends Container {
         return;
       }
 
-      // Calculate total animation duration
-      const maxDistance = Math.max(...traversal.tilesInOrder.map(t => t.distance));
+      // Flash exits first (distance 0 - the starting point of the pulse)
+      for (const exit of this.exits) {
+        const filter = new ColorMatrixFilter();
+        filter.brightness(2, false);
+        exit.filters = [filter];
+
+        const brightness = { value: 2 };
+        gsap.to(brightness, {
+          value: 1,
+          duration: tileDuration / 1000,
+          ease: easing,
+          onUpdate: () => {
+            filter.brightness(brightness.value, false);
+          },
+          onComplete: () => {
+            exit.filters = [];
+          },
+        });
+      }
+
+      // Calculate max distance including landmarks for total duration
+      const maxTileDistance = Math.max(...traversal.tilesInOrder.map(t => t.distance));
+      const maxLandmarkDistance = traversal.landmarkDistances.size > 0
+        ? Math.max(...traversal.landmarkDistances.values())
+        : 0;
+      const maxDistance = Math.max(maxTileDistance, maxLandmarkDistance);
       const totalDuration = (maxDistance * staggerDelay + tileDuration) / 1000;
 
       // Animate each tile based on its distance from exit
@@ -695,6 +756,18 @@ export class CityLinesGame extends Container {
               roadTile.filters = []; // Remove filter when done
             },
           });
+        });
+      }
+
+      // Play blast VFX on each landmark when the pulse reaches it
+      // landmarkDistances uses array index as key (same as LandmarkData.id)
+      for (const [landmarkIndex, distance] of traversal.landmarkDistances) {
+        const landmark = this.landmarks[landmarkIndex];
+        if (!landmark) continue;
+
+        const delay = distance * staggerDelay / 1000;
+        gsap.delayedCall(delay, () => {
+          this.playBlastVFX(landmark.x, landmark.y);
         });
       }
 

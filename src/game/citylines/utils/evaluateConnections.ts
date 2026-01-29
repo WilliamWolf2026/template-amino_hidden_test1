@@ -71,6 +71,8 @@ export interface TraversalResult {
   tilesInOrder: TileWithDistance[];
   /** Connected landmark IDs */
   connectedLandmarkIds: Set<number>;
+  /** Distance from exit to each connected landmark (landmark ID -> distance) */
+  landmarkDistances: Map<number, number>;
   /** Whether level is solved */
   solved: boolean;
 }
@@ -459,6 +461,7 @@ export function getConnectedTilesInOrder(
   // Results
   const tilesInOrder: TileWithDistance[] = [];
   const connectedLandmarkIds = new Set<number>();
+  const landmarkDistances = new Map<number, number>();
 
   // BFS queue with distance tracking
   const queue: Array<{ index: number; distance: number }> = [];
@@ -511,6 +514,8 @@ export function getConnectedTilesInOrder(
         const connectingEdge = OPPOSITE_EDGE[edge];
         if (landmark.connectableEdges.includes(connectingEdge)) {
           connectedLandmarkIds.add(landmark.id);
+          // Track distance to this landmark (current + 1 step to reach it)
+          landmarkDistances.set(landmark.id, currentDistance + 1);
           visited[adjIndex] = 1;
         }
         continue; // Don't traverse through landmarks
@@ -545,6 +550,7 @@ export function getConnectedTilesInOrder(
   return {
     tilesInOrder,
     connectedLandmarkIds,
+    landmarkDistances,
     solved,
   };
 }
