@@ -1,4 +1,4 @@
-import { onMount } from 'solid-js';
+import { onMount, Show } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -42,7 +42,9 @@ export default function App() {
   return (
     <GlobalBoundary>
       <TuningProvider gameDefaults={CITYLINES_DEFAULTS} urlOverrides={urlOverrides}>
-        <TuningPanel />
+        <Show when={import.meta.env.VITE_APP_ENV !== 'production'}>
+          <TuningPanel />
+        </Show>
         {/* Settings Menu - Top Right */}
         <div class="fixed top-4 right-4 z-[9999]">
           <SettingsMenu />

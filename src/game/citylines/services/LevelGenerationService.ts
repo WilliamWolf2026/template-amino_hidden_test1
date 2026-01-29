@@ -112,11 +112,8 @@ export class LevelGenerationService {
       // Infer tile type and rotation from connections
       const [tileType, solutionRotation] = this.inferTileTypeAndRotation(point, uniqueConnections);
 
-      // Scramble rotation (75% chance to randomize)
-      const scrambleRandom = this.seededRandom(seed + x * 100 + y);
-      const initialRotation = scrambleRandom < 0.75
-        ? Math.floor(this.seededRandom(seed + x * 1000 + y * 10) * 4)
-        : solutionRotation;
+      // Scramble rotation (100% - all tiles start with random rotation)
+      const initialRotation = Math.floor(this.seededRandom(seed + x * 1000 + y * 10) * 4);
 
       roadTiles.push({
         type: tileType,
