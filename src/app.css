@@ -1,5 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap');
 @import "tailwindcss";
+
+/* Local Baloo font - works on all devices */
+@font-face {
+  font-family: 'Baloo';
+  src: url('/assets/Baloo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --dynamic-vh: 1vh;

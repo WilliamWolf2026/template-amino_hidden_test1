@@ -161,7 +161,7 @@ export function GameScreen() {
       chapterLabel = new Text({
         text: `${gameState.currentLevel()} / ${gameState.totalLevels()}`,
         style: {
-          fontFamily: 'Sniglet, system-ui, sans-serif',
+          fontFamily: 'Baloo, system-ui, sans-serif',
           fontSize: 24,
           fontWeight: 'bold',
           fill: '#ffffff',

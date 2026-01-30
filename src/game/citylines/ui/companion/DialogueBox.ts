@@ -51,7 +51,7 @@ export class DialogueBox extends Container {
     this.textField = new Text({
       text: '',
       style: {
-        fontFamily: 'Sniglet, system-ui, sans-serif',
+        fontFamily: 'Baloo, system-ui, sans-serif',
         fontSize: 18,
         fill: '#2c2c2c',
         wordWrap: true,
