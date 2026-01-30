@@ -3,17 +3,15 @@ import { Pane } from 'tweakpane';
 import { useTuning } from '../systems/tuning/context';
 import { bindTuningToPane, addPresetControls } from './bindings';
 import type { ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
+import { IS_DEV_ENV } from './env';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaneInstance = Pane & any;
 
-// Show in development and QA modes, but not production
-const SHOW_TUNING_PANEL = !import.meta.env.PROD;
-
 // Global keyboard listener for backtick toggle
 const [isPanelOpen, setIsPanelOpen] = createSignal(false);
 
-if (typeof window !== 'undefined' && SHOW_TUNING_PANEL) {
+if (typeof window !== 'undefined' && IS_DEV_ENV) {
   window.addEventListener('keydown', (e) => {
     if (e.key === '`') {
       e.preventDefault();
@@ -40,7 +38,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   };
 
   onMount(() => {
-    if (!SHOW_TUNING_PANEL || !containerRef) return;
+    if (!IS_DEV_ENV || !containerRef) return;
 
     pane = new Pane({
       container: containerRef,
@@ -86,7 +84,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   });
 
   return (
-    <Show when={SHOW_TUNING_PANEL}>
+    <Show when={IS_DEV_ENV}>
       <div
         class={`fixed z-[9999] flex flex-col ${positionClasses[getPosition()]}`}
         style={{
