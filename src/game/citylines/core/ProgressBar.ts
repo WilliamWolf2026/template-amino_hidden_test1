@@ -46,9 +46,10 @@ export class ProgressBar extends Container {
   private totalLevels = 10;
   private targetFillWidth = 0;
   private currentFillWidth = 0;
+  private startFillWidth = 0; // Track where animation starts from
   private isAnimating = false;
   private animationTime = 0;
-  private animationDuration = 0.8;
+  private animationDuration = 0.5;
 
   constructor(gpuLoader: PixiLoader, atlasName: string, config: Partial<ProgressBarConfig> = {}) {
     super();
@@ -93,7 +94,7 @@ export class ProgressBar extends Container {
     this.updateVisuals();
   }
 
-  setProgress(current: number, total: number = 10): void {
+  setProgress(current: number, total: number = 10, animate: boolean = true): void {
     this.currentProgress = Math.max(0, Math.min(current, total));
     this.totalLevels = Math.max(1, total);
 
@@ -101,9 +102,17 @@ export class ProgressBar extends Container {
     const fillRatio = this.currentProgress / this.totalLevels;
     this.targetFillWidth = (this.config.width - borderWidth) * fillRatio;
 
-    if (!this.isAnimating) {
+    if (animate) {
+      // Store current position as starting point for animation
+      this.startFillWidth = this.currentFillWidth;
       this.isAnimating = true;
       this.animationTime = 0;
+    } else {
+      // Instant update without animation
+      this.currentFillWidth = this.targetFillWidth;
+      this.startFillWidth = this.targetFillWidth;
+      this.isAnimating = false;
+      this.updateVisuals(); // Update visuals immediately when not animating
     }
 
     this.labelText.text = `${this.currentProgress} / ${this.totalLevels}`;
@@ -128,7 +137,8 @@ export class ProgressBar extends Container {
 
       // Smooth ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      this.currentFillWidth = this.targetFillWidth * eased;
+      // Animate from start position to target (not from 0)
+      this.currentFillWidth = this.startFillWidth + (this.targetFillWidth - this.startFillWidth) * eased;
 
       if (progress >= 1) {
         this.currentFillWidth = this.targetFillWidth;

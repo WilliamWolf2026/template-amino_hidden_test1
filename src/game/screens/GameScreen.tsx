@@ -208,10 +208,10 @@ export function GameScreen() {
       const debugParams = getDebugParams();
       if (debugParams.debugLevel !== undefined) {
         gameState.setCurrentLevel(debugParams.debugLevel);
-        bar.setProgress(debugParams.debugLevel, 10);
+        bar.setProgress(debugParams.debugLevel, 10, false); // No animation on initial load
         console.log('[GameScreen] Debug: Set progress to', debugParams.debugLevel);
       } else {
-        bar.setProgress(gameState.currentLevel(), gameState.totalLevels());
+        bar.setProgress(gameState.currentLevel(), gameState.totalLevels(), false); // No animation on initial load
       }
 
       if (debugParams.debugProgressAnim) {
@@ -238,24 +238,10 @@ export function GameScreen() {
         console.log('[GameScreen] Level complete!', payload);
         manager.playLevelComplete();
 
-        // Update progress
+        // Note: Progress update is deferred until after level transition completes
+        // This happens in the completionStart callback after playLevelTransition()
         gameState.incrementLevel();
-        const current = gameState.currentLevel();
-        const total = gameState.totalLevels();
-        bar.setProgress(current, total);
-
-        // Update progress label above the bar
-        if (chapterLabel) {
-          chapterLabel.text = `${current} / ${total}`;
-        }
-
-        // Announce to screen readers
-        if (ariaLiveRef) {
-          ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
-        }
-
-        console.log('[GameScreen] Progress updated:', current, '/', total);
-        // Analytics would go here
+        console.log('[GameScreen] Level complete, progress will update after transition');
       });
 
       // Landmark connected event (no sound - too noisy during gameplay)
@@ -317,6 +303,23 @@ export function GameScreen() {
           // Regular level (1-9) - show lightweight Pixi CluePopup
           if (cluePopup) {
             manager.playDogPant();
+
+            // Fade out progress bar and label when toast appears
+            if (bar) {
+              gsap.to(bar, {
+                alpha: 0.15,
+                duration: 0.3,
+                ease: 'power2.out',
+              });
+            }
+            if (chapterLabel) {
+              gsap.to(chapterLabel, {
+                alpha: 0.15,
+                duration: 0.3,
+                ease: 'power2.out',
+              });
+            }
+
             // Calculate grid top position (game is centered, pivot at grid center)
             const gridPixelSize = game.getGridPixelSize();
             const gridTop = app.screen.height / 2 - gridPixelSize / 2;
@@ -326,7 +329,23 @@ export function GameScreen() {
               gridTop,
               gameTuning.cluePopup.displayDuration,
               () => {
-                // On dismiss - continue to next level
+                // On dismiss - fade progress bar back in
+                if (bar) {
+                  gsap.to(bar, {
+                    alpha: 1,
+                    duration: 0.3,
+                    ease: 'power2.out',
+                  });
+                }
+                if (chapterLabel) {
+                  gsap.to(chapterLabel, {
+                    alpha: 1,
+                    duration: 0.3,
+                    ease: 'power2.out',
+                  });
+                }
+
+                // Continue to next level
                 const controller = game.getCompletionController();
                 controller.continue();
 
@@ -350,10 +369,29 @@ export function GameScreen() {
                 game.x = app.screen.width / 2;
                 game.y = app.screen.height / 2;
 
-                // Play level transition animation
-                game.playLevelTransition().catch(err => {
-                  console.error('[GameScreen] Level transition animation error:', err);
-                });
+                // Play level transition animation, then update progress bar
+                game.playLevelTransition()
+                  .then(() => {
+                    // Update progress bar after level has painted
+                    const current = gameState.currentLevel();
+                    const total = gameState.totalLevels();
+                    bar.setProgress(current, total);
+
+                    // Update progress label above the bar
+                    if (chapterLabel) {
+                      chapterLabel.text = `${current} / ${total}`;
+                    }
+
+                    // Announce to screen readers
+                    if (ariaLiveRef) {
+                      ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
+                    }
+
+                    console.log('[GameScreen] Progress updated after transition:', current, '/', total);
+                  })
+                  .catch(err => {
+                    console.error('[GameScreen] Level transition animation error:', err);
+                  });
               }
             );
           }
@@ -427,7 +465,7 @@ export function GameScreen() {
           ease: companionConfig.slideOutEasing,
         });
 
-        // Fade out dark overlay
+        // Fade out dark overlay with completion callback
         gsap.to(darkOverlay, {
           alpha: 0,
           duration: companionConfig.overlayFadeOutDuration / 1000,
@@ -464,10 +502,29 @@ export function GameScreen() {
               game.x = app.screen.width / 2;
               game.y = app.screen.height / 2;
 
-              // Play level transition animation
-              game.playLevelTransition().catch(err => {
-                console.error('[GameScreen] Level transition animation error:', err);
-              });
+              // Play level transition animation, then update progress bar
+              game.playLevelTransition()
+                .then(() => {
+                  // Update progress bar after level has painted
+                  const current = gameState.currentLevel();
+                  const total = gameState.totalLevels();
+                  bar.setProgress(current, total);
+
+                  // Update progress label above the bar
+                  if (chapterLabel) {
+                    chapterLabel.text = `${current} / ${total}`;
+                  }
+
+                  // Announce to screen readers
+                  if (ariaLiveRef) {
+                    ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
+                  }
+
+                  console.log('[GameScreen] Progress updated after transition:', current, '/', total);
+                })
+                .catch(err => {
+                  console.error('[GameScreen] Level transition animation error:', err);
+                });
             }
           },
         });
