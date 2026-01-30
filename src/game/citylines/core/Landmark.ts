@@ -46,8 +46,8 @@ export class Landmark extends Container {
     // Create sprite
     this.sprite = gpuLoader.createSprite(getAtlasName(), config.spriteFrame);
     this.sprite.anchor.set(0.5);
-    this.sprite.width = tileSize * 0.85;
-    this.sprite.height = tileSize * 0.85;
+    this.sprite.width = tileSize + 1;
+    this.sprite.height = tileSize + 1;
     this.addChild(this.sprite);
 
     // Connection indicators removed per user request
@@ -170,8 +170,8 @@ export class Landmark extends Container {
     this.tileSize = newSize;
     this.x = this.gridPosition.x * newSize + newSize / 2;
     this.y = this.gridPosition.y * newSize + newSize / 2;
-    this.sprite.width = newSize * 0.85;
-    this.sprite.height = newSize * 0.85;
+    this.sprite.width = newSize + 1;
+    this.sprite.height = newSize + 1;
     this.updateIndicatorPositions(newSize);
     this.updateRoadBackgroundPositions(newSize);
   }
@@ -198,8 +198,8 @@ export class Landmark extends Container {
         delay,
       });
       gsap.to(this.sprite, {
-        width: tileSize * 0.85,
-        height: tileSize * 0.85,
+        width: tileSize + 1,
+        height: tileSize + 1,
         duration,
         ease: 'power2.out',
         delay,
@@ -207,8 +207,8 @@ export class Landmark extends Container {
     } else {
       this.x = targetX;
       this.y = targetY;
-      this.sprite.width = tileSize * 0.85;
-      this.sprite.height = tileSize * 0.85;
+      this.sprite.width = tileSize + 1;
+      this.sprite.height = tileSize + 1;
     }
 
     // Update indicators and road backgrounds (instant, as they're relative to sprite)

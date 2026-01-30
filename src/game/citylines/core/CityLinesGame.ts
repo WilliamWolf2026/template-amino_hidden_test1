@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, NineSliceSprite } from 'pixi.js';
+import { AnimatedSprite, ColorMatrixFilter, Container, NineSliceSprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { GridSize, LevelConfig } from '../types';
 import { Landmark } from './Landmark';
@@ -15,6 +15,7 @@ import {
 } from '../controllers';
 import {
   evaluateConnections,
+  getConnectedTilesInOrder,
   type TileData,
   type LandmarkData,
   type ExitData,
@@ -87,6 +88,10 @@ export class CityLinesGame extends Container {
   private levelTransitionConfig?: LevelTransitionConfig;
   private isTransitioning: boolean = false;
   private originalScales: Map<Container, { x: number; y: number }> = new Map();
+
+  // Completion paint animation config
+  private completionPaintConfig = { staggerDelay: 50, tileDuration: 150, easing: 'power2.out', blastSizePercent: 200 };
+  private isPaintAnimationPlaying = false;
 
   // Completion lifecycle
   private completionController: LevelCompletionController;
@@ -339,6 +344,43 @@ export class CityLinesGame extends Container {
     vfx.play();
   }
 
+  /** Play blast VFX at a position (for completion animation on landmarks) */
+  private playBlastVFX(x: number, y: number): void {
+    // Check if VFX sheet is loaded
+    if (!this.gpuLoader.hasSheet('vfx-blast')) {
+      console.warn('[VFX] vfx-blast sheet not loaded');
+      return;
+    }
+
+    // Create animated sprite from spritesheet
+    const vfx = this.gpuLoader.createAnimatedSprite('vfx-blast', 'blast');
+
+    // Position at center
+    vfx.anchor.set(0.5);
+    vfx.x = x;
+    vfx.y = y;
+
+    // VFX size calculation (uses completionPaint config for blast VFX)
+    const desiredSize = this.tileSize * (this.completionPaintConfig.blastSizePercent / 100);
+    const vfxScale = desiredSize / 256;
+    vfx.scale.set(vfxScale);
+    vfx.alpha = this.vfxConfig.alpha;
+
+    // Animation settings - play at 24fps
+    vfx.animationSpeed = 0.4; // ~24fps at 60fps ticker
+    vfx.loop = false;
+
+    // Remove when animation completes
+    vfx.onComplete = () => {
+      this.removeChild(vfx);
+      vfx.destroy();
+    };
+
+    // Add directly to game container (on top of everything, including landmarks)
+    this.addChild(vfx);
+    vfx.play();
+  }
+
   /** Set rotation animation config (from tuning) */
   setRotationAnimationConfig(config: { duration: number; easing: string }): void {
     this.rotationAnimationConfig = config;
@@ -352,6 +394,11 @@ export class CityLinesGame extends Container {
   /** Set level transition animation config (from tuning) */
   setLevelTransitionConfig(config: LevelTransitionConfig): void {
     this.levelTransitionConfig = config;
+  }
+
+  /** Set completion paint animation config (from tuning) */
+  setCompletionPaintConfig(config: { staggerDelay: number; tileDuration: number; easing: string; blastSizePercent: number }): void {
+    this.completionPaintConfig = config;
   }
 
   /** Group all elements by their diagonal index (x + y) for wave animation */
@@ -562,19 +609,15 @@ export class CityLinesGame extends Container {
     return evaluateConnections(this.gridSize, tiles, landmarks, exits);
   }
 
-  /** Update visual state of tiles and landmarks (immediate feedback) */
+  /** Update visual state of landmarks only (tiles are updated via paint animation on completion) */
   private updateConnectionVisuals(): void {
     const result = this.evaluateCurrentConnections();
 
     // Track previously connected for landmark events
     const previouslyConnected = this.landmarks.filter(l => l.isConnectedToExit);
 
-    // Update road tile visuals (green chain rule from GDD)
-    for (const tile of this.roadTiles) {
-      const index = tile.gridPosition.y * this.gridSize + tile.gridPosition.x;
-      const isConnected = result.connectedTiles.has(index);
-      tile.setConnected(isConnected);
-    }
+    // NOTE: Road tiles are NOT updated here during gameplay.
+    // They only change to "completed" state via playCompletionPaintAnimation() when level is won.
 
     // Update landmarks
     for (let i = 0; i < this.landmarks.length; i++) {
@@ -595,16 +638,144 @@ export class CityLinesGame extends Container {
   private checkLevelCompletion(): void {
     const result = this.evaluateCurrentConnections();
 
-    // Check if level solved
-    if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig) {
-      // Start completion sequence with level stats
-      this.completionController.startCompletion(
-        this.currentLevelConfig.levelNumber,
-        this.moveCount,
-        Date.now() - this.levelStartTime,
-        this.currentLevelConfig.clue
-      );
+    // Check if level solved (guard against double-trigger with isPaintAnimationPlaying)
+    if (result.solved && this.completionController.state === 'playing' && this.currentLevelConfig && !this.isPaintAnimationPlaying) {
+      this.isPaintAnimationPlaying = true;
+      // Play the paint animation from exit outward, THEN start completion sequence
+      this.playCompletionPaintAnimation().then(() => {
+        this.isPaintAnimationPlaying = false;
+        if (this.currentLevelConfig) {
+          this.completionController.startCompletion(
+            this.currentLevelConfig.levelNumber,
+            this.moveCount,
+            Date.now() - this.levelStartTime,
+            this.currentLevelConfig.clue
+          );
+        }
+      });
     }
+  }
+
+  /**
+   * Play the "paint" animation when level is complete.
+   * Roads instantly swap to completed state in BFS order from exit, with a white flash.
+   */
+  private playCompletionPaintAnimation(): Promise<void> {
+    // Get tiles in BFS order (exit → outward)
+    const tiles: TileData[] = this.roadTiles.map(t => ({
+      type: t.type,
+      rotation: t.currentRotation,
+      position: t.gridPosition,
+    }));
+
+    const landmarks: LandmarkData[] = this.landmarks.map((l, index) => ({
+      id: index,
+      position: l.gridPosition,
+      connectableEdges: l.connectableEdges,
+    }));
+
+    const exits: ExitData[] = this.exits.map(e => ({
+      position: e.gridPosition,
+      facingEdge: e.facingEdge,
+      connectableEdges: e.connectableEdges,
+    }));
+
+    const traversal = getConnectedTilesInOrder(this.gridSize, tiles, landmarks, exits);
+
+    // Build lookup from grid index to RoadTile
+    const tileByIndex = new Map<number, RoadTile>();
+    for (const tile of this.roadTiles) {
+      const index = tile.gridPosition.y * this.gridSize + tile.gridPosition.x;
+      tileByIndex.set(index, tile);
+    }
+
+    const { staggerDelay, tileDuration, easing } = this.completionPaintConfig;
+
+    return new Promise((resolve) => {
+      if (traversal.tilesInOrder.length === 0) {
+        resolve();
+        return;
+      }
+
+      // Flash exits first (distance 0 - the starting point of the pulse)
+      for (const exit of this.exits) {
+        const filter = new ColorMatrixFilter();
+        filter.brightness(2, false);
+        exit.filters = [filter];
+
+        const brightness = { value: 2 };
+        gsap.to(brightness, {
+          value: 1,
+          duration: tileDuration / 1000,
+          ease: easing,
+          onUpdate: () => {
+            filter.brightness(brightness.value, false);
+          },
+          onComplete: () => {
+            exit.filters = [];
+          },
+        });
+      }
+
+      // Calculate max distance including landmarks for total duration
+      const maxTileDistance = Math.max(...traversal.tilesInOrder.map(t => t.distance));
+      const maxLandmarkDistance = traversal.landmarkDistances.size > 0
+        ? Math.max(...traversal.landmarkDistances.values())
+        : 0;
+      const maxDistance = Math.max(maxTileDistance, maxLandmarkDistance);
+      const totalDuration = (maxDistance * staggerDelay + tileDuration) / 1000;
+
+      // Animate each tile based on its distance from exit
+      for (const tileInfo of traversal.tilesInOrder) {
+        const roadTile = tileByIndex.get(tileInfo.index);
+        if (!roadTile) continue;
+
+        // Calculate delay based on distance from exit
+        const delay = tileInfo.distance * staggerDelay / 1000;
+
+        // Schedule the traveling pulse - tile changes and flashes as pulse passes through
+        gsap.delayedCall(delay, () => {
+          // Instantly swap to completed state
+          roadTile.setConnected(true);
+
+          // Apply brightness filter for pulse flash
+          const filter = new ColorMatrixFilter();
+          filter.brightness(2, false); // Flash bright
+          roadTile.filters = [filter];
+
+          // Fade brightness back to normal
+          const brightness = { value: 2 };
+          gsap.to(brightness, {
+            value: 1,
+            duration: tileDuration / 1000,
+            ease: easing,
+            onUpdate: () => {
+              filter.brightness(brightness.value, false);
+            },
+            onComplete: () => {
+              roadTile.filters = []; // Remove filter when done
+            },
+          });
+        });
+      }
+
+      // Play blast VFX on each landmark when the pulse reaches it
+      // landmarkDistances uses array index as key (same as LandmarkData.id)
+      for (const [landmarkIndex, distance] of traversal.landmarkDistances) {
+        const landmark = this.landmarks[landmarkIndex];
+        if (!landmark) continue;
+
+        const delay = distance * staggerDelay / 1000;
+        gsap.delayedCall(delay, () => {
+          this.playBlastVFX(landmark.x, landmark.y);
+        });
+      }
+
+      // Resolve after all animations complete
+      gsap.delayedCall(totalDuration, () => {
+        resolve();
+      });
+    });
   }
 
   /** Run connection evaluation and update visuals (used for initial load) */
@@ -654,6 +825,54 @@ export class CityLinesGame extends Container {
   /** Get tile size */
   getTileSize(): number {
     return this.tileSize;
+  }
+
+  /**
+   * Calculate optimal tile size to fit grid within available viewport
+   * @param availableWidth - Available width for the grid
+   * @param availableHeight - Available height for the grid
+   * @param maxTileSize - Maximum tile size to use (from tuning)
+   * @returns Optimal tile size that fits within constraints
+   */
+  calculateOptimalTileSize(availableWidth: number, availableHeight: number, maxTileSize: number): number {
+    // Calculate the maximum tile size that fits within available space
+    // Grid size = padding * 2 + gridSize * tileSize + (gridSize - 1) * cellGap
+    // Solving for tileSize: tileSize = (available - padding * 2 - (gridSize - 1) * cellGap) / gridSize
+
+    const maxTileForWidth = (availableWidth - this.padding * 2 - (this.gridSize - 1) * this.cellGap) / this.gridSize;
+    const maxTileForHeight = (availableHeight - this.padding * 2 - (this.gridSize - 1) * this.cellGap) / this.gridSize;
+
+    // Use the smaller of the two to ensure grid fits in both dimensions
+    const fittedSize = Math.floor(Math.min(maxTileForWidth, maxTileForHeight));
+
+    // Don't exceed the configured max tile size, but also don't go below minimum
+    const minTileSize = 48; // Minimum tile size for playability
+    return Math.max(minTileSize, Math.min(fittedSize, maxTileSize));
+  }
+
+  /**
+   * Auto-size tiles to fit within viewport
+   * @param viewportWidth - Current viewport width
+   * @param viewportHeight - Current viewport height
+   * @param maxTileSize - Maximum tile size from tuning
+   * @param reservedTop - Space reserved at top (HUD, etc)
+   * @param reservedBottom - Space reserved at bottom (logo, etc)
+   */
+  autoSizeToViewport(
+    viewportWidth: number,
+    viewportHeight: number,
+    maxTileSize: number,
+    reservedTop: number = 80,
+    reservedBottom: number = 100
+  ): void {
+    const availableWidth = viewportWidth;
+    const availableHeight = viewportHeight - reservedTop - reservedBottom;
+
+    const optimalSize = this.calculateOptimalTileSize(availableWidth, availableHeight, maxTileSize);
+
+    if (optimalSize !== this.tileSize) {
+      this.setTileSize(optimalSize, false);
+    }
   }
 
   /** Set tile size and update all elements with animation (for live tuning) */
@@ -765,6 +984,9 @@ export class CityLinesGame extends Container {
     this.roadTiles.forEach((tile, i) => {
       tile.animateToLayout(this.tileSize, this.padding, this.cellGap, animate ? animDuration : 0, i * stagger);
     });
+
+    // Update decorations
+    this.decorationSystem.updateLayout(this.tileSize, this.padding, this.cellGap);
   }
 
   /** Get total grid pixel size (including padding and gaps) */

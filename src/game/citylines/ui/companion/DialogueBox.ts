@@ -51,15 +51,14 @@ export class DialogueBox extends Container {
     this.textField = new Text({
       text: '',
       style: {
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: 'Sniglet, system-ui, sans-serif',
         fontSize: 18,
-        fill: '#2c2c2c', // Darker text
-        fontWeight: 'bold', // Thicker text
+        fill: '#2c2c2c',
         wordWrap: true,
         wordWrapWidth: targetWidth - 80, // More horizontal padding (40px each side)
         align: 'left',
-        lineHeight: 28, // More vertical spacing between lines
-        padding: 8, // Add internal padding for text rendering
+        lineHeight: 26,
+        padding: 4,
       },
     });
     // Position text inside dialogue box with more padding

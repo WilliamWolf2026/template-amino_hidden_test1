@@ -99,8 +99,9 @@ export function GameScreen() {
     const tileBundleName = getTileBundleName(tileTheme);
     await coordinator.loadBundle(tileBundleName);
 
-    // Load VFX bundle
+    // Load VFX bundles
     await coordinator.loadBundle('vfx-rotate');
+    await coordinator.loadBundle('vfx-blast');
 
     // Create City Lines game
     if (gpuLoader.hasSheet(tileBundleName)) {
@@ -128,8 +129,20 @@ export function GameScreen() {
       // Configure level transition animation
       game.setLevelTransitionConfig(gameTuning.levelTransition);
 
+      // Configure completion paint animation
+      game.setCompletionPaintConfig(gameTuning.completionPaint);
+
       // Load generated level
       game.loadLevel(currentLevel());
+
+      // Auto-size to viewport (shrink tiles if grid is too large)
+      game.autoSizeToViewport(
+        app.screen.width,
+        app.screen.height,
+        tileSize,  // max tile size from tuning
+        80,        // reserved top (progress bar area)
+        100        // reserved bottom (logo area)
+      );
 
       // Center the game on screen (pivot is at grid center, so position at screen center)
       game.x = app.screen.width / 2;
@@ -290,6 +303,16 @@ export function GameScreen() {
                 setCurrentLevel(newLevel);
 
                 game.loadLevel(newLevel);
+
+                // Auto-size to viewport (new level may have different grid size)
+                game.autoSizeToViewport(
+                  app.screen.width,
+                  app.screen.height,
+                  gameTuning.grid.tileSize,
+                  80,
+                  100
+                );
+
                 game.x = app.screen.width / 2;
                 game.y = app.screen.height / 2;
 
@@ -394,6 +417,16 @@ export function GameScreen() {
               setCurrentLevel(newLevel);
 
               game.loadLevel(newLevel);
+
+              // Auto-size to viewport (new level may have different grid size)
+              game.autoSizeToViewport(
+                app.screen.width,
+                app.screen.height,
+                gameTuning.grid.tileSize,
+                80,
+                100
+              );
+
               game.x = app.screen.width / 2;
               game.y = app.screen.height / 2;
 
@@ -449,6 +482,19 @@ export function GameScreen() {
 
       // Resize handler for responsive behavior
       resizeHandler = () => {
+        // Auto-size game to new viewport dimensions
+        game.autoSizeToViewport(
+          app.screen.width,
+          app.screen.height,
+          gameTuning.grid.tileSize,  // max tile size from tuning
+          80,        // reserved top (progress bar area)
+          100        // reserved bottom (logo area)
+        );
+
+        // Re-center game
+        game.x = app.screen.width / 2;
+        game.y = app.screen.height / 2;
+
         // Update dark overlay size
         if (darkOverlay) {
           const currentAlpha = darkOverlay.alpha; // Preserve current alpha
@@ -598,7 +644,7 @@ export function GameScreen() {
     const game = gameInstance();
     if (!game) return;
 
-    const { rotateAlpha, rotateSizePercent } = tuning.game.vfx;
+    const { rotateAlpha, rotateSizePercent } = tuning.game.grid.vfx;
 
     // Guard: Skip if unchanged
     if (rotateAlpha === prevVfxConfig.alpha && rotateSizePercent === prevVfxConfig.sizePercent) {
@@ -610,6 +656,30 @@ export function GameScreen() {
       alpha: rotateAlpha,
       sizePercent: rotateSizePercent,
     });
+  });
+
+  // Track previous completion paint config for comparison guards
+  let prevCompletionPaint = { staggerDelay: -1, tileDuration: -1, blastSizePercent: -1 };
+
+  // Reactive: Completion paint animation config changes
+  createEffect(() => {
+    const game = gameInstance();
+    if (!game) return;
+
+    const { staggerDelay, tileDuration, easing, blastSizePercent } = tuning.game.completionPaint;
+
+    // Guard: Skip if unchanged
+    if (
+      staggerDelay === prevCompletionPaint.staggerDelay &&
+      tileDuration === prevCompletionPaint.tileDuration &&
+      blastSizePercent === prevCompletionPaint.blastSizePercent
+    ) {
+      return;
+    }
+
+    prevCompletionPaint = { staggerDelay, tileDuration, blastSizePercent };
+    game.setCompletionPaintConfig({ staggerDelay, tileDuration, easing, blastSizePercent });
+    console.log('[Tuning] Completion paint config updated:', { staggerDelay, tileDuration, blastSizePercent });
   });
 
   // Progress bar theme changes
@@ -661,6 +731,16 @@ export function GameScreen() {
     setCurrentLevel(newLevel);
 
     game.loadLevel(newLevel);
+
+    // Auto-size to viewport (regenerated level may have different grid size)
+    game.autoSizeToViewport(
+      app.screen.width,
+      app.screen.height,
+      tuning.game.grid.tileSize,
+      80,
+      100
+    );
+
     game.x = app.screen.width / 2;
     game.y = app.screen.height / 2;
 

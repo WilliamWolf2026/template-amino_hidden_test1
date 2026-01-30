@@ -41,6 +41,11 @@ export interface NineSliceConfig {
   bottomHeight: number;
 }
 
+export interface TileVfxConfig {
+  rotateAlpha: number;
+  rotateSizePercent: number;
+}
+
 export interface GridConfig {
   tileSize: number;
   defaultGridSize: GridSize;
@@ -49,6 +54,7 @@ export interface GridConfig {
   nineSlice: NineSliceConfig;
   tileRotateDuration: number;
   tileRotateEasing: string;
+  vfx: TileVfxConfig;
 }
 
 export interface LandmarkCountRange {
@@ -79,10 +85,6 @@ export interface GameAnimationConfig {
   levelCompleteDelay: number;
 }
 
-export interface VfxConfig {
-  rotateAlpha: number;
-  rotateSizePercent: number;
-}
 
 export interface CompanionAnimationConfig {
   // Slide-in animation timing
@@ -105,6 +107,17 @@ export interface CluePopupConfig {
   fadeInDuration: number;
   /** Fade out duration (ms) @min 100 @max 1000 @step 50 */
   fadeOutDuration: number;
+}
+
+export interface CompletionPaintConfig {
+  /** Time for pulse to travel between tiles (ms) @min 20 @max 200 @step 10 */
+  staggerDelay: number;
+  /** How long each tile stays bright as pulse passes (ms) @min 50 @max 300 @step 25 */
+  tileDuration: number;
+  /** Easing function for flash fade */
+  easing: string;
+  /** Size of blast VFX as percentage of tile size @min 50 @max 400 @step 10 */
+  blastSizePercent: number;
 }
 
 export interface ScoringConfig {
@@ -172,9 +185,9 @@ export interface CityLinesTuning extends GameTuningBase {
   visuals: VisualsConfig;
   sprites: SpritesConfig;
   animation: GameAnimationConfig;
-  vfx: VfxConfig;
   companion: CompanionAnimationConfig;
   cluePopup: CluePopupConfig;
+  completionPaint: CompletionPaintConfig;
   scoring: ScoringConfig;
   screens: GameScreensConfig;
   generator: GeneratorConfig;
@@ -203,6 +216,10 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     },
     tileRotateDuration: 600,
     tileRotateEasing: 'elastic.out(1, 0.5)',
+    vfx: {
+      rotateAlpha: 1,
+      rotateSizePercent: 165,
+    },
   },
   difficulty: {
     easy: {
@@ -237,10 +254,6 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     connectionPulseDuration: 300,
     levelCompleteDelay: 500,
   },
-  vfx: {
-    rotateAlpha: 1,
-    rotateSizePercent: 165,
-  },
   companion: {
     slideInDelay: 500,
     slideInDuration: 500,
@@ -255,6 +268,12 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     displayDuration: 3000,
     fadeInDuration: 400,
     fadeOutDuration: 300,
+  },
+  completionPaint: {
+    staggerDelay: 50,
+    tileDuration: 150,
+    easing: 'power2.out',
+    blastSizePercent: 200,
   },
   scoring: {
     baseScore: 100,

@@ -42,8 +42,8 @@ export class Exit extends Container {
     // Create sprite (no rotation - exits always face the same direction)
     this.sprite = gpuLoader.createSprite(getAtlasName(), 'exit.png');
     this.sprite.anchor.set(0.5);
-    this.sprite.width = tileSize * 0.85;
-    this.sprite.height = tileSize * 0.85;
+    this.sprite.width = tileSize + 1;
+    this.sprite.height = tileSize + 1;
 
     this.addChild(this.sprite);
     this.label = 'exit';
@@ -97,8 +97,8 @@ export class Exit extends Container {
     this.tileSize = newSize;
     this.x = this.gridPosition.x * newSize + newSize / 2;
     this.y = this.gridPosition.y * newSize + newSize / 2;
-    this.sprite.width = newSize * 0.85;
-    this.sprite.height = newSize * 0.85;
+    this.sprite.width = newSize + 1;
+    this.sprite.height = newSize + 1;
     this.updateRoadBackgroundSizes(newSize);
   }
 
@@ -144,8 +144,8 @@ export class Exit extends Container {
         delay,
       });
       gsap.to(this.sprite, {
-        width: tileSize * 0.85,
-        height: tileSize * 0.85,
+        width: tileSize + 1,
+        height: tileSize + 1,
         duration,
         ease: 'power2.out',
         delay,
@@ -153,8 +153,8 @@ export class Exit extends Container {
     } else {
       this.x = targetX;
       this.y = targetY;
-      this.sprite.width = tileSize * 0.85;
-      this.sprite.height = tileSize * 0.85;
+      this.sprite.width = tileSize + 1;
+      this.sprite.height = tileSize + 1;
     }
 
     // Update road background sizes (instant, as they're relative to exit)

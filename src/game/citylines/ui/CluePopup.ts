@@ -93,10 +93,9 @@ export class CluePopup extends Container {
     this.textField = new Text({
       text: '',
       style: {
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: 'Sniglet, system-ui, sans-serif',
         fontSize: 16,
         fill: '#2c2c2c',
-        fontWeight: 'bold',
         wordWrap: true,
         wordWrapWidth: 240,
         align: 'left',
@@ -162,12 +161,20 @@ export class CluePopup extends Container {
     this.dialogueBox.height = Math.max(70, textBounds.height + 30);
     this.updateHitArea();
 
-    // Calculate total popup width for centering
-    const totalWidth = this.circleSize / 2 + this.dialogGap + this.dialogWidth;
+    // Calculate total popup bounds for centering
+    // Circle goes from -circleSize/2 to +circleSize/2
+    // Dialogue goes from circleSize/2 + dialogGap to circleSize/2 + dialogGap + dialogWidth
+    const leftEdge = -this.circleSize / 2;
+    const rightEdge = this.circleSize / 2 + this.dialogGap + this.dialogWidth;
+    const totalWidth = rightEdge - leftEdge;
+
+    // Set pivot to visual center so scale animates from center
+    const visualCenterX = (leftEdge + rightEdge) / 2;
+    this.pivot.set(visualCenterX, 0);
 
     // Position centered horizontally, above the grid with spacing
     const spacing = 16; // Gap between popup and grid
-    this.x = screenWidth / 2 - totalWidth / 2 + this.circleSize / 2;
+    this.x = screenWidth / 2;
     this.y = gridTop - spacing - Math.max(this.circleSize, this.dialogueBox.height) / 2;
 
     // Animate in with scale pop

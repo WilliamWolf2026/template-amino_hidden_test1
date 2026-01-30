@@ -14,7 +14,7 @@ import { getStartScreenMode, markAsPlayed, hasPlayedBefore } from '~/game/cityli
 
 // Text styles cached at module level to avoid per-frame allocations
 const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Comic Sans MS, cursive, sans-serif',
+  fontFamily: 'Sniglet, system-ui, sans-serif',
   fontSize: 34,
   fontWeight: 'bold',
   fill: '#FFFFFF',
@@ -30,7 +30,7 @@ const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
 };
 
 const GOAL_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Comic Sans MS, cursive, sans-serif',
+  fontFamily: 'Sniglet, system-ui, sans-serif',
   fontSize: 20,
   fontWeight: '500',
   fill: '#2C3E50',
@@ -42,7 +42,7 @@ const GOAL_TEXT_STYLE: Partial<TextStyle> = {
 };
 
 const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Comic Sans MS, cursive, sans-serif',
+  fontFamily: 'Sniglet, system-ui, sans-serif',
   fontSize: 32,
   fontWeight: 'bold',
   fill: '#27AE60',
@@ -59,7 +59,7 @@ const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
 };
 
 const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Comic Sans MS, cursive, sans-serif',
+  fontFamily: 'Sniglet, system-ui, sans-serif',
   fontSize: 20,
   fontStyle: 'italic',
   fontWeight: '600',
@@ -396,7 +396,7 @@ export function StartScreen() {
           bottomHeight: 32,
         },
         labelStyle: {
-          fontFamily: 'Comic Sans MS, cursive, sans-serif',
+          fontFamily: 'Sniglet, system-ui, sans-serif',
           fontSize: 28,
           fontWeight: 'bold',
           fill: '#ffffff',

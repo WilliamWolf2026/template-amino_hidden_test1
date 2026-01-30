@@ -55,6 +55,28 @@ export interface ConnectionResult {
   solved: boolean;
 }
 
+/** Tile with its distance from the exit (for paint animation) */
+export interface TileWithDistance {
+  /** Tile index (y * gridSize + x) */
+  index: number;
+  /** Grid position */
+  position: GridPosition;
+  /** Distance from exit (0 = exit tile, 1 = adjacent to exit, etc.) */
+  distance: number;
+}
+
+/** Result of BFS traversal with distance info */
+export interface TraversalResult {
+  /** Tiles in BFS traversal order with distances */
+  tilesInOrder: TileWithDistance[];
+  /** Connected landmark IDs */
+  connectedLandmarkIds: Set<number>;
+  /** Distance from exit to each connected landmark (landmark ID -> distance) */
+  landmarkDistances: Map<number, number>;
+  /** Whether level is solved */
+  solved: boolean;
+}
+
 /**
  * Base connection edges for each tile type at rotation 0.
  * Matches the configuration in RoadTile.ts.
@@ -385,7 +407,7 @@ export function isTileConnected(
 
 /**
  * Helper: Check if a specific landmark is connected.
- * 
+ *
  * @param result - Connection evaluation result
  * @param landmarkId - Landmark ID to check
  * @returns True if landmark is connected
@@ -395,4 +417,140 @@ export function isLandmarkConnected(
   landmarkId: number
 ): boolean {
   return result.connectedLandmarkIds.has(landmarkId);
+}
+
+/**
+ * Get connected tiles in BFS traversal order with distance from exit.
+ * Used for the "paint" animation that flows from exit outward.
+ *
+ * @param gridSize - Size of grid (e.g., 4, 5, 6)
+ * @param tiles - Array of tile data
+ * @param landmarks - Array of landmark data
+ * @param exits - Array of exit data
+ * @returns Traversal result with tiles in BFS order
+ */
+export function getConnectedTilesInOrder(
+  gridSize: GridSize,
+  tiles: readonly TileData[],
+  landmarks: readonly LandmarkData[],
+  exits: readonly ExitData[]
+): TraversalResult {
+  const maxCells = gridSize * gridSize;
+
+  // Build index-based tile map
+  const tileEdgesByIndex = new Array<readonly Edge[] | null>(maxCells);
+  const tilePositionsByIndex = new Map<number, GridPosition>();
+
+  for (const tile of tiles) {
+    const index = positionToIndex(tile.position.x, tile.position.y, gridSize);
+    tileEdgesByIndex[index] = getTileEdges(tile.type, tile.rotation);
+    tilePositionsByIndex.set(index, tile.position);
+  }
+
+  // Build landmark lookup
+  const landmarkByIndex = new Map<number, LandmarkData>();
+  for (const landmark of landmarks) {
+    const index = positionToIndex(landmark.position.x, landmark.position.y, gridSize);
+    landmarkByIndex.set(index, landmark);
+  }
+
+  // Track visited and distances
+  const visited = new Uint8Array(maxCells);
+  const distances = new Int16Array(maxCells).fill(-1);
+
+  // Results
+  const tilesInOrder: TileWithDistance[] = [];
+  const connectedLandmarkIds = new Set<number>();
+  const landmarkDistances = new Map<number, number>();
+
+  // BFS queue with distance tracking
+  const queue: Array<{ index: number; distance: number }> = [];
+
+  // Initialize from exits
+  for (const exit of exits) {
+    const exitIndex = positionToIndex(exit.position.x, exit.position.y, gridSize);
+
+    if (visited[exitIndex]) continue;
+
+    visited[exitIndex] = 1;
+    distances[exitIndex] = 0;
+    queue.push({ index: exitIndex, distance: 0 });
+
+    // Add exit tile edges
+    tileEdgesByIndex[exitIndex] = exit.connectableEdges ?? [exit.facingEdge];
+    tilePositionsByIndex.set(exitIndex, exit.position);
+
+    // Exit tiles are distance 0 (starting point)
+    tilesInOrder.push({
+      index: exitIndex,
+      position: exit.position,
+      distance: 0,
+    });
+  }
+
+  // BFS traversal
+  while (queue.length > 0) {
+    const { index: currentIndex, distance: currentDistance } = queue.shift()!;
+    const currentPos = indexToPosition(currentIndex, gridSize);
+    const currentEdges = tileEdgesByIndex[currentIndex];
+
+    if (!currentEdges) continue;
+
+    // Check each edge
+    for (const edge of currentEdges) {
+      const [dy, dx] = EDGE_OFFSETS[edge];
+      const adjY = currentPos.y + dy;
+      const adjX = currentPos.x + dx;
+
+      if (!isInBounds(adjX, adjY, gridSize)) continue;
+
+      const adjIndex = positionToIndex(adjX, adjY, gridSize);
+
+      if (visited[adjIndex]) continue;
+
+      // Check for landmark
+      const landmark = landmarkByIndex.get(adjIndex);
+      if (landmark) {
+        const connectingEdge = OPPOSITE_EDGE[edge];
+        if (landmark.connectableEdges.includes(connectingEdge)) {
+          connectedLandmarkIds.add(landmark.id);
+          // Track distance to this landmark (current + 1 step to reach it)
+          landmarkDistances.set(landmark.id, currentDistance + 1);
+          visited[adjIndex] = 1;
+        }
+        continue; // Don't traverse through landmarks
+      }
+
+      // Check for connected tile
+      const adjEdges = tileEdgesByIndex[adjIndex];
+      if (!adjEdges) continue;
+
+      const connectingEdge = OPPOSITE_EDGE[edge];
+      if (adjEdges.includes(connectingEdge)) {
+        visited[adjIndex] = 1;
+        const newDistance = currentDistance + 1;
+        distances[adjIndex] = newDistance;
+        queue.push({ index: adjIndex, distance: newDistance });
+
+        // Add to ordered results
+        const adjPos = tilePositionsByIndex.get(adjIndex);
+        if (adjPos) {
+          tilesInOrder.push({
+            index: adjIndex,
+            position: adjPos,
+            distance: newDistance,
+          });
+        }
+      }
+    }
+  }
+
+  const solved = landmarks.length > 0 && connectedLandmarkIds.size === landmarks.length;
+
+  return {
+    tilesInOrder,
+    connectedLandmarkIds,
+    landmarkDistances,
+    solved,
+  };
 }

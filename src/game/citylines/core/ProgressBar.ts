@@ -67,7 +67,7 @@ export class ProgressBar extends Container {
     this.labelText = new Text({
       text: '0 / 10',
       style: {
-        fontFamily: 'Comic Sans MS, cursive, sans-serif',
+        fontFamily: 'Sniglet, system-ui, sans-serif',
         fontSize: 20,
         fontWeight: 'bold',
         fill: '#ffffff',

@@ -199,6 +199,38 @@ export class DecorationSystem {
     }
   }
 
+  /** Update decoration positions when grid layout changes */
+  updateLayout(tileSize: number, padding: number, cellGap: number): void {
+    this.tileSize = tileSize;
+
+    for (const sprite of this.decorations) {
+      const pos = this.decorationPositions.get(sprite);
+      if (!pos) continue;
+
+      // Recalculate position based on new tile size
+      const effectiveSize = tileSize + cellGap;
+      const cellCenterX = padding + pos.x * effectiveSize + tileSize / 2;
+      const cellCenterY = padding + pos.y * effectiveSize + tileSize / 2;
+
+      // Get original offset ratio (stored implicitly in current position)
+      // We need to maintain relative position within cell
+      const oldScale = this.decorationScales.get(sprite);
+      if (oldScale) {
+        // Update scale based on new tile size
+        const baseScale = tileSize / 128;
+        const scaleRatio = oldScale.x / (this.tileSize / 128 * 0.5); // Get original variation
+        const newScale = baseScale * scaleRatio * 0.5;
+        sprite.scale.set(newScale);
+        this.decorationScales.set(sprite, { x: newScale, y: newScale });
+      }
+
+      // Random offset is preserved as ratio of tile size
+      // For now, just reposition to cell center (offset will be recalculated on reload)
+      sprite.x = cellCenterX;
+      sprite.y = cellCenterY;
+    }
+  }
+
   /** Clear all decorations */
   clear(): void {
     for (const decoration of this.decorations) {

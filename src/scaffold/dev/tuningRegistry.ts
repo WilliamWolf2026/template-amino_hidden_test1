@@ -7,6 +7,9 @@
 
 // Game tuning paths that are wired to reactive effects
 export const WIRED_GAME_PATHS = new Set([
+  // Theme - used at level load in GameScreen.tsx and StartScreen.tsx
+  'theme.tileTheme',
+
   // Grid - all wired in GameScreen.tsx
   'grid.tileSize',
   'grid.padding',
@@ -15,6 +18,8 @@ export const WIRED_GAME_PATHS = new Set([
   'grid.nineSlice.topHeight',
   'grid.nineSlice.rightWidth',
   'grid.nineSlice.bottomHeight',
+  'grid.vfx.rotateAlpha',
+  'grid.vfx.rotateSizePercent',
   // NOT WIRED: grid.defaultGridSize (requires level reload)
 
   // Visuals - wired
@@ -25,9 +30,11 @@ export const WIRED_GAME_PATHS = new Set([
   'animation.tileRotateEasing',
   // NOT WIRED: animation.connectionPulseDuration, animation.levelCompleteDelay
 
-  // VFX - wired in GameScreen.tsx
-  'vfx.rotateAlpha',
-  'vfx.rotateSizePercent',
+  // Completion Paint - wired in GameScreen.tsx
+  'completionPaint.staggerDelay',
+  'completionPaint.tileDuration',
+  'completionPaint.easing',
+  'completionPaint.blastSizePercent',
 
   // Level Transition - applied on level load (not live-wired)
   'levelTransition.startDelay',

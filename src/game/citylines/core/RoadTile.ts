@@ -65,16 +65,18 @@ export class RoadTile extends Container {
     const sprites = TILE_SPRITES[type];
 
     // Create default sprite
+    // Add 1px overlap to eliminate sub-pixel rendering gaps between tiles
+    const spriteSize = tileSize + 1;
     this.defaultSprite = gpuLoader.createSprite(getAtlasName(), sprites.default);
     this.defaultSprite.anchor.set(0.5);
-    this.defaultSprite.width = tileSize;
-    this.defaultSprite.height = tileSize;
+    this.defaultSprite.width = spriteSize;
+    this.defaultSprite.height = spriteSize;
 
     // Create completed sprite (hidden initially)
     this.completedSprite = gpuLoader.createSprite(getAtlasName(), sprites.completed);
     this.completedSprite.anchor.set(0.5);
-    this.completedSprite.width = tileSize;
-    this.completedSprite.height = tileSize;
+    this.completedSprite.width = spriteSize;
+    this.completedSprite.height = spriteSize;
     this.completedSprite.visible = false;
 
     this.addChild(this.defaultSprite);
@@ -153,12 +155,13 @@ export class RoadTile extends Container {
   /** Update tile size (for live tuning) */
   setTileSize(newSize: number): void {
     this.tileSize = newSize;
+    const spriteSize = newSize + 1; // 1px overlap to eliminate gaps
     this.x = this.gridPosition.x * newSize + newSize / 2;
     this.y = this.gridPosition.y * newSize + newSize / 2;
-    this.defaultSprite.width = newSize;
-    this.defaultSprite.height = newSize;
-    this.completedSprite.width = newSize;
-    this.completedSprite.height = newSize;
+    this.defaultSprite.width = spriteSize;
+    this.defaultSprite.height = spriteSize;
+    this.completedSprite.width = spriteSize;
+    this.completedSprite.height = spriteSize;
   }
 
   /** Animate to new layout (for live tuning with GSAP) */
@@ -174,6 +177,8 @@ export class RoadTile extends Container {
     const targetX = padding + this.gridPosition.x * effectiveSize + tileSize / 2;
     const targetY = padding + this.gridPosition.y * effectiveSize + tileSize / 2;
 
+    const spriteSize = tileSize + 1; // 1px overlap to eliminate gaps
+
     if (duration > 0) {
       gsap.to(this, {
         x: targetX,
@@ -183,15 +188,15 @@ export class RoadTile extends Container {
         delay,
       });
       gsap.to(this.defaultSprite, {
-        width: tileSize,
-        height: tileSize,
+        width: spriteSize,
+        height: spriteSize,
         duration,
         ease: 'power2.out',
         delay,
       });
       gsap.to(this.completedSprite, {
-        width: tileSize,
-        height: tileSize,
+        width: spriteSize,
+        height: spriteSize,
         duration,
         ease: 'power2.out',
         delay,
@@ -199,10 +204,10 @@ export class RoadTile extends Container {
     } else {
       this.x = targetX;
       this.y = targetY;
-      this.defaultSprite.width = tileSize;
-      this.defaultSprite.height = tileSize;
-      this.completedSprite.width = tileSize;
-      this.completedSprite.height = tileSize;
+      this.defaultSprite.width = spriteSize;
+      this.defaultSprite.height = spriteSize;
+      this.completedSprite.width = spriteSize;
+      this.completedSprite.height = spriteSize;
     }
   }
 

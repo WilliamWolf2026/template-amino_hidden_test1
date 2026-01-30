@@ -10,7 +10,7 @@ export const manifest: Manifest = {
     // { name: 'boot-spinner', assets: ['ui/spinner.json'] },
 
     // CORE - Required before gameplay
-    { name: 'core-background', assets: ['animation-water.json'] },
+    // { name: 'core-background', assets: ['animation-water.json'] }, // TODO: Add water animation asset
     // { name: 'core-chrome', assets: ['ui/buttons.json', 'ui/modals.json'] },
 
     // TILES - Game tiles (theme variants - only one loaded based on tuning)
@@ -23,6 +23,7 @@ export const manifest: Manifest = {
 
     // VFX
     { name: 'vfx-rotate', assets: ['vfx-rotate.json'] },
+    { name: 'vfx-blast', assets: ['vfx-blast.json'] },
 
     // AUDIO (agnostic)
     { name: 'audio-citylines-sfx', assets: ['citylines-sfx.json'] },
