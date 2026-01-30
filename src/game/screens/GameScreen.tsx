@@ -644,7 +644,7 @@ export function GameScreen() {
     const game = gameInstance();
     if (!game) return;
 
-    const { rotateAlpha, rotateSizePercent } = tuning.game.vfx;
+    const { rotateAlpha, rotateSizePercent } = tuning.game.grid.vfx;
 
     // Guard: Skip if unchanged
     if (rotateAlpha === prevVfxConfig.alpha && rotateSizePercent === prevVfxConfig.sizePercent) {
