@@ -46,8 +46,8 @@ export default function App() {
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>
-        {/* Settings Menu - Top Right */}
-        <div class="fixed top-4 right-4 z-[9999]">
+        {/* Settings Menu - Top Right Corner */}
+        <div class="fixed top-2 right-2 z-[9999]">
           <SettingsMenu />
         </div>
         <PauseProvider>

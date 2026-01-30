@@ -1,5 +1,5 @@
 import { onMount, onCleanup, createEffect, createSignal } from 'solid-js';
-import { Application, Graphics, Container, BlurFilter } from 'pixi.js';
+import { Application, Graphics, Container, BlurFilter, Text } from 'pixi.js';
 import gsap from 'gsap';
 
 import { useAssets } from '~/scaffold/systems/assets';
@@ -39,6 +39,9 @@ export function GameScreen() {
 
   // Pixi-based CluePopup for levels 1-9
   let cluePopup: CluePopup | null = null;
+
+  // Chapter label text (above progress bar)
+  let chapterLabel: Text | null = null;
 
   // Helper: Generate level with progressive difficulty
   const generateLevelWithProgression = (levelNumber: number) => {
@@ -153,19 +156,45 @@ export function GameScreen() {
 
       // Create progress bar HUD
       const countyConfig = getCountyConfig(currentLevel().county);
+
+      // Create progress label text (positioned above progress bar)
+      chapterLabel = new Text({
+        text: `${gameState.currentLevel()} / ${gameState.totalLevels()}`,
+        style: {
+          fontFamily: 'Sniglet, system-ui, sans-serif',
+          fontSize: 24,
+          fontWeight: 'bold',
+          fill: '#ffffff',
+          stroke: { color: '#000000', width: 5 },
+          dropShadow: {
+            color: '#000000',
+            alpha: 0.5,
+            blur: 3,
+            distance: 2,
+          },
+        },
+      });
+      chapterLabel.anchor.set(0.5);
+      app.stage.addChild(chapterLabel);
       const barWidth = Math.min(320, app.screen.width - 48);
       const bar = new ProgressBar(gpuLoader, tileBundleName, {
         width: barWidth,
         height: 36,
         themeColor: countyConfig?.themeColor,
         tileTheme: tileTheme,
+        showLabel: false, // Label is shown above the bar instead
       });
-
-      // Position at top with safe spacing
-      bar.x = (app.screen.width - barWidth) / 2;
-      bar.y = 24;
       app.stage.addChild(bar);
       setProgressBar(bar);
+
+      // Position progress bar and label just above the tiles
+      const gridPixelSize = game.getGridPixelSize();
+      const gridTop = app.screen.height / 2 - gridPixelSize / 2;
+      const barY = gridTop - 50; // 50px above grid
+      bar.x = (app.screen.width - barWidth) / 2;
+      bar.y = barY;
+      chapterLabel.x = app.screen.width / 2;
+      chapterLabel.y = barY - 24; // 24px above the progress bar
 
       // Create CluePopup for levels 1-9 (Pixi-based)
       cluePopup = new CluePopup(gpuLoader);
@@ -214,6 +243,11 @@ export function GameScreen() {
         const current = gameState.currentLevel();
         const total = gameState.totalLevels();
         bar.setProgress(current, total);
+
+        // Update progress label above the bar
+        if (chapterLabel) {
+          chapterLabel.text = `${current} / ${total}`;
+        }
 
         // Announce to screen readers
         if (ariaLiveRef) {
@@ -494,6 +528,21 @@ export function GameScreen() {
         // Re-center game
         game.x = app.screen.width / 2;
         game.y = app.screen.height / 2;
+
+        // Reposition progress bar and chapter label above the tiles
+        const gridPixelSize = game.getGridPixelSize();
+        const gridTop = app.screen.height / 2 - gridPixelSize / 2;
+        const barY = gridTop - 50;
+        const currentBar = progressBar();
+        if (currentBar) {
+          const barWidth = Math.min(320, app.screen.width - 48);
+          currentBar.x = (app.screen.width - barWidth) / 2;
+          currentBar.y = barY;
+        }
+        if (chapterLabel) {
+          chapterLabel.x = app.screen.width / 2;
+          chapterLabel.y = barY - 24;
+        }
 
         // Update dark overlay size
         if (darkOverlay) {
