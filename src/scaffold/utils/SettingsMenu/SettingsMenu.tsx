@@ -2,6 +2,7 @@ import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import gsap from 'gsap';
 import { useAudio } from '~/scaffold/systems/audio';
 import { setIsPanelOpen, isPanelOpen } from '~/scaffold/dev/TuningPanel';
+import { IS_DEV_ENV } from '~/scaffold/dev/env';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';
@@ -11,13 +12,10 @@ import volumeLowIcon from './assets/icon_volume_low.svg';
 import volumeMutedIcon from './assets/icon_volume_muted.svg';
 import wrenchIcon from './assets/icon_wrench.svg';
 
-// Show tuning button in dev and QA, but not production
-const SHOW_TUNING_BUTTON = !import.meta.env.PROD;
-
 // Settings Menu Configuration
 const SETTINGS_CONFIG = {
   showVolumeSlider: true,
-  showTuningToggle: SHOW_TUNING_BUTTON,
+  showTuningToggle: IS_DEV_ENV,
   showMusicToggle: true,
   backgroundColor: 'rgb(23,23,23)',
   borderRadius: '26px',
@@ -302,7 +300,7 @@ export default function SettingsMenu() {
               </div>
             </Show>
 
-            <Show when={SETTINGS_CONFIG.showTuningToggle}>
+            <Show when={IS_DEV_ENV}>
               <button
                 class={`h-[60px] w-[60px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
                   !isPanelOpen() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
