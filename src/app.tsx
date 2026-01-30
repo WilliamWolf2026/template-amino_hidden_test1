@@ -17,6 +17,7 @@ import { scaffoldConfig } from '~/scaffold/config';
 import { manifest, gameConfig } from '~/game';
 import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
 import './app.css';
+import { IS_DEV_ENV } from './scaffold/dev/env';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
@@ -42,7 +43,7 @@ export default function App() {
   return (
     <GlobalBoundary>
       <TuningProvider gameDefaults={CITYLINES_DEFAULTS} urlOverrides={urlOverrides}>
-        <Show when={import.meta.env.VITE_APP_ENV !== 'Production'}>
+        <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>
         {/* Settings Menu - Top Right */}
