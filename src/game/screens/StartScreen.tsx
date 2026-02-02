@@ -11,10 +11,11 @@ import { SpriteButton } from '~/game/citylines/core/SpriteButton';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { getStartScreenMode, markAsPlayed } from '~/game/citylines/utils/startScreenHelper';
+import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 // Text styles cached at module level to avoid per-frame allocations
 const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Baloo, system-ui, sans-serif',
+  fontFamily: GAME_FONT_FAMILY,
   fontSize: 24,
   fontWeight: 'bold',
   fill: '#FFFFFF',
@@ -31,7 +32,7 @@ const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
 };
 
 const GOAL_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Baloo, system-ui, sans-serif',
+  fontFamily: GAME_FONT_FAMILY,
   fontSize: 18,
   fontWeight: '500',
   fill: '#2C3E50',
@@ -44,7 +45,7 @@ const GOAL_TEXT_STYLE: Partial<TextStyle> = {
 };
 
 const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Baloo, system-ui, sans-serif',
+  fontFamily: GAME_FONT_FAMILY,
   fontSize: 28,
   fontWeight: 'bold',
   fill: '#27AE60',
@@ -62,7 +63,7 @@ const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
 };
 
 const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Baloo, system-ui, sans-serif',
+  fontFamily: GAME_FONT_FAMILY,
   fontSize: 18,
   fontStyle: 'italic',
   fontWeight: '600',
@@ -416,7 +417,7 @@ export function StartScreen() {
           bottomHeight: 32,
         },
         labelStyle: {
-          fontFamily: 'Baloo, system-ui, sans-serif',
+          fontFamily: GAME_FONT_FAMILY,
           fontSize: 28,
           fontWeight: 'bold',
           fill: '#ffffff',

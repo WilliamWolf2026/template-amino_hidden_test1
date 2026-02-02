@@ -2,6 +2,7 @@ import { Container, NineSliceSprite, Text } from 'pixi.js';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../../utils/atlasHelper';
 import { DIALOGUE_BOX_BASE_SIZE, POSITIONING } from './CompanionConfig';
+import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 /**
  * Dialogue box sprite container
@@ -51,7 +52,7 @@ export class DialogueBox extends Container {
     this.textField = new Text({
       text: '',
       style: {
-        fontFamily: 'Baloo, system-ui, sans-serif',
+        fontFamily: GAME_FONT_FAMILY,
         fontSize: 18,
         fill: '#2c2c2c',
         wordWrap: true,

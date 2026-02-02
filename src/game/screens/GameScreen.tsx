@@ -15,6 +15,7 @@ import { ProgressBar } from '~/game/citylines/core/ProgressBar';
 import { getCountyConfig } from '~/game/citylines/data/counties';
 import { gameState } from '~/game/state';
 import { getDebugParams } from '~/game/utils/debugParams';
+import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
@@ -161,7 +162,7 @@ export function GameScreen() {
       chapterLabel = new Text({
         text: `${gameState.currentLevel()} / ${gameState.totalLevels()}`,
         style: {
-          fontFamily: 'Baloo, system-ui, sans-serif',
+          fontFamily: GAME_FONT_FAMILY,
           fontSize: 24,
           fontWeight: 'bold',
           fill: '#ffffff',
@@ -187,14 +188,69 @@ export function GameScreen() {
       app.stage.addChild(bar);
       setProgressBar(bar);
 
+      // Helper: Position progress bar and label above the grid
+      const positionProgressUI = () => {
+        const gridPixelSize = game.getGridPixelSize();
+        const gridTop = app.screen.height / 2 - gridPixelSize / 2;
+        const barY = gridTop - 50;
+        const barWidth = Math.min(320, app.screen.width - 48);
+        bar.x = (app.screen.width - barWidth) / 2;
+        bar.y = barY;
+        if (chapterLabel) {
+          chapterLabel.x = app.screen.width / 2;
+          chapterLabel.y = barY - 24;
+        }
+      };
+
+      // Helper: Fade out progress bar and label
+      const fadeOutProgressUI = () => {
+        gsap.to(bar, { alpha: 0.15, duration: 0.3, ease: 'power2.out' });
+        if (chapterLabel) gsap.to(chapterLabel, { alpha: 0.15, duration: 0.3, ease: 'power2.out' });
+      };
+
+      // Helper: Fade in progress bar and label
+      const fadeInProgressUI = () => {
+        gsap.to(bar, { alpha: 1, duration: 0.3, ease: 'power2.out' });
+        if (chapterLabel) gsap.to(chapterLabel, { alpha: 1, duration: 0.3, ease: 'power2.out' });
+      };
+
+      // Helper: Load next level and play transition animation
+      const loadNextLevelWithTransition = async () => {
+        const controller = game.getCompletionController();
+        controller.continue();
+
+        const newLevel = generateLevelWithProgression(currentLevel().levelNumber + 1);
+        setCurrentLevel(newLevel);
+        game.loadLevel(newLevel);
+
+        game.autoSizeToViewport(
+          app.screen.width,
+          app.screen.height,
+          gameTuning.grid.tileSize,
+          80,
+          100
+        );
+        game.x = app.screen.width / 2;
+        game.y = app.screen.height / 2;
+
+        // Reposition progress bar above new grid size
+        positionProgressUI();
+
+        try {
+          await game.playLevelTransition();
+          const current = gameState.currentLevel();
+          const total = gameState.totalLevels();
+          bar.setProgress(current, total);
+          if (chapterLabel) chapterLabel.text = `${current} / ${total}`;
+          if (ariaLiveRef) ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
+          console.log('[GameScreen] Progress updated after transition:', current, '/', total);
+        } catch (err) {
+          console.error('[GameScreen] Level transition animation error:', err);
+        }
+      };
+
       // Position progress bar and label just above the tiles
-      const gridPixelSize = game.getGridPixelSize();
-      const gridTop = app.screen.height / 2 - gridPixelSize / 2;
-      const barY = gridTop - 50; // 50px above grid
-      bar.x = (app.screen.width - barWidth) / 2;
-      bar.y = barY;
-      chapterLabel.x = app.screen.width / 2;
-      chapterLabel.y = barY - 24; // 24px above the progress bar
+      positionProgressUI();
 
       // Create CluePopup for levels 1-9 (Pixi-based)
       cluePopup = new CluePopup(gpuLoader);
@@ -303,22 +359,7 @@ export function GameScreen() {
           // Regular level (1-9) - show lightweight Pixi CluePopup
           if (cluePopup) {
             manager.playDogPant();
-
-            // Fade out progress bar and label when toast appears
-            if (bar) {
-              gsap.to(bar, {
-                alpha: 0.15,
-                duration: 0.3,
-                ease: 'power2.out',
-              });
-            }
-            if (chapterLabel) {
-              gsap.to(chapterLabel, {
-                alpha: 0.15,
-                duration: 0.3,
-                ease: 'power2.out',
-              });
-            }
+            fadeOutProgressUI();
 
             // Calculate grid top position (game is centered, pivot at grid center)
             const gridPixelSize = game.getGridPixelSize();
@@ -329,69 +370,8 @@ export function GameScreen() {
               gridTop,
               gameTuning.cluePopup.displayDuration,
               () => {
-                // On dismiss - fade progress bar back in
-                if (bar) {
-                  gsap.to(bar, {
-                    alpha: 1,
-                    duration: 0.3,
-                    ease: 'power2.out',
-                  });
-                }
-                if (chapterLabel) {
-                  gsap.to(chapterLabel, {
-                    alpha: 1,
-                    duration: 0.3,
-                    ease: 'power2.out',
-                  });
-                }
-
-                // Continue to next level
-                const controller = game.getCompletionController();
-                controller.continue();
-
-                // Generate new level with progressive difficulty
-                const newLevel = generateLevelWithProgression(
-                  currentLevel().levelNumber + 1
-                );
-                setCurrentLevel(newLevel);
-
-                game.loadLevel(newLevel);
-
-                // Auto-size to viewport (new level may have different grid size)
-                game.autoSizeToViewport(
-                  app.screen.width,
-                  app.screen.height,
-                  gameTuning.grid.tileSize,
-                  80,
-                  100
-                );
-
-                game.x = app.screen.width / 2;
-                game.y = app.screen.height / 2;
-
-                // Play level transition animation, then update progress bar
-                game.playLevelTransition()
-                  .then(() => {
-                    // Update progress bar after level has painted
-                    const current = gameState.currentLevel();
-                    const total = gameState.totalLevels();
-                    bar.setProgress(current, total);
-
-                    // Update progress label above the bar
-                    if (chapterLabel) {
-                      chapterLabel.text = `${current} / ${total}`;
-                    }
-
-                    // Announce to screen readers
-                    if (ariaLiveRef) {
-                      ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
-                    }
-
-                    console.log('[GameScreen] Progress updated after transition:', current, '/', total);
-                  })
-                  .catch(err => {
-                    console.error('[GameScreen] Level transition animation error:', err);
-                  });
+                fadeInProgressUI();
+                loadNextLevelWithTransition();
               }
             );
           }
@@ -479,52 +459,7 @@ export function GameScreen() {
             // If we were showing completion clue, generate and load a new level
             if (isShowingCompletionClue) {
               isShowingCompletionClue = false;
-              const controller = game.getCompletionController();
-              controller.continue();
-
-              // Generate new level with progressive difficulty
-              const newLevel = generateLevelWithProgression(
-                currentLevel().levelNumber + 1
-              );
-              setCurrentLevel(newLevel);
-
-              game.loadLevel(newLevel);
-
-              // Auto-size to viewport (new level may have different grid size)
-              game.autoSizeToViewport(
-                app.screen.width,
-                app.screen.height,
-                gameTuning.grid.tileSize,
-                80,
-                100
-              );
-
-              game.x = app.screen.width / 2;
-              game.y = app.screen.height / 2;
-
-              // Play level transition animation, then update progress bar
-              game.playLevelTransition()
-                .then(() => {
-                  // Update progress bar after level has painted
-                  const current = gameState.currentLevel();
-                  const total = gameState.totalLevels();
-                  bar.setProgress(current, total);
-
-                  // Update progress label above the bar
-                  if (chapterLabel) {
-                    chapterLabel.text = `${current} / ${total}`;
-                  }
-
-                  // Announce to screen readers
-                  if (ariaLiveRef) {
-                    ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
-                  }
-
-                  console.log('[GameScreen] Progress updated after transition:', current, '/', total);
-                })
-                .catch(err => {
-                  console.error('[GameScreen] Level transition animation error:', err);
-                });
+              loadNextLevelWithTransition();
             }
           },
         });
@@ -586,20 +521,8 @@ export function GameScreen() {
         game.x = app.screen.width / 2;
         game.y = app.screen.height / 2;
 
-        // Reposition progress bar and chapter label above the tiles
-        const gridPixelSize = game.getGridPixelSize();
-        const gridTop = app.screen.height / 2 - gridPixelSize / 2;
-        const barY = gridTop - 50;
-        const currentBar = progressBar();
-        if (currentBar) {
-          const barWidth = Math.min(320, app.screen.width - 48);
-          currentBar.x = (app.screen.width - barWidth) / 2;
-          currentBar.y = barY;
-        }
-        if (chapterLabel) {
-          chapterLabel.x = app.screen.width / 2;
-          chapterLabel.y = barY - 24;
-        }
+        // Reposition progress bar and chapter label
+        positionProgressUI();
 
         // Update dark overlay size
         if (darkOverlay) {

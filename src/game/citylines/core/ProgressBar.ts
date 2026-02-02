@@ -1,5 +1,6 @@
 import { Container, Graphics, Text } from 'pixi.js';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 export interface ProgressBarConfig {
   width: number;
@@ -74,7 +75,7 @@ export class ProgressBar extends Container {
     this.labelText = new Text({
       text: '0 / 10',
       style: {
-        fontFamily: 'Baloo, system-ui, sans-serif',
+        fontFamily: GAME_FONT_FAMILY,
         fontSize: 20,
         fontWeight: 'bold',
         fill: '#ffffff',
