@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 import { CHARACTER_SPRITES, CHARACTER_BASE_SIZE } from './companion/CompanionConfig';
+import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 /**
  * CluePopup - Lightweight Pixi-based popup for level completion clues (levels 1-9)
@@ -93,7 +94,7 @@ export class CluePopup extends Container {
     this.textField = new Text({
       text: '',
       style: {
-        fontFamily: 'Sniglet, system-ui, sans-serif',
+        fontFamily: GAME_FONT_FAMILY,
         fontSize: 16,
         fill: '#2c2c2c',
         wordWrap: true,

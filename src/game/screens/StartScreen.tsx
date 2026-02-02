@@ -10,12 +10,13 @@ import { Character } from '~/game/citylines/core/Character';
 import { SpriteButton } from '~/game/citylines/core/SpriteButton';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
-import { getStartScreenMode, markAsPlayed, hasPlayedBefore } from '~/game/citylines/utils/startScreenHelper';
+import { getStartScreenMode, markAsPlayed } from '~/game/citylines/utils/startScreenHelper';
+import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 // Text styles cached at module level to avoid per-frame allocations
 const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Sniglet, system-ui, sans-serif',
-  fontSize: 34,
+  fontFamily: GAME_FONT_FAMILY,
+  fontSize: 24,
   fontWeight: 'bold',
   fill: '#FFFFFF',
   stroke: { color: '#2C3E50', width: 3 },
@@ -27,23 +28,25 @@ const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
     color: '#000000',
   },
   align: 'center',
+  padding: 6, // Prevent stroke clipping
 };
 
 const GOAL_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Sniglet, system-ui, sans-serif',
-  fontSize: 20,
+  fontFamily: GAME_FONT_FAMILY,
+  fontSize: 18,
   fontWeight: '500',
   fill: '#2C3E50',
   align: 'center',
   wordWrap: true,
-  wordWrapWidth: 400,
-  lineHeight: 32,
+  wordWrapWidth: 380,
+  lineHeight: 28,
   letterSpacing: 0.3,
+  padding: 4,
 };
 
 const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Sniglet, system-ui, sans-serif',
-  fontSize: 32,
+  fontFamily: GAME_FONT_FAMILY,
+  fontSize: 28,
   fontWeight: 'bold',
   fill: '#27AE60',
   stroke: { color: '#FFFFFF', width: 3 },
@@ -56,11 +59,12 @@ const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
   },
   align: 'center',
   letterSpacing: 1,
+  padding: 6,
 };
 
 const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Sniglet, system-ui, sans-serif',
-  fontSize: 20,
+  fontFamily: GAME_FONT_FAMILY,
+  fontSize: 18,
   fontStyle: 'italic',
   fontWeight: '600',
   fill: '#E67E22',
@@ -74,6 +78,7 @@ const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
   },
   align: 'center',
   letterSpacing: 0.5,
+  padding: 6,
 };
 
 export function StartScreen() {
@@ -87,6 +92,7 @@ export function StartScreen() {
   let uiContainer: Container | null = null;
   let titleSprite: Sprite | null = null;
   let character: Character | null = null;
+  let characterShadow: Graphics | null = null;
   let startButton: SpriteButton | null = null;
   let countyText: Text | null = null;
   let countyBadge: Graphics | null = null;
@@ -100,6 +106,9 @@ export function StartScreen() {
 
     // Disable button during loading
     startButton?.setEnabled(false);
+
+    // Play button exit animation
+    startButton?.playExitAnimation();
 
     try {
       // Mark that player has played (for future sessions)
@@ -149,19 +158,19 @@ export function StartScreen() {
 
     // Calculate element heights
     const titleHeight = titleSprite?.height ?? 0;
-    const countyHeight = (countyText?.height ?? 0) + 36;
-    const goalHeight = (goalText?.height ?? 0) + 40;
+    const countyHeight = (countyText?.height ?? 0) + 20; // badge padding
+    const goalHeight = (goalText?.height ?? 0) + 36;
     const characterHeight = character?.height ?? 0;
     const flavorHeight = flavorText?.height ?? 30;
     const buttonHeight = startButton?.height ?? 80;
 
     // Ideal gaps
     const idealGaps = {
-      titleBottom: 28,
-      countyBottom: 40,
-      goalBottom: 60,
-      characterBottom: 64,
-      flavorBottom: 56,
+      titleBottom: 20,
+      countyBottom: 24,
+      goalBottom: 32,
+      characterBottom: 24,
+      flavorBottom: 32,
     };
 
     // Minimum gaps
@@ -261,6 +270,12 @@ export function StartScreen() {
       goalText.y = goalY;
     }
 
+    if (characterShadow && character) {
+      // Position shadow at character's feet (character anchor is at center)
+      characterShadow.x = centerX / contentScale;
+      characterShadow.y = characterY + (character.height / 2) - 10; // slightly up from bottom
+    }
+
     if (character) {
       character.x = centerX / contentScale;
       character.y = characterY;
@@ -325,8 +340,8 @@ export function StartScreen() {
 
       // County badge (responsive to text width with padding)
       countyBadge = new Graphics();
-      const countyPaddingX = 32;
-      const countyPaddingY = 18;
+      const countyPaddingX = 20;
+      const countyPaddingY = 10;
       const badgeWidth = countyText.width + countyPaddingX * 2;
       const badgeHeight = countyText.height + countyPaddingY * 2;
       const badgeRadius = Math.min(badgeHeight / 2, 24);
@@ -365,6 +380,12 @@ export function StartScreen() {
       uiContainer.addChild(goalPanel);
       uiContainer.addChild(goalText);
 
+      // Character shadow (oval, behind character)
+      characterShadow = new Graphics();
+      characterShadow.ellipse(0, 0, 70, 20); // wider than tall
+      characterShadow.fill({ color: 0x000000, alpha: 0.25 });
+      uiContainer.addChild(characterShadow);
+
       // Character (News Hound)
       character = new Character('news_hound', gpuLoader, 0.92);
       uiContainer.addChild(character);
@@ -396,7 +417,7 @@ export function StartScreen() {
           bottomHeight: 32,
         },
         labelStyle: {
-          fontFamily: 'Sniglet, system-ui, sans-serif',
+          fontFamily: GAME_FONT_FAMILY,
           fontSize: 28,
           fontWeight: 'bold',
           fill: '#ffffff',

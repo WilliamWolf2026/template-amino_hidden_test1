@@ -120,7 +120,7 @@ export class SpriteButton extends Container {
    */
   private handlePointerDown(): void {
     this.isPressed = true;
-    gsap.to(this.sprite.scale, {
+    gsap.to(this.scale, {
       x: 0.95,
       y: 0.95,
       duration: 0.1,
@@ -134,7 +134,7 @@ export class SpriteButton extends Container {
   private handlePointerUp(): void {
     if (this.isPressed) {
       this.isPressed = false;
-      gsap.to(this.sprite.scale, {
+      gsap.to(this.scale, {
         x: 1,
         y: 1,
         duration: 0.1,
@@ -148,7 +148,7 @@ export class SpriteButton extends Container {
    */
   private handlePointerUpOutside(): void {
     this.isPressed = false;
-    gsap.to(this.sprite.scale, {
+    gsap.to(this.scale, {
       x: 1,
       y: 1,
       duration: 0.1,
@@ -161,7 +161,7 @@ export class SpriteButton extends Container {
    */
   private handlePointerOver(): void {
     if (!this.isPressed) {
-      gsap.to(this.sprite.scale, {
+      gsap.to(this.scale, {
         x: 1.05,
         y: 1.05,
         duration: 0.2,
@@ -175,13 +175,34 @@ export class SpriteButton extends Container {
    */
   private handlePointerOut(): void {
     if (!this.isPressed) {
-      gsap.to(this.sprite.scale, {
+      gsap.to(this.scale, {
         x: 1,
         y: 1,
         duration: 0.2,
         ease: 'power2.out',
       });
     }
+  }
+
+  /**
+   * Play exit animation - subtle scale down with fade
+   * @returns Promise that resolves when animation completes
+   */
+  playExitAnimation(): Promise<void> {
+    return new Promise((resolve) => {
+      gsap.to(this, {
+        alpha: 0,
+        duration: 0.25,
+        ease: 'power2.out',
+      });
+      gsap.to(this.scale, {
+        x: 0.9,
+        y: 0.9,
+        duration: 0.25,
+        ease: 'power2.out',
+        onComplete: resolve,
+      });
+    });
   }
 
   /**
@@ -213,7 +234,7 @@ export class SpriteButton extends Container {
     this.removeAllListeners();
 
     // Kill any active GSAP animations
-    gsap.killTweensOf(this.sprite.scale);
+    gsap.killTweensOf(this.scale);
 
     super.destroy(options);
   }
