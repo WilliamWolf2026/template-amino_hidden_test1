@@ -10,12 +10,15 @@ import type { GeneratorConfig } from '~/game/tuning';
 export class LevelGenerationService {
   /**
    * Generate a new random level
+   * @param levelNumber - Level number (1-based)
+   * @param config - Generator configuration
+   * @param seed - Optional seed for reproducible generation
    */
-  static generateLevel(levelNumber: number, config: GeneratorConfig): LevelConfig {
-    const seed = Date.now() ^ (Math.random() * 0x100000000);
+  static generateLevel(levelNumber: number, config: GeneratorConfig, seed?: number): LevelConfig {
+    const effectiveSeed = seed ?? (Date.now() ^ (Math.random() * 0x100000000));
 
     const generator = new LevelGenerator({
-      seed,
+      seed: effectiveSeed,
       width: config.width,
       height: config.height,
       exitPoints: config.exitPoints,
@@ -39,7 +42,7 @@ export class LevelGenerationService {
     const complexLevel = generator.addComplexityMultiple(level, wrigglePasses);
 
     // Convert to game format (scrambling will be done during conversion)
-    const gameLevel = this.convertGeneratorLevel(complexLevel, levelNumber, seed);
+    const gameLevel = this.convertGeneratorLevel(complexLevel, levelNumber, effectiveSeed);
 
     // Log ASCII visualization
     this.logLevelVisualization(complexLevel, gameLevel);

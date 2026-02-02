@@ -78,10 +78,22 @@ export class DialogueBox extends Container {
   }
 
   /**
-   * Set dialogue text
+   * Set dialogue text and auto-resize box to fit
    */
   setText(text: string): void {
     this.textField.text = text;
+
+    // Auto-resize box height to fit text content
+    const textHeight = this.textField.height;
+    const minHeight = 90; // Minimum height
+    const padding = 40; // Vertical padding (20px top + 20px bottom)
+    const newHeight = Math.max(minHeight, textHeight + padding);
+
+    this.targetHeight = newHeight;
+    this.boxSprite.height = newHeight;
+
+    // Re-center text vertically
+    this.textField.y = -(newHeight / 2);
   }
 
   /**

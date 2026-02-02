@@ -9,6 +9,7 @@ import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { loadSectionConfig, getClueForLevel, type SectionConfig } from '~/game/citylines/types/section';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
@@ -28,6 +29,7 @@ export function GameScreen() {
   const [gameInstance, setGameInstance] = createSignal<CityLinesGame | null>(null);
   const [audioManager, setAudioManager] = createSignal<GameAudioManager | null>(null);
   const [progressBar, setProgressBar] = createSignal<ProgressBar | null>(null);
+  const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
   let resizeHandler: (() => void) | null = null;
 
   // Companion dialogue references (reused for both intro and completion)
@@ -45,7 +47,7 @@ export function GameScreen() {
   let chapterLabel: Text | null = null;
 
   // Helper: Generate level with progressive difficulty
-  const generateLevelWithProgression = (levelNumber: number) => {
+  const generateLevelWithProgression = (levelNumber: number, config?: SectionConfig | null) => {
     const baseTuning = tuning.game;
     const difficulty = getDifficultyForLevel(levelNumber);
     const generatorConfig = difficultyToGeneratorConfig(difficulty, {
@@ -56,6 +58,10 @@ export function GameScreen() {
       wrigglePasses: baseTuning.generator.wrigglePasses,
     });
 
+    // Get seed from section config if available
+    const levelIndex = (levelNumber - 1) % 10;
+    const seed = config?.levelSeeds?.[levelIndex];
+
     console.log(`[Progressive Difficulty] Level ${levelNumber}:`, {
       gridSize: difficulty.gridSize,
       landmarks: `${difficulty.landmarkCount.min}-${difficulty.landmarkCount.max}`,
@@ -63,14 +69,15 @@ export function GameScreen() {
       minPathLength: difficulty.minPathLength,
       wriggleFactor: generatorConfig.wriggleFactor.toFixed(3),
       wriggleExtent: generatorConfig.wriggleExtent.toFixed(2),
+      seed: seed ?? 'random',
     });
 
-    return LevelGenerationService.generateLevel(levelNumber, generatorConfig);
+    return LevelGenerationService.generateLevel(levelNumber, generatorConfig, seed);
   };
 
-  // Current level (generated procedurally with progressive difficulty)
+  // Current level (will be set after section config loads)
   const [currentLevel, setCurrentLevel] = createSignal(
-    generateLevelWithProgression(1)
+    generateLevelWithProgression(1, null)
   );
 
   // Accessibility: aria-live announcements
@@ -78,6 +85,21 @@ export function GameScreen() {
 
   onMount(async () => {
     if (!containerRef) return;
+
+    // Load section config (from URL param or fallback to default)
+    try {
+      const config = await loadSectionConfig();
+      setSectionConfig(config);
+      console.log('[GameScreen] Section config loaded:', config.sectionId ?? 'default');
+
+      // Regenerate first level with section config (for county and seed)
+      const firstLevel = generateLevelWithProgression(1, config);
+      // Apply county from section config
+      firstLevel.county = config.county;
+      setCurrentLevel(firstLevel);
+    } catch (err) {
+      console.error('[GameScreen] Failed to load section config:', err);
+    }
 
     // Get initial tuning values
     const gameTuning = tuning.game;
@@ -219,7 +241,12 @@ export function GameScreen() {
         const controller = game.getCompletionController();
         controller.continue();
 
-        const newLevel = generateLevelWithProgression(currentLevel().levelNumber + 1);
+        const config = sectionConfig();
+        const newLevel = generateLevelWithProgression(currentLevel().levelNumber + 1, config);
+        // Apply county from section config if available
+        if (config) {
+          newLevel.county = config.county;
+        }
         setCurrentLevel(newLevel);
         game.loadLevel(newLevel);
 
@@ -306,19 +333,28 @@ export function GameScreen() {
       });
 
       // Wire completion events - show CluePopup for levels 1-9, full overlay for chapter end (level 10)
-      game.onGameEvent('completionStart', (clue, levelNumber) => {
+      game.onGameEvent('completionStart', (_levelClue, levelNumber) => {
         const isChapterEnd = levelNumber % 10 === 0; // Level 10, 20, 30, etc.
-        console.log('[GameScreen] Level complete!', { levelNumber, isChapterEnd, clue });
+        const config = sectionConfig();
+
+        // Get clue from section config if available, otherwise fall back to level clue
+        const storyClue = config ? getClueForLevel(config, levelNumber) : null;
+        const clueText = storyClue ?? _levelClue;
+
+        console.log('[GameScreen] Level complete!', { levelNumber, isChapterEnd, clueText });
 
         // Play news reveal sound
         manager.playNewsReveal();
 
         if (isChapterEnd) {
-          // Chapter end (level 10, 20, etc.) - show full companion overlay
+          // Chapter end (level 10, 20, etc.) - show full companion overlay with story reveal
           if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
 
-          // Update clue text (reusing the same dialogue box)
-          companionDialogueBox.setText(clue);
+          // Show headline and summary at chapter end
+          const displayText = config
+            ? `${config.story.headline}\n\n${config.story.summary}`
+            : clueText;
+          companionDialogueBox.setText(displayText);
 
           // Show companion group again
           companionGroup.visible = true;
@@ -365,7 +401,7 @@ export function GameScreen() {
             const gridPixelSize = game.getGridPixelSize();
             const gridTop = app.screen.height / 2 - gridPixelSize / 2;
             cluePopup.show(
-              clue,
+              clueText,
               app.screen.width,
               gridTop,
               gameTuning.cluePopup.displayDuration,
@@ -386,7 +422,11 @@ export function GameScreen() {
 
       // Create dialogue box with text (store reference for reuse)
       companionDialogueBox = new DialogueBox(gpuLoader, app.screen.width, app.screen.height, 2.5);
-      companionDialogueBox.setText("Hi there, let's solve some tile puzzles. Blah blah blah, New Jersey something, something.");
+      // Use story summary from section config
+      const config = sectionConfig();
+      const introText = config?.story.summary
+        ?? "Hi there, let's solve some tile puzzles to uncover a local news story!";
+      companionDialogueBox.setText(introText);
       companionDialogueBox.alpha = 1; // Make visible (constructor sets to 0)
 
       // Position dialogue box at center of screen
