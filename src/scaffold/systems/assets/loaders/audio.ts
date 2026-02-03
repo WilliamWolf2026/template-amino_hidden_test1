@@ -43,7 +43,10 @@ export class AudioLoader {
 
   // Register an audio sprite from loaded JSON
   async register(jsonPath: string): Promise<void> {
-    const key = jsonPath.replace(/\.json$/, '');
+    // Use just the filename (without directory and extension) as the key
+    // e.g., 'audio/sfx-citylines.json' -> 'sfx-citylines'
+    const filename = jsonPath.split('/').pop() || jsonPath;
+    const key = filename.replace(/\.json$/, '');
     if (this.channels.has(key)) return;
 
     const jsonUrl = `${this.manifest.cdnBase}/${jsonPath}`;

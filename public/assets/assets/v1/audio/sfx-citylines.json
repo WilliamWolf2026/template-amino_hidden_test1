@@ -1,7 +1,7 @@
 {
   "src": [
-    "citylines-sfx.webm",
-    "citylines-sfx.mp3"
+    "sfx-citylines.webm",
+    "sfx-citylines.mp3"
   ],
   "sprite": {
     "button_click": [

@@ -1,4 +1,4 @@
-import { Assets, Texture, Sprite, AnimatedSprite, Rectangle, type Spritesheet } from 'pixi.js';
+import { Assets, Texture, Sprite, AnimatedSprite, Rectangle, Cache, type Spritesheet } from 'pixi.js';
 import type { Manifest, AssetLoader } from '../../types';
 
 export class PixiLoader implements AssetLoader {
@@ -15,7 +15,10 @@ export class PixiLoader implements AssetLoader {
 
       for (const path of bundle.assets) {
         if (path.includes('audio/')) continue; // Skip audio
-        const key = path.replace(/\.json$/, '');
+        // Use just the filename (without directory and extension) as the key
+        // e.g., 'atlases/atlas-tiles-citylines.json' -> 'atlas-tiles-citylines'
+        const filename = path.split('/').pop() || path;
+        const key = filename.replace(/\.json$/, '');
         assets[key] = `${manifest.cdnBase}/${path}`;
       }
 
@@ -44,9 +47,30 @@ export class PixiLoader implements AssetLoader {
       return;
     }
 
-    // Pixi handles everything: fetch, parse, texture creation, caching
-    await Assets.loadBundle(name);
-    this.loadedBundles.add(name);
+    // For VFX bundles, suppress cache duplicate warnings (harmless - VFX use internal texture maps)
+    // Multiple VFX spritesheets may have same frame names (frame_0000, etc.) which causes
+    // Pixi to warn about cache collisions, but the VFX still work correctly.
+    const isVfxBundle = name.startsWith('vfx-');
+    const originalWarn = console.warn;
+    if (isVfxBundle) {
+      console.warn = (...args: unknown[]) => {
+        // Join all args to check full message (Pixi may pass multiple args)
+        const msg = args.map((a) => String(a)).join(' ');
+        if (!msg.includes('already has key:')) {
+          originalWarn.apply(console, args);
+        }
+      };
+    }
+
+    try {
+      // Pixi handles everything: fetch, parse, texture creation, caching
+      await Assets.loadBundle(name);
+      this.loadedBundles.add(name);
+    } finally {
+      if (isVfxBundle) {
+        console.warn = originalWarn;
+      }
+    }
   }
 
   async loadBundles(prefix: string): Promise<void> {

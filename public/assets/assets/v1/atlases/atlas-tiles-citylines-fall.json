@@ -652,7 +652,7 @@
   "meta": {
     "app": "http://free-tex-packer.com",
     "version": "0.6.7",
-    "image": "tiles_citylines_v1_fall.png",
+    "image": "atlas-tiles-citylines-fall.png",
     "format": "RGBA8888",
     "size": {
       "w": 906,

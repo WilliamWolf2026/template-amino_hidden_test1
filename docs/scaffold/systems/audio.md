@@ -31,10 +31,10 @@ import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
 const audioLoader = coordinator.audio;
 
 // Play a sound effect
-audioLoader.play('citylines-sfx', 'button_click', { volume: 0.7 });
+audioLoader.play('sfx-citylines', 'button_click', { volume: 0.7 });
 
 // Play music with fade
-audioLoader.playMusic('citylines-sfx', 'music_track_1', {
+audioLoader.playMusic('sfx-citylines', 'music_track_1', {
   fadeIn: 1000,
   volume: 0.6,
 });
@@ -110,7 +110,7 @@ Format: `"name": [start_ms, duration_ms, loop?]`
 // src/game/manifest.ts
 {
   bundles: [
-    { name: 'audio-citylines-sfx', assets: ['citylines-sfx.json'] }
+    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] }
   ]
 }
 ```
@@ -179,11 +179,11 @@ export class GameAudioManager {
     // Game-specific logic (random variations, etc.)
     const sounds = ['rotate_1', 'rotate_2', 'rotate_3'];
     const sprite = sounds[Math.floor(Math.random() * sounds.length)];
-    this.audioLoader.play('citylines-sfx', sprite, { volume: 0.5 });
+    this.audioLoader.play('sfx-citylines', sprite, { volume: 0.5 });
   }
 
   playLevelComplete(): void {
-    this.audioLoader.play('citylines-sfx', 'level_complete', { volume: 0.8 });
+    this.audioLoader.play('sfx-citylines', 'level_complete', { volume: 0.8 });
   }
 }
 ```

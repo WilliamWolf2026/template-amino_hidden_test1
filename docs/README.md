@@ -50,6 +50,8 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 | [Scaffold](scaffold/architecture.md)       | Reusable framework systems     |
 | [Game](game/gdd.md)                        | CityLines game documentation   |
 | [New Game Guide](guides/new-game.md)       | Create your own game           |
+| [Environment Config](guides/environment-config.md) | Local, QA, production setup |
+| [Level Manifests](guides/unified-manifest-design.md) | Level files and GCS deployment |
 | [Asset Pipeline](guides/asset-pipeline.md) | Sprites, fonts, and atlases    |
 | [Audio Setup](guides/audio-setup.md)       | Sound effects and music        |
 | [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions  |
@@ -100,6 +102,10 @@ See the **[New Game Guide](guides/new-game.md)** for step-by-step instructions o
 ### Getting Started
 - **[Creating a New Game](guides/new-game.md)** - Step-by-step guide to build your own game
 - **[Configuration](guides/configuration.md)** - Environment and build configuration
+
+### Deployment & Configuration
+- **[Environment Config](guides/environment-config.md)** - Multi-environment setup (local, QA, production)
+- **[Level Manifests](guides/unified-manifest-design.md)** - Level manifest architecture and GCS deployment
 
 ### Asset & Audio
 - **[Asset Pipeline](guides/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases

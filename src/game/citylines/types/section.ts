@@ -1,4 +1,5 @@
 import type { County } from './level';
+import { getCdnUrl, getLevelsUrl, resolveLevelUrl } from '~/game/config';
 
 /** Valid county values (must match County type in level.ts) */
 export const VALID_COUNTIES: County[] = ['atlantic', 'bergen', 'cape_may', 'essex', 'hudson'];
@@ -13,50 +14,164 @@ export interface StoryData {
   clues: string[];
 }
 
-/** Section configuration - loaded from URL param or fallback */
-export interface SectionConfig {
+/** Asset references in level manifest */
+export interface LevelAssets {
+  /** Base URL for all assets (local path or GCS URL) */
+  base: string;
+  /** Branding assets */
+  branding?: {
+    atlas: string;
+  };
+  /** Game tile atlases */
+  atlases?: {
+    tiles: string;
+    tiles_fall?: string;
+    tiles_winter?: string;
+  };
+  /** VFX assets */
+  vfx?: {
+    rotate?: string;
+    blast?: string;
+  };
+  /** Audio assets */
+  audio?: {
+    sfx: string;
+  };
+}
+
+/** Level manifest - loaded from URL param or fallback */
+export interface LevelManifest {
+  /** Unique level identifier */
+  levelId?: string;
+
+  /** Manifest version */
+  version?: string;
+
+  /** Asset configuration with base URL */
+  assets?: LevelAssets;
+
   /** Story data for clues and chapter-end reveal */
   story: StoryData;
 
   /** County for theming (must be one of: atlantic, bergen, cape_may, essex, hudson) */
   county: County;
 
+  /** Tile theme variant */
+  tileTheme?: 'default' | 'fall' | 'winter';
+
   /** Optional level seeds for reproducible generation (one per level) */
   levelSeeds?: number[];
-
-  /** Optional section identifier */
-  sectionId?: string;
 }
 
-/** Default fallback path for local development */
-export const DEFAULT_SECTION_PATH = '/assets/sections/default.json';
+/** @deprecated Use LevelManifest instead */
+export type SectionConfig = LevelManifest;
 
-/** URL parameter name for section config */
+/** Default level filename */
+export const DEFAULT_LEVEL_NAME = 'default';
+
+/** @deprecated Use environment config instead */
+export const DEFAULT_LEVEL_PATH = '/assets/levels/default.json';
+
+/** @deprecated Use DEFAULT_LEVEL_PATH instead */
+export const DEFAULT_SECTION_PATH = DEFAULT_LEVEL_PATH;
+
+/** @deprecated Use getCdnUrl() from config instead */
+export const DEFAULT_ASSET_BASE = '/assets/assets/v1';
+
+/** URL parameter name for level manifest */
+export const LEVEL_URL_PARAM = 'level';
+
+/** @deprecated Use LEVEL_URL_PARAM instead */
 export const SECTION_URL_PARAM = 'section';
 
+/** Result of loading level config */
+export interface LevelLoadResult {
+  /** The level manifest */
+  manifest: LevelManifest;
+  /** Resolved asset base URL */
+  assetBase: string;
+}
+
 /**
- * Load section config from URL param or fallback to default
+ * Load level manifest from URL param or fallback to default.
+ * Returns both the manifest and the resolved asset base URL.
+ *
+ * URL resolution:
+ * - Full URLs (http/https) load directly
+ * - Absolute paths (/assets/...) load from current origin
+ * - Short names (wonder-nj-2026) resolve via environment config
+ * - No param loads default.json from environment's levelsUrl
  */
-export async function loadSectionConfig(): Promise<SectionConfig> {
+export async function loadLevelManifest(): Promise<LevelLoadResult> {
   const urlParams = new URLSearchParams(window.location.search);
-  const sectionUrl = urlParams.get(SECTION_URL_PARAM);
 
-  const url = sectionUrl || DEFAULT_SECTION_PATH;
+  // Check for ?level= param first, fall back to legacy ?section= param
+  const levelParam = urlParams.get(LEVEL_URL_PARAM) || urlParams.get(SECTION_URL_PARAM);
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to load section config from ${url}`);
+  // Resolve to full URL using environment config
+  const url = levelParam
+    ? resolveLevelUrl(levelParam)
+    : `${getLevelsUrl()}/${DEFAULT_LEVEL_NAME}.json`;
+
+  let manifest: LevelManifest;
+  let assetBase: string;
+
+  // Get environment CDN URL as fallback
+  const envCdnUrl = getCdnUrl();
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    manifest = await response.json() as LevelManifest;
+
+    // Use asset base from manifest if provided, otherwise use environment CDN
+    assetBase = manifest.assets?.base || envCdnUrl;
+
+    console.log(`[LevelManifest] Loaded from ${url}, asset base: ${assetBase}`);
+  } catch (error) {
+    // If level manifest fails to load, use environment defaults
+    console.warn(`[LevelManifest] Failed to load from ${url}:`, error);
+    console.log(`[LevelManifest] Using environment CDN: ${envCdnUrl}`);
+
+    // Return minimal manifest with environment CDN
+    assetBase = envCdnUrl;
+    manifest = {
+      county: 'atlantic',
+      story: {
+        headline: 'Default Level',
+        summary: '',
+        imageUrl: '',
+        articleUrl: '',
+        clues: ['Welcome to the game!'],
+      },
+    };
   }
 
-  const config = await response.json() as SectionConfig;
-
-  // Validate county is one of the valid options
-  if (!VALID_COUNTIES.includes(config.county)) {
-    console.warn(`[SectionConfig] Invalid county "${config.county}", defaulting to "atlantic"`);
-    config.county = 'atlantic';
+  // Validate county
+  if (!VALID_COUNTIES.includes(manifest.county)) {
+    console.warn(`[LevelManifest] Invalid county "${manifest.county}", defaulting to "atlantic"`);
+    manifest.county = 'atlantic';
   }
 
-  return config;
+  return { manifest, assetBase };
+}
+
+/**
+ * @deprecated Use loadLevelManifest() instead
+ */
+export async function loadSectionConfig(): Promise<LevelManifest> {
+  const { manifest } = await loadLevelManifest();
+  return manifest;
+}
+
+/**
+ * Get the asset base URL from a level manifest.
+ * Falls back to environment CDN if not specified in manifest.
+ */
+export function getAssetBase(manifest: LevelManifest): string {
+  return manifest.assets?.base || getCdnUrl();
 }
 
 /**

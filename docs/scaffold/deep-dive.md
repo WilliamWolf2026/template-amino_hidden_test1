@@ -297,7 +297,7 @@ export const manifest: ManifestBundle[] = [
     ]
   },
   {
-    name: 'audio-citylines-sfx', // Audio bundle
+    name: 'audio-sfx-citylines', // Audio bundle
     target: 'audio',
     assets: [
       { alias: 'sfx', src: '/assets/sfx.mp3', data: { sprite: {...} } }

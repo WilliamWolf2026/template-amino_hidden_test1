@@ -39,7 +39,10 @@ export class DomLoader implements AssetLoader {
 
   // Load any asset type
   async loadAsset(path: string): Promise<CachedAsset> {
-    const key = path.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
+    // Use just the filename (without directory and extension) as the key
+    // e.g., 'branding/atlas-branding-wolf.json' -> 'atlas-branding-wolf'
+    const filename = path.split('/').pop() || path;
+    const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
 
     if (this.cache.has(key)) {
       return this.cache.get(key)!;
@@ -148,7 +151,9 @@ export class DomLoader implements AssetLoader {
   // ─── Getters ─────────────────────────────────────────────
 
   get(path: string): CachedAsset | null {
-    const key = path.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
+    // Use just the filename (without directory and extension) as the key
+    const filename = path.split('/').pop() || path;
+    const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
     return this.cache.get(key) ?? null;
   }
 
@@ -161,7 +166,9 @@ export class DomLoader implements AssetLoader {
   }
 
   has(path: string): boolean {
-    const key = path.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
+    // Use just the filename (without directory and extension) as the key
+    const filename = path.split('/').pop() || path;
+    const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
     return this.cache.has(key);
   }
 

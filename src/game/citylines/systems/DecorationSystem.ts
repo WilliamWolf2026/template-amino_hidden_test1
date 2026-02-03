@@ -173,7 +173,8 @@ export class DecorationSystem {
           const offsetRatioX = Math.random() - 0.5; // -0.5 to 0.5
           const offsetRatioY = Math.random() - 0.5;
 
-          sprite.anchor.set(0.5);
+          // Anchor at bottom-middle so decorations "grow from the ground"
+          sprite.anchor.set(0.5, 1.0);
           sprite.x = cellCenterX + offsetRatioX * this.tileSize;
           sprite.y = cellCenterY + offsetRatioY * this.tileSize;
 

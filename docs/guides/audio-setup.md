@@ -18,8 +18,8 @@ Audio sprites pack multiple sounds into a single audio file with a JSON manifest
 ```json
 {
   "src": [
-    "citylines-sfx.webm",
-    "citylines-sfx.mp3"
+    "sfx-citylines.webm",
+    "sfx-citylines.mp3"
   ],
   "sprite": {
     "button_click": [0, 508],
@@ -38,7 +38,7 @@ Each sprite entry: `"name": [start_ms, duration_ms]`
 2. **Use audiosprite tool** (or similar):
    ```bash
    npm install -g audiosprite
-   audiosprite -o citylines-sfx -f howler2 *.wav
+   audiosprite -o sfx-citylines -f howler2 *.wav
    ```
 
 3. **Export both formats**:
@@ -48,9 +48,9 @@ Each sprite entry: `"name": [start_ms, duration_ms]`
 4. **Place in assets folder**:
    ```
    public/assets/
-   ├── citylines-sfx.json
-   ├── citylines-sfx.webm
-   └── citylines-sfx.mp3
+   ├── sfx-citylines.json
+   ├── sfx-citylines.webm
+   └── sfx-citylines.mp3
    ```
 
 ## Sound Definitions
@@ -70,22 +70,22 @@ export interface SoundDefinition {
 
 // UI Sounds
 export const SOUND_BUTTON_CLICK: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'button_click',
   volume: 0.7,
 };
 
 // Gameplay Sounds (with variations to prevent fatigue)
 export const SOUND_TILE_ROTATE: readonly SoundDefinition[] = [
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_1', volume: 0.5 },
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_2', volume: 0.5 },
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_3', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_1', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_2', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_3', volume: 0.5 },
 ] as const;
 
 // Music Tracks
 export const MUSIC_TRACKS: readonly SoundDefinition[] = [
-  { channel: 'citylines-sfx', sprite: 'music_track_1' },
-  { channel: 'citylines-sfx', sprite: 'music_track_2' },
+  { channel: 'sfx-citylines', sprite: 'music_track_1' },
+  { channel: 'sfx-citylines', sprite: 'music_track_2' },
 ] as const;
 ```
 
@@ -156,7 +156,7 @@ export class GameAudioManager {
 export const manifest: Manifest = {
   bundles: [
     // Audio bundles use 'audio-' prefix
-    { name: 'audio-citylines-sfx', assets: ['citylines-sfx.json'] },
+    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] },
   ],
 };
 ```

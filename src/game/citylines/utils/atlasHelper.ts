@@ -1,7 +1,7 @@
 import type { TileTheme } from '~/game/tuning';
 
 // Module-level state for current atlas name (set at game startup)
-let currentAtlasName = 'tiles_citylines_v1';
+let currentAtlasName = 'atlas-tiles-citylines';
 
 /**
  * Set the current atlas name based on theme (call once at game startup)
@@ -9,13 +9,13 @@ let currentAtlasName = 'tiles_citylines_v1';
 export function setAtlasName(theme: TileTheme): void {
   switch (theme) {
     case 'fall':
-      currentAtlasName = 'tiles_citylines_v1_fall';
+      currentAtlasName = 'atlas-tiles-citylines-fall';
       break;
     case 'winter':
-      currentAtlasName = 'tiles_citylines_v1_winter';
+      currentAtlasName = 'atlas-tiles-citylines-winter';
       break;
     default:
-      currentAtlasName = 'tiles_citylines_v1';
+      currentAtlasName = 'atlas-tiles-citylines';
   }
 }
 
