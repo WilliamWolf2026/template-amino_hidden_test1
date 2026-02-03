@@ -9,7 +9,7 @@ export interface StoryData {
   summary: string;
   imageUrl: string;
   articleUrl: string;
-  /** Array of 10 clue strings (one per level) */
+  /** Array of clue strings (one per level, determines chapter length) */
   clues: string[];
 }
 
@@ -21,7 +21,7 @@ export interface SectionConfig {
   /** County for theming (must be one of: atlantic, bergen, cape_may, essex, hudson) */
   county: County;
 
-  /** Optional level seeds for reproducible generation (10 seeds) */
+  /** Optional level seeds for reproducible generation (one per level) */
   levelSeeds?: number[];
 
   /** Optional section identifier */
@@ -60,9 +60,28 @@ export async function loadSectionConfig(): Promise<SectionConfig> {
 }
 
 /**
+ * Get chapter length from config (inferred from clues array length)
+ */
+export function getChapterLength(config: SectionConfig): number {
+  return config.story.clues.length;
+}
+
+/**
  * Get clue for a specific level (1-indexed)
  */
 export function getClueForLevel(config: SectionConfig, levelNumber: number): string | undefined {
-  const index = (levelNumber - 1) % 10;
+  const chapterLength = getChapterLength(config);
+  const index = (levelNumber - 1) % chapterLength;
   return config.story.clues[index];
+}
+
+/**
+ * Get seed for a specific level (1-indexed)
+ * Returns undefined if no seed provided (will generate random)
+ */
+export function getSeedForLevel(config: SectionConfig, levelNumber: number): number | undefined {
+  if (!config.levelSeeds) return undefined;
+  const chapterLength = getChapterLength(config);
+  const index = (levelNumber - 1) % chapterLength;
+  return config.levelSeeds[index];
 }

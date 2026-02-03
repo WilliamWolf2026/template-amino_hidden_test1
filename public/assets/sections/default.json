@@ -1,6 +1,9 @@
 {
   "sectionId": "wonder-nj-expansion-2026",
   "county": "bergen",
+  "levelSeeds": [
+    42003, 42002, 42003, 42004, 42005, 42006, 42007, 42008, 42009, 42010
+  ],
   "story": {
     "headline": "Wonder Brings Celebrity Chef Eats to Three More N.J. Towns This Spring",
     "summary": "The food hall phenomenon Wonder is expanding its New Jersey footprint with three new locations coming to Wayne, Emerson, and Ocean Township. The innovative platform lets diners order from over 20 restaurants—including menus from Bobby Flay and José Andrés—all in one transaction.",

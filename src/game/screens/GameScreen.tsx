@@ -7,9 +7,9 @@ import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
+import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, ChapterGenerationService, type GeneratedChapter } from '~/game/citylines';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
-import { loadSectionConfig, getClueForLevel, type SectionConfig } from '~/game/citylines/types/section';
+import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/citylines/types/section';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
@@ -30,6 +30,7 @@ export function GameScreen() {
   const [audioManager, setAudioManager] = createSignal<GameAudioManager | null>(null);
   const [progressBar, setProgressBar] = createSignal<ProgressBar | null>(null);
   const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
+  const [generatedChapter, setGeneratedChapter] = createSignal<GeneratedChapter | null>(null);
   let resizeHandler: (() => void) | null = null;
 
   // Companion dialogue references (reused for both intro and completion)
@@ -46,38 +47,10 @@ export function GameScreen() {
   // Chapter label text (above progress bar)
   let chapterLabel: Text | null = null;
 
-  // Helper: Generate level with progressive difficulty
-  const generateLevelWithProgression = (levelNumber: number, config?: SectionConfig | null) => {
-    const baseTuning = tuning.game;
-    const difficulty = getDifficultyForLevel(levelNumber);
-    const generatorConfig = difficultyToGeneratorConfig(difficulty, {
-      sidePushRadius: baseTuning.generator.sidePushRadius,
-      sidePushFactor: baseTuning.generator.sidePushFactor,
-      wriggleDistanceMagnifier: baseTuning.generator.wriggleDistanceMagnifier,
-      wriggleExtentChaosFactor: baseTuning.generator.wriggleExtentChaosFactor,
-      wrigglePasses: baseTuning.generator.wrigglePasses,
-    });
-
-    // Get seed from section config if available
-    const levelIndex = (levelNumber - 1) % 10;
-    const seed = config?.levelSeeds?.[levelIndex];
-
-    console.log(`[Progressive Difficulty] Level ${levelNumber}:`, {
-      gridSize: difficulty.gridSize,
-      landmarks: `${difficulty.landmarkCount.min}-${difficulty.landmarkCount.max}`,
-      detourProbability: difficulty.detourProbability,
-      minPathLength: difficulty.minPathLength,
-      wriggleFactor: generatorConfig.wriggleFactor.toFixed(3),
-      wriggleExtent: generatorConfig.wriggleExtent.toFixed(2),
-      seed: seed ?? 'random',
-    });
-
-    return LevelGenerationService.generateLevel(levelNumber, generatorConfig, seed);
-  };
-
-  // Current level (will be set after section config loads)
+  // Current level (set after chapter generation in onMount)
+  // Using a lazy placeholder that will be replaced immediately
   const [currentLevel, setCurrentLevel] = createSignal(
-    generateLevelWithProgression(1, null)
+    LevelGenerationService.generateLevel(1, tuning.game.generator)
   );
 
   // Accessibility: aria-live announcements
@@ -92,11 +65,20 @@ export function GameScreen() {
       setSectionConfig(config);
       console.log('[GameScreen] Section config loaded:', config.sectionId ?? 'default');
 
-      // Regenerate first level with section config (for county and seed)
-      const firstLevel = generateLevelWithProgression(1, config);
-      // Apply county from section config
-      firstLevel.county = config.county;
-      setCurrentLevel(firstLevel);
+      // Generate full chapter upfront
+      const chapter = ChapterGenerationService.generateChapter(config, tuning.game.generator);
+      setGeneratedChapter(chapter);
+
+      // Set total levels based on chapter length
+      gameState.setTotalLevels(chapter.chapterLength);
+
+      // Set first level from generated chapter
+      setCurrentLevel(chapter.levels[0]);
+
+      console.log('[GameScreen] Chapter generated:', {
+        chapterLength: chapter.chapterLength,
+        seeds: chapter.seeds,
+      });
     } catch (err) {
       console.error('[GameScreen] Failed to load section config:', err);
     }
@@ -241,12 +223,20 @@ export function GameScreen() {
         const controller = game.getCompletionController();
         controller.continue();
 
-        const config = sectionConfig();
-        const newLevel = generateLevelWithProgression(currentLevel().levelNumber + 1, config);
-        // Apply county from section config if available
-        if (config) {
-          newLevel.county = config.county;
+        const chapter = generatedChapter();
+        if (!chapter) {
+          console.error('[GameScreen] No chapter generated, cannot load next level');
+          return;
         }
+
+        // Get next level from pre-generated chapter (wraps around at chapter end)
+        const nextLevelNumber = currentLevel().levelNumber + 1;
+        const nextIndex = (nextLevelNumber - 1) % chapter.chapterLength;
+        const newLevel = chapter.levels[nextIndex];
+
+        // Update level number for tracking (in case of chapter wrap)
+        newLevel.levelNumber = nextLevelNumber;
+
         setCurrentLevel(newLevel);
         game.loadLevel(newLevel);
 
@@ -332,9 +322,11 @@ export function GameScreen() {
         console.log('[GameScreen] Landmark connected:', landmark);
       });
 
-      // Wire completion events - show CluePopup for levels 1-9, full overlay for chapter end (level 10)
+      // Wire completion events - show CluePopup for mid-chapter levels, full overlay for chapter end
       game.onGameEvent('completionStart', (_levelClue, levelNumber) => {
-        const isChapterEnd = levelNumber % 10 === 0; // Level 10, 20, 30, etc.
+        const chapter = generatedChapter();
+        const chapterLength = chapter?.chapterLength ?? 10;
+        const isChapterEnd = levelNumber % chapterLength === 0; // Last level of chapter
         const config = sectionConfig();
 
         // Get clue from section config if available, otherwise fall back to level clue

@@ -96,6 +96,7 @@ export class DecorationSystem {
   private decorations: Sprite[] = [];
   private decorationPositions: Map<Sprite, GridPosition> = new Map();
   private decorationScales: Map<Sprite, { x: number; y: number }> = new Map();
+  private decorationOffsets: Map<Sprite, { x: number; y: number }> = new Map(); // Store offset ratios (-0.5 to 0.5)
 
   constructor(gpuLoader: PixiLoader, tileSize: number) {
     this.gpuLoader = gpuLoader;
@@ -168,18 +169,20 @@ export class DecorationSystem {
           const cellCenterX = padding + col * effectiveSize + this.tileSize / 2;
           const cellCenterY = padding + row * effectiveSize + this.tileSize / 2;
 
-          // Random offset within cell (avoid edges)
-          const margin = this.tileSize * 0.15;
-          const offsetX = (rng.next() - 0.5) * (this.tileSize - margin * 2);
-          const offsetY = (rng.next() - 0.5) * (this.tileSize - margin * 2);
+          // Random position anywhere within the cell (store ratio for updateLayout)
+          const offsetRatioX = Math.random() - 0.5; // -0.5 to 0.5
+          const offsetRatioY = Math.random() - 0.5;
 
           sprite.anchor.set(0.5);
-          sprite.x = cellCenterX + offsetX;
-          sprite.y = cellCenterY + offsetY;
+          sprite.x = cellCenterX + offsetRatioX * this.tileSize;
+          sprite.y = cellCenterY + offsetRatioY * this.tileSize;
 
-          // Scale decorations to fit nicely
+          // Store offset ratio for preserving position during layout updates
+          this.decorationOffsets.set(sprite, { x: offsetRatioX, y: offsetRatioY });
+
+          // Scale decorations to fit nicely (random variation)
           const baseScale = this.tileSize / 128;
-          const scaleVariation = 0.7 + rng.next() * 0.6; // 0.7 to 1.3
+          const scaleVariation = 0.7 + Math.random() * 0.6; // 0.7 to 1.3
           const finalScale = baseScale * scaleVariation * 0.5; // 50% of tile size
           sprite.scale.set(finalScale);
 
@@ -188,7 +191,7 @@ export class DecorationSystem {
 
           // Slight random rotation for flowers
           if (spriteFrame.startsWith('flower')) {
-            sprite.rotation = rng.next() * Math.PI * 2;
+            sprite.rotation = Math.random() * Math.PI * 2;
           }
 
           this.container.addChild(sprite);
@@ -212,11 +215,9 @@ export class DecorationSystem {
       const cellCenterX = padding + pos.x * effectiveSize + tileSize / 2;
       const cellCenterY = padding + pos.y * effectiveSize + tileSize / 2;
 
-      // Get original offset ratio (stored implicitly in current position)
-      // We need to maintain relative position within cell
+      // Update scale based on new tile size
       const oldScale = this.decorationScales.get(sprite);
       if (oldScale) {
-        // Update scale based on new tile size
         const baseScale = tileSize / 128;
         const scaleRatio = oldScale.x / (this.tileSize / 128 * 0.5); // Get original variation
         const newScale = baseScale * scaleRatio * 0.5;
@@ -224,10 +225,12 @@ export class DecorationSystem {
         this.decorationScales.set(sprite, { x: newScale, y: newScale });
       }
 
-      // Random offset is preserved as ratio of tile size
-      // For now, just reposition to cell center (offset will be recalculated on reload)
-      sprite.x = cellCenterX;
-      sprite.y = cellCenterY;
+      // Apply stored offset ratio to preserve random position within cell
+      const offset = this.decorationOffsets.get(sprite);
+      const offsetX = offset ? offset.x * tileSize : 0;
+      const offsetY = offset ? offset.y * tileSize : 0;
+      sprite.x = cellCenterX + offsetX;
+      sprite.y = cellCenterY + offsetY;
     }
   }
 
@@ -239,6 +242,7 @@ export class DecorationSystem {
     this.decorations = [];
     this.decorationPositions.clear();
     this.decorationScales.clear();
+    this.decorationOffsets.clear();
     this.container.removeChildren();
   }
 

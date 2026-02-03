@@ -151,6 +151,7 @@ export class LevelGenerationService {
         },
       ],
       roadTiles,
+      seed, // Store seed for reproducible decorations
     };
   }
 
