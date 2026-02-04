@@ -53,6 +53,7 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 | [Environment Config](guides/environment-config.md) | Local, QA, production setup |
 | [Level Manifests](guides/unified-manifest-design.md) | Level files and GCS deployment |
 | [Asset Pipeline](guides/asset-pipeline.md) | Sprites, fonts, and atlases    |
+| [UID Asset Storage](guides/uid-asset-storage.md) | Cloud storage with UID suffixes |
 | [Audio Setup](guides/audio-setup.md)       | Sound effects and music        |
 | [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions  |
 
@@ -109,6 +110,7 @@ See the **[New Game Guide](guides/new-game.md)** for step-by-step instructions o
 
 ### Asset & Audio
 - **[Asset Pipeline](guides/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases
+- **[UID Asset Storage](guides/uid-asset-storage.md)** - Cloud storage strategy with UID-suffixed filenames
 - **[Audio Setup](guides/audio-setup.md)** - Audio sprites, sound effects, and music
 
 ### Reference

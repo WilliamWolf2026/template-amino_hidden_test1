@@ -128,12 +128,9 @@ export async function loadLevelManifest(): Promise<LevelLoadResult> {
 
     // Use asset base from manifest if provided, otherwise use environment CDN
     assetBase = manifest.assets?.base || envCdnUrl;
-
-    console.log(`[LevelManifest] Loaded from ${url}, asset base: ${assetBase}`);
   } catch (error) {
     // If level manifest fails to load, use environment defaults
-    console.warn(`[LevelManifest] Failed to load from ${url}:`, error);
-    console.log(`[LevelManifest] Using environment CDN: ${envCdnUrl}`);
+    console.warn(`[Level] Failed to load manifest:`, error);
 
     // Return minimal manifest with environment CDN
     assetBase = envCdnUrl;

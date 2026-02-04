@@ -63,7 +63,6 @@ export function GameScreen() {
     try {
       const config = await loadSectionConfig();
       setSectionConfig(config);
-      console.log('[GameScreen] Section config loaded:', config.sectionId ?? 'default');
 
       // Generate full chapter upfront
       const chapter = ChapterGenerationService.generateChapter(config, tuning.game.generator);
@@ -74,13 +73,8 @@ export function GameScreen() {
 
       // Set first level from generated chapter
       setCurrentLevel(chapter.levels[0]);
-
-      console.log('[GameScreen] Chapter generated:', {
-        chapterLength: chapter.chapterLength,
-        seeds: chapter.seeds,
-      });
     } catch (err) {
-      console.error('[GameScreen] Failed to load section config:', err);
+      console.error('[Game] Failed to load section config:', err);
     }
 
     // Get initial tuning values
@@ -260,7 +254,6 @@ export function GameScreen() {
           bar.setProgress(current, total);
           if (chapterLabel) chapterLabel.text = `${current} / ${total}`;
           if (ariaLiveRef) ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
-          console.log('[GameScreen] Progress updated after transition:', current, '/', total);
         } catch (err) {
           console.error('[GameScreen] Level transition animation error:', err);
         }
@@ -282,14 +275,12 @@ export function GameScreen() {
       if (debugParams.debugLevel !== undefined) {
         gameState.setCurrentLevel(debugParams.debugLevel);
         bar.setProgress(debugParams.debugLevel, 10, false); // No animation on initial load
-        console.log('[GameScreen] Debug: Set progress to', debugParams.debugLevel);
       } else {
         bar.setProgress(gameState.currentLevel(), gameState.totalLevels(), false); // No animation on initial load
       }
 
       if (debugParams.debugProgressAnim) {
         bar.playFillAnimation();
-        console.log('[GameScreen] Debug: Playing fill animation');
       }
       // END TEMPORARY DEBUG SUPPORT
 
@@ -307,19 +298,17 @@ export function GameScreen() {
         manager.playTileRotate();
       });
 
-      game.onGameEvent('levelComplete', (payload) => {
-        console.log('[GameScreen] Level complete!', payload);
+      game.onGameEvent('levelComplete', () => {
         manager.playLevelComplete();
 
         // Note: Progress update is deferred until after level transition completes
         // This happens in the completionStart callback after playLevelTransition()
         gameState.incrementLevel();
-        console.log('[GameScreen] Level complete, progress will update after transition');
       });
 
       // Landmark connected event (no sound - too noisy during gameplay)
-      game.onGameEvent('landmarkConnected', (landmark) => {
-        console.log('[GameScreen] Landmark connected:', landmark);
+      game.onGameEvent('landmarkConnected', () => {
+        // Silent - landmark connections are visual only
       });
 
       // Wire completion events - show CluePopup for mid-chapter levels, full overlay for chapter end
@@ -332,8 +321,6 @@ export function GameScreen() {
         // Get clue from section config if available, otherwise fall back to level clue
         const storyClue = config ? getClueForLevel(config, levelNumber) : null;
         const clueText = storyClue ?? _levelClue;
-
-        console.log('[GameScreen] Level complete!', { levelNumber, isChapterEnd, clueText });
 
         // Play news reveal sound
         manager.playNewsReveal();
@@ -405,8 +392,6 @@ export function GameScreen() {
           }
         }
       });
-
-      console.log('[GameScreen] City Lines game loaded');
 
       // Create companion dialogue group (reused for intro and completion)
       companionGroup = new Container();
@@ -587,7 +572,7 @@ export function GameScreen() {
 
       window.addEventListener('resize', resizeHandler);
 
-      console.log('[GameScreen] Companion dialogue setup complete (reused for intro and completion)');
+      console.log('[Game] Started');
     }
   });
 
@@ -647,8 +632,6 @@ export function GameScreen() {
     // Keep game at screen center (pivot is at grid center)
     game.x = app.screen.width / 2;
     game.y = app.screen.height / 2;
-
-    console.log('[Tuning] Grid layout updated:', { tileSize, padding, cellGap });
   });
 
   // Track previous 9-slice values for comparison guards
@@ -740,7 +723,6 @@ export function GameScreen() {
 
     prevCompletionPaint = { staggerDelay, tileDuration, blastSizePercent };
     game.setCompletionPaintConfig({ staggerDelay, tileDuration, easing, blastSizePercent });
-    console.log('[Tuning] Completion paint config updated:', { staggerDelay, tileDuration, blastSizePercent });
   });
 
   // Progress bar theme changes
@@ -756,15 +738,12 @@ export function GameScreen() {
     // For now, default to atlantic if not set
     const countyConfig = getCountyConfig('atlantic');
     bar.setTheme(countyConfig?.themeColor, tileTheme);
-
-    console.log('[Tuning] Progress bar theme updated:', { tileTheme });
   });
 
   // Reactive: Audio volume changes
   createEffect(() => {
     const volume = audio.volume();
     coordinator.audio.setMasterVolume(volume);
-    console.log('[Audio] Master volume updated:', volume);
   });
 
   // Reactive: Music enabled/disabled
@@ -809,8 +788,6 @@ export function GameScreen() {
     game.playLevelTransition().catch(err => {
       console.error('[GameScreen] Level transition animation error:', err);
     });
-
-    console.log('[Generator] Level regenerated with new config');
   };
 
   // Expose regenerateLevel to window for Tweakpane button

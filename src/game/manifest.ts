@@ -1,7 +1,9 @@
 import type { Manifest } from '~/scaffold/systems/assets';
+import { getCdnUrl, getLocalAssetPath } from '~/game/config';
 
 export const manifest: Manifest = {
-  cdnBase: '/assets/assets/v1',
+  cdnBase: getCdnUrl(),
+  localBase: getLocalAssetPath(),
   bundles: [
     // THEME - Branding (agnostic, loaded first)
     { name: 'theme-branding', assets: ['branding/atlas-branding-wolf.json'] },

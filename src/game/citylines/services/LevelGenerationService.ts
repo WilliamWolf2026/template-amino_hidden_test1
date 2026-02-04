@@ -44,9 +44,6 @@ export class LevelGenerationService {
     // Convert to game format (scrambling will be done during conversion)
     const gameLevel = this.convertGeneratorLevel(complexLevel, levelNumber, effectiveSeed);
 
-    // Log ASCII visualization
-    this.logLevelVisualization(complexLevel, gameLevel);
-
     return gameLevel;
   }
 

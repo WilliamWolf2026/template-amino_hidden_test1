@@ -29,6 +29,11 @@ export function AssetProvider(props: AssetProviderProps) {
   const coordinator = new AssetCoordinator();
   coordinator.init(props.manifest, props.config);
 
+  // Log asset source
+  const cdnBase = props.manifest.cdnBase;
+  const isRemote = cdnBase.startsWith('http');
+  console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
+
   const [ready, setReady] = createSignal(false);
   const [gpuReady, setGpuReady] = createSignal(false);
   const [loading, setLoading] = createSignal(false);

@@ -35,8 +35,6 @@ export class ChapterGenerationService {
     const levels: LevelConfig[] = [];
     const seeds: number[] = [];
 
-    console.log(`[ChapterGeneration] Generating ${chapterLength} levels...`);
-
     for (let i = 0; i < chapterLength; i++) {
       const levelNumber = i + 1;
 
@@ -63,16 +61,9 @@ export class ChapterGenerationService {
       level.county = config.county;
 
       levels.push(level);
-
-      console.log(
-        `[ChapterGeneration] Level ${levelNumber}/${chapterLength}: ` +
-        `${difficulty.gridSize}x${difficulty.gridSize}, ` +
-        `${difficulty.landmarkCount.min}-${difficulty.landmarkCount.max} landmarks, ` +
-        `seed=${seed}`
-      );
     }
 
-    console.log(`[ChapterGeneration] Chapter complete. Seeds:`, seeds);
+    console.log(`[Chapter] Loaded ${chapterLength} levels`);
 
     return { levels, seeds, chapterLength };
   }

@@ -24,9 +24,16 @@ export class AudioLoader {
   private masterVolume = 1;
   private masterMuted = false;
   private initialized = false;
+  private usingFallback = false;
 
   init(manifest: Manifest): void {
     this.manifest = manifest;
+  }
+
+  private getBaseUrl(): string {
+    return this.usingFallback && this.manifest.localBase
+      ? this.manifest.localBase
+      : this.manifest.cdnBase;
   }
 
   // Must be called after user gesture (e.g., start button click)
@@ -49,18 +56,36 @@ export class AudioLoader {
     const key = filename.replace(/\.json$/, '');
     if (this.channels.has(key)) return;
 
-    const jsonUrl = `${this.manifest.cdnBase}/${jsonPath}`;
-    const response = await fetch(jsonUrl);
+    const baseUrl = this.getBaseUrl();
+    const jsonUrl = `${baseUrl}/${jsonPath}`;
+    let response: Response;
 
-    if (!response.ok) {
-      throw new Error(`Failed to load audio: ${jsonUrl}`);
+    try {
+      response = await fetch(jsonUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      // If CDN fails and we have a local fallback, try that
+      if (!this.usingFallback && this.manifest.localBase) {
+        console.warn(`[Audio] CDN failed for ${jsonPath}, falling back to local`);
+        this.usingFallback = true;
+        const localUrl = `${this.manifest.localBase}/${jsonPath}`;
+        response = await fetch(localUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to load audio: ${localUrl}`);
+        }
+      } else {
+        throw new Error(`Failed to load audio: ${jsonUrl}`);
+      }
     }
 
     const json: AudioSpriteData = await response.json();
 
     // Resolve src paths relative to JSON location
     const dir = jsonPath.substring(0, jsonPath.lastIndexOf('/'));
-    const resolvedSrc = json.src.map((s) => `${this.manifest.cdnBase}/${dir}/${s}`);
+    const currentBase = this.getBaseUrl();
+    const resolvedSrc = json.src.map((s) => `${currentBase}/${dir}/${s}`);
 
     const howl = new Howl({
       src: resolvedSrc,

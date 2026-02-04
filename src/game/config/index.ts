@@ -4,6 +4,7 @@ export {
   getEnvironment,
   isLocal,
   isProduction,
+  getLocalAssetPath,
   getCdnUrl,
   getLevelsUrl,
   resolveLevelUrl,

@@ -243,7 +243,6 @@ export class CityLinesGame extends Container {
       this.roadTiles.push(roadTile);
       this.roadTilesContainer.addChild(roadTile);
     }
-    console.log('[CityLinesGame] Loaded tiles:', tileTypeCounts);
 
     // Initial connection check
     this.updateConnections();

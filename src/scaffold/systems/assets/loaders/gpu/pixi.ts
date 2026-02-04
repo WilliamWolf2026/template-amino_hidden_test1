@@ -5,12 +5,17 @@ export class PixiLoader implements AssetLoader {
   private manifest!: Manifest;
   private loadedBundles = new Set<string>();
   private initialized = false;
+  private usingFallback = false;
 
   init(manifest: Manifest): void {
     this.manifest = manifest;
+    this.registerBundles(manifest.cdnBase);
+    this.initialized = true;
+  }
 
+  private registerBundles(baseUrl: string): void {
     // Register all bundles with Pixi's native Assets system
-    for (const bundle of manifest.bundles) {
+    for (const bundle of this.manifest.bundles) {
       const assets: Record<string, string> = {};
 
       for (const path of bundle.assets) {
@@ -19,15 +24,13 @@ export class PixiLoader implements AssetLoader {
         // e.g., 'atlases/atlas-tiles-citylines.json' -> 'atlas-tiles-citylines'
         const filename = path.split('/').pop() || path;
         const key = filename.replace(/\.json$/, '');
-        assets[key] = `${manifest.cdnBase}/${path}`;
+        assets[key] = `${baseUrl}/${path}`;
       }
 
       if (Object.keys(assets).length > 0) {
         Assets.addBundle(bundle.name, assets);
       }
     }
-
-    this.initialized = true;
   }
 
   isInitialized(): boolean {
@@ -66,6 +69,19 @@ export class PixiLoader implements AssetLoader {
       // Pixi handles everything: fetch, parse, texture creation, caching
       await Assets.loadBundle(name);
       this.loadedBundles.add(name);
+    } catch (error) {
+      // If CDN fails and we have a local fallback, try that
+      if (!this.usingFallback && this.manifest.localBase) {
+        console.warn(`[Assets] CDN failed for ${name}, falling back to local`);
+        this.usingFallback = true;
+        // Re-register bundles with local URLs
+        this.registerBundles(this.manifest.localBase);
+        // Retry the load
+        await Assets.loadBundle(name);
+        this.loadedBundles.add(name);
+      } else {
+        throw error;
+      }
     } finally {
       if (isVfxBundle) {
         console.warn = originalWarn;

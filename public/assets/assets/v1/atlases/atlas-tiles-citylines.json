@@ -24,34 +24,10 @@
         "y": 0.5
       }
     },
-    "title.png": {
-      "frame": {
-        "x": 518,
-        "y": 2,
-        "w": 256,
-        "h": 74
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 91,
-        "w": 256,
-        "h": 74
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 256
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "character_a.png": {
       "frame": {
         "x": 518,
-        "y": 80,
+        "y": 2,
         "w": 222,
         "h": 243
       },
@@ -74,8 +50,8 @@
     },
     "character_b.png": {
       "frame": {
-        "x": 2,
-        "y": 518,
+        "x": 518,
+        "y": 249,
         "w": 222,
         "h": 243
       },
@@ -96,24 +72,24 @@
         "y": 0.5
       }
     },
-    "bush.png": {
+    "title.png": {
       "frame": {
-        "x": 518,
-        "y": 327,
-        "w": 128,
-        "h": 89
+        "x": 2,
+        "y": 518,
+        "w": 256,
+        "h": 64
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 0,
-        "y": 11,
-        "w": 128,
-        "h": 89
+        "y": 96,
+        "w": 256,
+        "h": 64
       },
       "sourceSize": {
-        "w": 128,
-        "h": 128
+        "w": 256,
+        "h": 256
       },
       "pivot": {
         "x": 0.5,
@@ -122,8 +98,8 @@
     },
     "button.png": {
       "frame": {
-        "x": 228,
-        "y": 518,
+        "x": 518,
+        "y": 496,
         "w": 128,
         "h": 128
       },
@@ -146,7 +122,7 @@
     },
     "dialogue.png": {
       "frame": {
-        "x": 360,
+        "x": 262,
         "y": 518,
         "w": 128,
         "h": 128
@@ -168,34 +144,10 @@
         "y": 0.5
       }
     },
-    "diner.png": {
-      "frame": {
-        "x": 518,
-        "y": 420,
-        "w": 128,
-        "h": 112
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 7,
-        "w": 128,
-        "h": 112
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "grid_backing.png": {
       "frame": {
-        "x": 492,
-        "y": 536,
+        "x": 2,
+        "y": 586,
         "w": 128,
         "h": 128
       },
@@ -218,8 +170,8 @@
     },
     "tile_a.png": {
       "frame": {
-        "x": 624,
-        "y": 536,
+        "x": 394,
+        "y": 628,
         "w": 128,
         "h": 128
       },
@@ -229,30 +181,6 @@
         "x": 0,
         "y": 0,
         "w": 128,
-        "h": 128
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "tile_a_completed.png": {
-      "frame": {
-        "x": 650,
-        "y": 327,
-        "w": 115,
-        "h": 128
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 7,
-        "y": 0,
-        "w": 115,
         "h": 128
       },
       "sourceSize": {
@@ -266,8 +194,8 @@
     },
     "tile_b.png": {
       "frame": {
-        "x": 2,
-        "y": 765,
+        "x": 526,
+        "y": 628,
         "w": 128,
         "h": 128
       },
@@ -288,34 +216,10 @@
         "y": 0.5
       }
     },
-    "tile_b_completed.png": {
-      "frame": {
-        "x": 134,
-        "y": 765,
-        "w": 117,
-        "h": 128
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 0,
-        "w": 117,
-        "h": 128
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "tile_c.png": {
       "frame": {
-        "x": 255,
-        "y": 668,
+        "x": 2,
+        "y": 718,
         "w": 128,
         "h": 128
       },
@@ -338,114 +242,90 @@
     },
     "house.png": {
       "frame": {
-        "x": 387,
-        "y": 668,
-        "w": 126,
+        "x": 134,
+        "y": 650,
+        "w": 127,
         "h": 122
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 2,
-        "y": 6,
-        "w": 126,
-        "h": 122
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "progress_bar_back.png": {
-      "frame": {
-        "x": 255,
-        "y": 800,
-        "w": 126,
-        "h": 54
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
         "x": 1,
-        "y": 37,
-        "w": 126,
-        "h": 54
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "progress_bar_fill.png": {
-      "frame": {
-        "x": 385,
-        "y": 800,
-        "w": 126,
-        "h": 54
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 1,
-        "y": 37,
-        "w": 126,
-        "h": 54
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "progress_bar_top.png": {
-      "frame": {
-        "x": 515,
-        "y": 794,
-        "w": 126,
-        "h": 54
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 1,
-        "y": 37,
-        "w": 126,
-        "h": 54
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "tree.png": {
-      "frame": {
-        "x": 645,
-        "y": 668,
-        "w": 97,
-        "h": 126
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 17,
         "y": 2,
-        "w": 97,
-        "h": 126
+        "w": 127,
+        "h": 122
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "tile_b_completed.png": {
+      "frame": {
+        "x": 265,
+        "y": 650,
+        "w": 117,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 0,
+        "w": 117,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "tile_a_completed.png": {
+      "frame": {
+        "x": 650,
+        "y": 496,
+        "w": 115,
+        "h": 128
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 7,
+        "y": 0,
+        "w": 115,
+        "h": 128
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "diner.png": {
+      "frame": {
+        "x": 658,
+        "y": 628,
+        "w": 128,
+        "h": 112
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 6,
+        "w": 128,
+        "h": 112
       },
       "sourceSize": {
         "w": 128,
@@ -458,66 +338,18 @@
     },
     "gas_station.png": {
       "frame": {
-        "x": 517,
-        "y": 668,
-        "w": 122,
+        "x": 134,
+        "y": 776,
+        "w": 124,
         "h": 114
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 3,
-        "y": 6,
-        "w": 122,
+        "x": 2,
+        "y": 5,
+        "w": 124,
         "h": 114
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "exit.png": {
-      "frame": {
-        "x": 778,
-        "y": 2,
-        "w": 120,
-        "h": 102
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 4,
-        "y": 18,
-        "w": 120,
-        "h": 102
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 128
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "market.png": {
-      "frame": {
-        "x": 769,
-        "y": 108,
-        "w": 120,
-        "h": 113
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 4,
-        "y": 9,
-        "w": 120,
-        "h": 113
       },
       "sourceSize": {
         "w": 128,
@@ -530,8 +362,8 @@
     },
     "tile_c_completed.png": {
       "frame": {
-        "x": 769,
-        "y": 225,
+        "x": 658,
+        "y": 744,
         "w": 116,
         "h": 120
       },
@@ -554,18 +386,186 @@
     },
     "school.png": {
       "frame": {
-        "x": 769,
-        "y": 349,
-        "w": 117,
-        "h": 118
+        "x": 386,
+        "y": 760,
+        "w": 119,
+        "h": 116
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 3,
+        "y": 5,
+        "w": 119,
+        "h": 116
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "market.png": {
+      "frame": {
+        "x": 2,
+        "y": 850,
+        "w": 120,
+        "h": 114
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
         "x": 4,
-        "y": 5,
-        "w": 117,
-        "h": 118
+        "y": 9,
+        "w": 120,
+        "h": 114
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "exit.png": {
+      "frame": {
+        "x": 509,
+        "y": 760,
+        "w": 121,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 3,
+        "y": 16,
+        "w": 121,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "tree.png": {
+      "frame": {
+        "x": 262,
+        "y": 782,
+        "w": 97,
+        "h": 126
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 17,
+        "y": 2,
+        "w": 97,
+        "h": 126
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "bush.png": {
+      "frame": {
+        "x": 634,
+        "y": 868,
+        "w": 128,
+        "h": 89
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 11,
+        "w": 128,
+        "h": 89
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "progress_bar_back.png": {
+      "frame": {
+        "x": 126,
+        "y": 894,
+        "w": 126,
+        "h": 54
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 37,
+        "w": 126,
+        "h": 54
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "progress_bar_fill.png": {
+      "frame": {
+        "x": 363,
+        "y": 880,
+        "w": 126,
+        "h": 54
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 37,
+        "w": 126,
+        "h": 54
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 128
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "progress_bar_top.png": {
+      "frame": {
+        "x": 493,
+        "y": 880,
+        "w": 126,
+        "h": 54
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 37,
+        "w": 126,
+        "h": 54
       },
       "sourceSize": {
         "w": 128,
@@ -578,8 +578,8 @@
     },
     "flower_a.png": {
       "frame": {
-        "x": 650,
-        "y": 471,
+        "x": 134,
+        "y": 586,
         "w": 54,
         "h": 54
       },
@@ -602,8 +602,8 @@
     },
     "flower_b.png": {
       "frame": {
-        "x": 708,
-        "y": 459,
+        "x": 192,
+        "y": 586,
         "w": 54,
         "h": 54
       },
@@ -626,8 +626,8 @@
     },
     "flower_c.png": {
       "frame": {
-        "x": 645,
-        "y": 798,
+        "x": 766,
+        "y": 868,
         "w": 54,
         "h": 54
       },
@@ -655,8 +655,8 @@
     "image": "atlas-tiles-citylines.png",
     "format": "RGBA8888",
     "size": {
-      "w": 900,
-      "h": 895
+      "w": 822,
+      "h": 966
     },
     "scale": 1
   }
