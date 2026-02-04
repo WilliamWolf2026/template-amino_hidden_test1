@@ -18,12 +18,10 @@ export type { Environment } from '~/scaffold/config';
 const GAME_PATHS = {
   /** Path segment for this game on CDN */
   gamePath: 'games/citylines/data',
-  /** Asset version */
-  assetVersion: 'v1',
-  /** Local asset path (when CDN base is empty) */
-  localAssetPath: '/assets/assets/v1',
+  /** Local asset path (flat structure) */
+  localAssetPath: '/assets',
   /** Local levels path */
-  localLevelsPath: '/assets/levels',
+  localLevelsPath: '/levels',
 };
 
 /**
@@ -45,8 +43,8 @@ export const getCdnUrl = (): string => {
     return GAME_PATHS.localAssetPath;
   }
 
-  // Remote environment - construct full URL
-  const cdnUrl = `${baseUrl}/${GAME_PATHS.gamePath}/assets/${GAME_PATHS.assetVersion}`;
+  // Remote environment - construct full URL (flat structure)
+  const cdnUrl = `${baseUrl}/${GAME_PATHS.gamePath}/assets`;
   console.log(`[CDN] Remote: ${cdnUrl}`);
   return cdnUrl;
 };

@@ -24,6 +24,8 @@ export interface GameConfig {
     results: Component;
   };
   initialScreen: 'loading' | 'start' | 'game' | 'results';
+  /** URL to fetch manifest from server (null for local static manifest) */
+  serverStorageUrl: string | null;
 }
 
 export const gameConfig: GameConfig = {
@@ -34,4 +36,7 @@ export const gameConfig: GameConfig = {
     results: ResultsScreen,
   },
   initialScreen: 'loading',
+  // Set to null for local development (uses static manifest)
+  // Set to server URL for remote manifest fetching
+  serverStorageUrl: null,
 };

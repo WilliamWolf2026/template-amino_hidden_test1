@@ -15,16 +15,14 @@ export class PixiLoader implements AssetLoader {
 
   private registerBundles(baseUrl: string): void {
     // Register all bundles with Pixi's native Assets system
+    // Key = bundle.name (explicit, no derivation from path)
     for (const bundle of this.manifest.bundles) {
       const assets: Record<string, string> = {};
 
       for (const path of bundle.assets) {
-        if (path.includes('audio/')) continue; // Skip audio
-        // Use just the filename (without directory and extension) as the key
-        // e.g., 'atlases/atlas-tiles-citylines.json' -> 'atlas-tiles-citylines'
-        const filename = path.split('/').pop() || path;
-        const key = filename.replace(/\.json$/, '');
-        assets[key] = `${baseUrl}/${path}`;
+        if (path.endsWith('.mp3') || path.endsWith('.webm') || path.endsWith('.ogg')) continue; // Skip audio
+        // Use bundle.name as the key for this asset
+        assets[bundle.name] = `${baseUrl}/${path}`;
       }
 
       if (Object.keys(assets).length > 0) {
@@ -43,8 +41,9 @@ export class PixiLoader implements AssetLoader {
     const bundle = this.manifest.bundles.find((b) => b.name === name);
     if (!bundle) throw new Error(`Unknown bundle: ${name}`);
 
-    // Check if bundle has any non-audio assets
-    const hasAssets = bundle.assets.some((p) => !p.includes('audio/'));
+    // Check if bundle has any non-audio assets (GPU-loadable)
+    const isAudioFile = (p: string) => p.endsWith('.mp3') || p.endsWith('.webm') || p.endsWith('.ogg');
+    const hasAssets = bundle.assets.some((p) => !isAudioFile(p));
     if (!hasAssets) {
       this.loadedBundles.add(name);
       return;
@@ -100,16 +99,15 @@ export class PixiLoader implements AssetLoader {
 
   // Get texture for a specific frame
   getTexture(sheet: string, frame: string): Texture {
-    const sheetKey = sheet.replace(/\.json$/, '');
-    const data = Assets.get<Spritesheet>(sheetKey);
+    const data = Assets.get<Spritesheet>(sheet);
 
     if (!data) {
-      throw new Error(`Sheet not loaded: ${sheetKey}`);
+      throw new Error(`Sheet not loaded: ${sheet}`);
     }
 
     const texture = data.textures?.[frame];
     if (!texture) {
-      throw new Error(`Frame not found: ${frame} in ${sheetKey}`);
+      throw new Error(`Frame not found: ${frame} in ${sheet}`);
     }
 
     return texture;
@@ -122,16 +120,15 @@ export class PixiLoader implements AssetLoader {
 
   // Create an animated sprite from an animation
   createAnimatedSprite(sheet: string, animation: string): AnimatedSprite {
-    const sheetKey = sheet.replace(/\.json$/, '');
-    const data = Assets.get<Spritesheet>(sheetKey);
+    const data = Assets.get<Spritesheet>(sheet);
 
     if (!data) {
-      throw new Error(`Sheet not loaded: ${sheetKey}`);
+      throw new Error(`Sheet not loaded: ${sheet}`);
     }
 
     const frames = data.animations?.[animation];
     if (!frames) {
-      throw new Error(`Animation not found: ${animation} in ${sheetKey}`);
+      throw new Error(`Animation not found: ${animation} in ${sheet}`);
     }
 
     return new AnimatedSprite(frames);
@@ -139,8 +136,7 @@ export class PixiLoader implements AssetLoader {
 
   // Get all frame names in a sheet
   getFrameNames(sheet: string): string[] {
-    const sheetKey = sheet.replace(/\.json$/, '');
-    const data = Assets.get<Spritesheet>(sheetKey);
+    const data = Assets.get<Spritesheet>(sheet);
 
     if (!data?.textures) return [];
     return Object.keys(data.textures);
@@ -148,8 +144,7 @@ export class PixiLoader implements AssetLoader {
 
   // Get all animation names in a sheet
   getAnimationNames(sheet: string): string[] {
-    const sheetKey = sheet.replace(/\.json$/, '');
-    const data = Assets.get<Spritesheet>(sheetKey);
+    const data = Assets.get<Spritesheet>(sheet);
 
     if (!data?.animations) return [];
     return Object.keys(data.animations);
@@ -157,7 +152,6 @@ export class PixiLoader implements AssetLoader {
 
   // Check if a sheet is loaded
   hasSheet(sheet: string): boolean {
-    const sheetKey = sheet.replace(/\.json$/, '');
-    return Assets.get(sheetKey) !== undefined;
+    return Assets.get(sheet) !== undefined;
   }
 }
