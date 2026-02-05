@@ -67,6 +67,7 @@ The scaffold provides engine-agnostic systems that can power any game.
 
 - **[Architecture Overview](scaffold/architecture.md)** - System overview, diagrams, and design patterns
 - **[Deep Dive](scaffold/deep-dive.md)** - Comprehensive technical documentation with data flow analysis
+- **[Overview & Migration Guide](scaffold/scaffold-overview-and-migration.md)** - Complete scaffold inventory and game swap guide
 
 ### Systems
 
