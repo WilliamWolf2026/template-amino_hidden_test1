@@ -4,21 +4,13 @@
 
   "assets": {
     "base": "/assets/assets/v1",
-    "branding": {
-      "atlas": "branding/atlas-branding-wolf.json"
-    },
-    "atlases": {
-      "tiles": "atlases/atlas-tiles-citylines.json",
-      "tiles_fall": "atlases/atlas-tiles-citylines-fall.json",
-      "tiles_winter": "atlases/atlas-tiles-citylines-winter.json"
-    },
-    "vfx": {
-      "rotate": "vfx/vfx-rotate.json",
-      "blast": "vfx/vfx-blast.json"
-    },
-    "audio": {
-      "sfx": "audio/sfx-citylines.json"
-    }
+    "branding": "atlas-branding-wolf.json",
+    "tiles": "atlas-tiles-citylines.json",
+    "tiles_fall": "atlas-tiles-citylines-fall.json",
+    "tiles_winter": "atlas-tiles-citylines-winter.json",
+    "vfx_rotate": "vfx-rotate.json",
+    "vfx_blast": "vfx-blast.json",
+    "sfx": "sfx-citylines.json"
   },
 
   "county": "bergen",

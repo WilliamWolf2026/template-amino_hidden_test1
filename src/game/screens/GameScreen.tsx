@@ -137,20 +137,24 @@ export function GameScreen() {
       // Load generated level
       game.loadLevel(currentLevel());
 
-      // Auto-size to viewport (shrink tiles if grid is too large)
-      game.autoSizeToViewport(
-        app.screen.width,
-        app.screen.height,
-        tileSize,  // max tile size from tuning
-        80,        // reserved top (progress bar area)
-        100        // reserved bottom (logo area)
-      );
-
-      // Center the game on screen (pivot is at grid center, so position at screen center)
-      game.x = app.screen.width / 2;
-      game.y = app.screen.height / 2;
-
+      // Add to stage first so it's part of the render tree
       app.stage.addChild(game);
+
+      // Wait one frame for Pixi to finalize screen dimensions (resizeTo is async)
+      app.ticker.addOnce(() => {
+        // Auto-size to viewport (shrink tiles if grid is too large)
+        game.autoSizeToViewport(
+          app.screen.width,
+          app.screen.height,
+          tileSize,  // max tile size from tuning
+          80,        // reserved top (progress bar area)
+          100        // reserved bottom (logo area)
+        );
+
+        // Center the game on screen (pivot is at grid center, so position at screen center)
+        game.x = app.screen.width / 2;
+        game.y = app.screen.height / 2;
+      });
       setGameInstance(game);
 
       // Create progress bar HUD
