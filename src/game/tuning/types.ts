@@ -15,11 +15,11 @@ export interface ThemeConfig {
 export function getTileBundleName(theme: TileTheme): string {
   switch (theme) {
     case 'fall':
-      return 'tiles_citylines_v1_fall';
+      return 'atlas-tiles-citylines-fall';
     case 'winter':
-      return 'tiles_citylines_v1_winter';
+      return 'atlas-tiles-citylines-winter';
     default:
-      return 'tiles_citylines_v1';
+      return 'atlas-tiles-citylines';
   }
 }
 

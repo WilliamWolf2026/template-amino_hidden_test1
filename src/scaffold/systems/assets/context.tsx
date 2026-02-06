@@ -1,6 +1,7 @@
 import { createContext, useContext, createSignal, type ParentProps } from 'solid-js';
 import { AssetCoordinator, type CoordinatorConfig } from './coordinator';
 import type { Manifest } from './types';
+import { useManifest } from '~/scaffold/systems/manifest/context';
 
 // Context shape
 interface AssetContextValue {
@@ -21,13 +22,18 @@ interface AssetContextValue {
 const AssetContext = createContext<AssetContextValue>();
 
 interface AssetProviderProps extends ParentProps {
-  manifest: Manifest;
   config: CoordinatorConfig;
 }
 
 export function AssetProvider(props: AssetProviderProps) {
+  const { manifest } = useManifest();
   const coordinator = new AssetCoordinator();
-  coordinator.init(props.manifest, props.config);
+  coordinator.init(manifest(), props.config);
+
+  // Log asset source
+  const cdnBase = manifest().cdnBase;
+  const isRemote = cdnBase.startsWith('http');
+  console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
 
   const [ready, setReady] = createSignal(false);
   const [gpuReady, setGpuReady] = createSignal(false);

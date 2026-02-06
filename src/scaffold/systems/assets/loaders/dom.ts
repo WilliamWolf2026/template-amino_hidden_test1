@@ -8,9 +8,16 @@ export class DomLoader implements AssetLoader {
   private cache = new Map<string, CachedAsset>();
   private loading = new Map<string, Promise<CachedAsset>>();
   private loadedBundles = new Set<string>();
+  private usingFallback = false;
 
   init(manifest: Manifest): void {
     this.manifest = manifest;
+  }
+
+  private getBaseUrl(): string {
+    return this.usingFallback && this.manifest.localBase
+      ? this.manifest.localBase
+      : this.manifest.cdnBase;
   }
 
   async loadBundle(name: string): Promise<void> {
@@ -39,7 +46,10 @@ export class DomLoader implements AssetLoader {
 
   // Load any asset type
   async loadAsset(path: string): Promise<CachedAsset> {
-    const key = path.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
+    // Use just the filename (without directory and extension) as the key
+    // e.g., 'branding/atlas-branding-wolf.json' -> 'atlas-branding-wolf'
+    const filename = path.split('/').pop() || path;
+    const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
 
     if (this.cache.has(key)) {
       return this.cache.get(key)!;
@@ -83,17 +93,35 @@ export class DomLoader implements AssetLoader {
   }
 
   private async doLoadSheet(jsonPath: string): Promise<LoadedSheet> {
-    const jsonUrl = `${this.manifest.cdnBase}/${jsonPath}`;
-    const response = await fetch(jsonUrl);
+    let baseUrl = this.getBaseUrl();
+    let jsonUrl = `${baseUrl}/${jsonPath}`;
+    let response: Response;
 
-    if (!response.ok) {
-      throw new Error(`Failed to load ${jsonUrl}: ${response.status}`);
+    try {
+      response = await fetch(jsonUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      // If CDN fails and we have a local fallback, try that
+      if (!this.usingFallback && this.manifest.localBase) {
+        console.warn(`[Assets] CDN failed for ${jsonPath}, falling back to local`);
+        this.usingFallback = true;
+        baseUrl = this.manifest.localBase;
+        jsonUrl = `${baseUrl}/${jsonPath}`;
+        response = await fetch(jsonUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${jsonUrl}: ${response.status}`);
+        }
+      } else {
+        throw new Error(`Failed to load ${jsonUrl}`);
+      }
     }
 
     const json: SpriteSheetData = await response.json();
 
     const dir = jsonPath.substring(0, jsonPath.lastIndexOf('/'));
-    const imageUrl = `${this.manifest.cdnBase}/${dir}/${json.meta.image}`;
+    const imageUrl = `${baseUrl}/${dir}/${json.meta.image}`;
 
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
@@ -112,11 +140,28 @@ export class DomLoader implements AssetLoader {
   }
 
   private async doLoadImage(imagePath: string): Promise<LoadedImage> {
-    const url = `${this.manifest.cdnBase}/${imagePath}`;
-    const response = await fetch(url);
+    let baseUrl = this.getBaseUrl();
+    let url = `${baseUrl}/${imagePath}`;
+    let response: Response;
 
-    if (!response.ok) {
-      throw new Error(`Failed to load ${url}: ${response.status}`);
+    try {
+      response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      // If CDN fails and we have a local fallback, try that
+      if (!this.usingFallback && this.manifest.localBase) {
+        console.warn(`[Assets] CDN failed for ${imagePath}, falling back to local`);
+        this.usingFallback = true;
+        url = `${this.manifest.localBase}/${imagePath}`;
+        response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${url}: ${response.status}`);
+        }
+      } else {
+        throw new Error(`Failed to load ${url}`);
+      }
     }
 
     const blob = await response.blob();
@@ -135,11 +180,27 @@ export class DomLoader implements AssetLoader {
   }
 
   private async doLoadJson(jsonPath: string): Promise<unknown> {
-    const url = `${this.manifest.cdnBase}/${jsonPath}`;
-    const response = await fetch(url);
+    let url = `${this.getBaseUrl()}/${jsonPath}`;
+    let response: Response;
 
-    if (!response.ok) {
-      throw new Error(`Failed to load ${url}: ${response.status}`);
+    try {
+      response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      // If CDN fails and we have a local fallback, try that
+      if (!this.usingFallback && this.manifest.localBase) {
+        console.warn(`[Assets] CDN failed for ${jsonPath}, falling back to local`);
+        this.usingFallback = true;
+        url = `${this.manifest.localBase}/${jsonPath}`;
+        response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${url}: ${response.status}`);
+        }
+      } else {
+        throw new Error(`Failed to load ${url}`);
+      }
     }
 
     return response.json();
@@ -148,7 +209,9 @@ export class DomLoader implements AssetLoader {
   // ─── Getters ─────────────────────────────────────────────
 
   get(path: string): CachedAsset | null {
-    const key = path.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
+    // Use just the filename (without directory and extension) as the key
+    const filename = path.split('/').pop() || path;
+    const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
     return this.cache.get(key) ?? null;
   }
 
@@ -161,7 +224,9 @@ export class DomLoader implements AssetLoader {
   }
 
   has(path: string): boolean {
-    const key = path.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
+    // Use just the filename (without directory and extension) as the key
+    const filename = path.split('/').pop() || path;
+    const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
     return this.cache.has(key);
   }
 

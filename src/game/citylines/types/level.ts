@@ -31,6 +31,8 @@ export interface LevelConfig {
   clue: string;
   /** Optional celebration image URL */
   celebrationImageUrl?: string;
+  /** Seed used for generation (for reproducible decorations) */
+  seed?: number;
 }
 
 /** Chapter configuration */
@@ -121,21 +123,30 @@ export function getContinuousDifficulty(levelNumber: number): DifficultySettings
 }
 
 /**
- * Get difficulty settings for a given level number
- * Levels progress 1-10 per chapter, then reset
+ * Get difficulty settings for a given level number.
+ * Maps any chapter length to the 10-level progression curve.
  *
  * @param levelNumber - Absolute level number (1-based)
+ * @param chapterLength - Number of levels in the chapter (default: 10)
  * @returns Difficulty settings for this level
  *
  * @example
- * getDifficultyForLevel(1)  // Chapter 1, Level 1 (easy)
- * getDifficultyForLevel(10) // Chapter 1, Level 10 (hard)
- * getDifficultyForLevel(11) // Chapter 2, Level 1 (reset to easy)
+ * getDifficultyForLevel(1)      // Level 1 of 10 (easy)
+ * getDifficultyForLevel(10)     // Level 10 of 10 (hard)
+ * getDifficultyForLevel(5, 8)   // Level 5 of 8 (scaled medium-hard)
  */
-export function getDifficultyForLevel(levelNumber: number): DifficultySettings {
-  // Convert to 0-based index within chapter (0-9)
-  const chapterLevelIndex = (levelNumber - 1) % 10;
-  return CHAPTER_LEVEL_PROGRESSION[chapterLevelIndex];
+export function getDifficultyForLevel(levelNumber: number, chapterLength: number = 10): DifficultySettings {
+  // Convert to 0-based index within chapter
+  const chapterLevelIndex = (levelNumber - 1) % chapterLength;
+
+  // Scale to 10-level progression (handles variable chapter lengths)
+  const progressionIndex = Math.floor(
+    (chapterLevelIndex / chapterLength) * CHAPTER_LEVEL_PROGRESSION.length
+  );
+
+  return CHAPTER_LEVEL_PROGRESSION[
+    Math.min(progressionIndex, CHAPTER_LEVEL_PROGRESSION.length - 1)
+  ];
 }
 
 /**

@@ -45,12 +45,17 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 
 ## Quick Navigation
 
-| Section                              | Description                  |
-| ------------------------------------ | ---------------------------- |
-| [Scaffold](scaffold/architecture.md) | Reusable framework systems   |
-| [Game](game/gdd.md)                  | CityLines game documentation |
-| [New Game Guide](guides/new-game.md) | Create your own game         |
-| [Guides](guides/configuration.md)    | Configuration and setup      |
+| Section                                    | Description                    |
+| ------------------------------------------ | ------------------------------ |
+| [Scaffold](scaffold/architecture.md)       | Reusable framework systems     |
+| [Game](game/gdd.md)                        | CityLines game documentation   |
+| [New Game Guide](guides/new-game.md)       | Create your own game           |
+| [Environment Config](guides/environment-config.md) | Local, QA, production setup |
+| [Level Manifests](guides/unified-manifest-design.md) | Level files and GCS deployment |
+| [Asset Pipeline](guides/asset-pipeline.md) | Sprites, fonts, and atlases    |
+| [UID Asset Storage](guides/uid-asset-storage.md) | Cloud storage with UID suffixes |
+| [Audio Setup](guides/audio-setup.md)       | Sound effects and music        |
+| [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions  |
 
 ---
 
@@ -62,6 +67,7 @@ The scaffold provides engine-agnostic systems that can power any game.
 
 - **[Architecture Overview](scaffold/architecture.md)** - System overview, diagrams, and design patterns
 - **[Deep Dive](scaffold/deep-dive.md)** - Comprehensive technical documentation with data flow analysis
+- **[Overview & Migration Guide](scaffold/scaffold-overview-and-migration.md)** - Complete scaffold inventory and game swap guide
 
 ### Systems
 
@@ -70,6 +76,7 @@ The scaffold provides engine-agnostic systems that can power any game.
 | [Assets](scaffold/systems/assets.md)   | Engine-agnostic asset loading        | `useAssets()` |
 | [Screens](scaffold/systems/screens.md) | Screen state machine and transitions | `useScreen()` |
 | [Tuning](scaffold/systems/tuning.md)   | Live parameter adjustment            | `useTuning()` |
+| [Audio](scaffold/systems/audio.md)     | Howler.js audio management           | `useAudio()`  |
 | [State](scaffold/systems/state.md)     | Signal-based state management        | -             |
 | [Errors](scaffold/systems/errors.md)   | Layered error boundaries             | -             |
 
@@ -94,9 +101,30 @@ See the **[New Game Guide](guides/new-game.md)** for step-by-step instructions o
 
 ## Guides
 
+### Getting Started
 - **[Creating a New Game](guides/new-game.md)** - Step-by-step guide to build your own game
 - **[Configuration](guides/configuration.md)** - Environment and build configuration
+
+### Deployment & Configuration
+- **[Environment Config](guides/environment-config.md)** - Multi-environment setup (local, QA, production)
+- **[Level Manifests](guides/unified-manifest-design.md)** - Level manifest architecture and GCS deployment
+
+### Asset & Audio
+- **[Asset Pipeline](guides/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases
+- **[UID Asset Storage](guides/uid-asset-storage.md)** - Cloud storage strategy with UID-suffixed filenames
+- **[Audio Setup](guides/audio-setup.md)** - Audio sprites, sound effects, and music
+
+### Reference
+- **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
 - **[AI Development](guides/ai-development.md)** - AI-assisted development guidelines
+
+---
+
+## Patterns
+
+Reusable code patterns documented for the team:
+
+- **[Promise-Wrapped Animations](patterns/promise-wrapped-animations.md)** - Clean async/await with GSAP
 
 ---
 

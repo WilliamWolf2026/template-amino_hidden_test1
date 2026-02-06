@@ -10,6 +10,7 @@ export interface ManifestBundle {
 
 export interface Manifest {
   cdnBase: string;
+  localBase?: string; // Fallback path if CDN fails
   bundles: ManifestBundle[];
 }
 

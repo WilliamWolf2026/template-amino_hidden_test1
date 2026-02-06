@@ -1,3 +1,6 @@
+// Config
+export * from './config';
+
 // Systems
 export * from './systems/assets';
 export * from './systems/screens';

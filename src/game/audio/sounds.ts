@@ -14,7 +14,7 @@ export interface SoundDefinition {
 // ============================================================================
 
 export const SOUND_BUTTON_CLICK: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'button_click',
   volume: 0.7,
 };
@@ -28,11 +28,11 @@ export const SOUND_BUTTON_CLICK: SoundDefinition = {
  * System picks randomly from this pool to prevent audio fatigue
  */
 export const SOUND_TILE_ROTATE: readonly SoundDefinition[] = [
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_1', volume: 0.5 },
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_2', volume: 0.5 },
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_3', volume: 0.5 },
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_4', volume: 0.5 },
-  { channel: 'citylines-sfx', sprite: 'tile_rotate_5', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_1', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_2', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_3', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_4', volume: 0.5 },
+  { channel: 'sfx-citylines', sprite: 'tile_rotate_5', volume: 0.5 },
 ] as const;
 
 /**
@@ -40,7 +40,7 @@ export const SOUND_TILE_ROTATE: readonly SoundDefinition[] = [
  * Plays when all landmarks are connected to exits
  */
 export const SOUND_LEVEL_COMPLETE: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'level_complete',
   volume: 0.8,
 };
@@ -50,7 +50,7 @@ export const SOUND_LEVEL_COMPLETE: SoundDefinition = {
  * Plays when a landmark becomes connected to the exit
  */
 export const SOUND_LANDMARK_CONNECT: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'landmark_connect',
   volume: 0.6,
 };
@@ -60,7 +60,7 @@ export const SOUND_LANDMARK_CONNECT: SoundDefinition = {
  * Plays when companion shows completion clue
  */
 export const SOUND_NEWS_REVEAL: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'news_reveal',
   volume: 0.7,
 };
@@ -70,7 +70,7 @@ export const SOUND_NEWS_REVEAL: SoundDefinition = {
  * Plays when companion character appears
  */
 export const SOUND_DOG_BARK: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'dog_bark',
   volume: 0.5,
 };
@@ -80,7 +80,7 @@ export const SOUND_DOG_BARK: SoundDefinition = {
  * Plays when clue popup appears after level completion
  */
 export const SOUND_DOG_PANT: SoundDefinition = {
-  channel: 'citylines-sfx',
+  channel: 'sfx-citylines',
   sprite: 'dog_pant',
   volume: 0.5,
 };
@@ -94,9 +94,9 @@ export const SOUND_DOG_PANT: SoundDefinition = {
  * Rotates between chapters
  */
 export const MUSIC_TRACKS: readonly SoundDefinition[] = [
-  { channel: 'citylines-sfx', sprite: 'bg_track_1' },
-  { channel: 'citylines-sfx', sprite: 'bg_track_2' },
-  { channel: 'citylines-sfx', sprite: 'bg_track_3' },
+  { channel: 'sfx-citylines', sprite: 'bg_track_1' },
+  { channel: 'sfx-citylines', sprite: 'bg_track_2' },
+  { channel: 'sfx-citylines', sprite: 'bg_track_3' },
 ] as const;
 
 // ============================================================================
@@ -105,14 +105,14 @@ export const MUSIC_TRACKS: readonly SoundDefinition[] = [
 
 // Chapter complete sound (after 10 levels)
 // export const SOUND_CHAPTER_COMPLETE: SoundDefinition = {
-//   channel: 'citylines-sfx',
+//   channel: 'sfx-citylines',
 //   sprite: 'chapter_complete',
 //   volume: 0.9,
 // };
 
 // News reveal interstitial sound (newspaper spinning animation)
 // export const SOUND_NEWS_REVEAL: SoundDefinition = {
-//   channel: 'citylines-sfx',
+//   channel: 'sfx-citylines',
 //   sprite: 'news_reveal',
 //   volume: 0.8,
 // };

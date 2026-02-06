@@ -1,34 +1,23 @@
 import type { Manifest } from '~/scaffold/systems/assets';
+import { getCdnUrl, getLocalAssetPath } from '~/game/config';
 
 export const manifest: Manifest = {
-  cdnBase: '/assets',
+  cdnBase: getCdnUrl(),
+  localBase: getLocalAssetPath(),
   bundles: [
     // THEME - Branding (agnostic, loaded first)
     { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
 
-    // BOOT - Minimal for loading screen
-    // { name: 'boot-spinner', assets: ['ui/spinner.json'] },
-
-    // CORE - Required before gameplay
-    // { name: 'core-background', assets: ['animation-water.json'] }, // TODO: Add water animation asset
-    // { name: 'core-chrome', assets: ['ui/buttons.json', 'ui/modals.json'] },
-
     // TILES - Game tiles (theme variants - only one loaded based on tuning)
-    { name: 'tiles_citylines_v1', assets: ['tiles_citylines_v1.json'] },
-    { name: 'tiles_citylines_v1_fall', assets: ['tiles_citylines_v1_fall.json'] },
-    { name: 'tiles_citylines_v1_winter', assets: ['tiles_citylines_v1_winter.json'] },
-
-    // SCENES
-    // { name: 'scene-gameplay', assets: ['scenes/gameplay/entities.json'] },
+    { name: 'atlas-tiles-citylines', assets: ['atlas-tiles-citylines.json'] },
+    { name: 'atlas-tiles-citylines-fall', assets: ['atlas-tiles-citylines-fall.json'] },
+    { name: 'atlas-tiles-citylines-winter', assets: ['atlas-tiles-citylines-winter.json'] },
 
     // VFX
     { name: 'vfx-rotate', assets: ['vfx-rotate.json'] },
     { name: 'vfx-blast', assets: ['vfx-blast.json'] },
 
-    // AUDIO (agnostic)
-    { name: 'audio-citylines-sfx', assets: ['citylines-sfx.json'] },
-
-    // DEFERRED - Low priority
-    // { name: 'defer-extras', assets: ['ui/achievements.json'] },
+    // AUDIO
+    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] },
   ],
 };

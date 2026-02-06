@@ -243,7 +243,6 @@ export class CityLinesGame extends Container {
       this.roadTiles.push(roadTile);
       this.roadTilesContainer.addChild(roadTile);
     }
-    console.log('[CityLinesGame] Loaded tiles:', tileTypeCounts);
 
     // Initial connection check
     this.updateConnections();
@@ -264,7 +263,7 @@ export class CityLinesGame extends Container {
       this.gridSize,
       occupiedPositions,
       config.county,
-      config.levelNumber,
+      Date.now() ^ (Math.random() * 0x100000000), // Random seed for varied decorations
       undefined, // use default density
       this.padding,
       this.cellGap

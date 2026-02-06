@@ -7,8 +7,9 @@ import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, getDifficultyForLevel, difficultyToGeneratorConfig } from '~/game/citylines';
+import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, ChapterGenerationService, type GeneratedChapter } from '~/game/citylines';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/citylines/types/section';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
@@ -28,6 +29,8 @@ export function GameScreen() {
   const [gameInstance, setGameInstance] = createSignal<CityLinesGame | null>(null);
   const [audioManager, setAudioManager] = createSignal<GameAudioManager | null>(null);
   const [progressBar, setProgressBar] = createSignal<ProgressBar | null>(null);
+  const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
+  const [generatedChapter, setGeneratedChapter] = createSignal<GeneratedChapter | null>(null);
   let resizeHandler: (() => void) | null = null;
 
   // Companion dialogue references (reused for both intro and completion)
@@ -44,33 +47,10 @@ export function GameScreen() {
   // Chapter label text (above progress bar)
   let chapterLabel: Text | null = null;
 
-  // Helper: Generate level with progressive difficulty
-  const generateLevelWithProgression = (levelNumber: number) => {
-    const baseTuning = tuning.game;
-    const difficulty = getDifficultyForLevel(levelNumber);
-    const generatorConfig = difficultyToGeneratorConfig(difficulty, {
-      sidePushRadius: baseTuning.generator.sidePushRadius,
-      sidePushFactor: baseTuning.generator.sidePushFactor,
-      wriggleDistanceMagnifier: baseTuning.generator.wriggleDistanceMagnifier,
-      wriggleExtentChaosFactor: baseTuning.generator.wriggleExtentChaosFactor,
-      wrigglePasses: baseTuning.generator.wrigglePasses,
-    });
-
-    console.log(`[Progressive Difficulty] Level ${levelNumber}:`, {
-      gridSize: difficulty.gridSize,
-      landmarks: `${difficulty.landmarkCount.min}-${difficulty.landmarkCount.max}`,
-      detourProbability: difficulty.detourProbability,
-      minPathLength: difficulty.minPathLength,
-      wriggleFactor: generatorConfig.wriggleFactor.toFixed(3),
-      wriggleExtent: generatorConfig.wriggleExtent.toFixed(2),
-    });
-
-    return LevelGenerationService.generateLevel(levelNumber, generatorConfig);
-  };
-
-  // Current level (generated procedurally with progressive difficulty)
+  // Current level (set after chapter generation in onMount)
+  // Using a lazy placeholder that will be replaced immediately
   const [currentLevel, setCurrentLevel] = createSignal(
-    generateLevelWithProgression(1)
+    LevelGenerationService.generateLevel(1, tuning.game.generator)
   );
 
   // Accessibility: aria-live announcements
@@ -78,6 +58,24 @@ export function GameScreen() {
 
   onMount(async () => {
     if (!containerRef) return;
+
+    // Load section config (from URL param or fallback to default)
+    try {
+      const config = await loadSectionConfig();
+      setSectionConfig(config);
+
+      // Generate full chapter upfront
+      const chapter = ChapterGenerationService.generateChapter(config, tuning.game.generator);
+      setGeneratedChapter(chapter);
+
+      // Set total levels based on chapter length
+      gameState.setTotalLevels(chapter.chapterLength);
+
+      // Set first level from generated chapter
+      setCurrentLevel(chapter.levels[0]);
+    } catch (err) {
+      console.error('[Game] Failed to load section config:', err);
+    }
 
     // Get initial tuning values
     const gameTuning = tuning.game;
@@ -139,20 +137,24 @@ export function GameScreen() {
       // Load generated level
       game.loadLevel(currentLevel());
 
-      // Auto-size to viewport (shrink tiles if grid is too large)
-      game.autoSizeToViewport(
-        app.screen.width,
-        app.screen.height,
-        tileSize,  // max tile size from tuning
-        80,        // reserved top (progress bar area)
-        100        // reserved bottom (logo area)
-      );
-
-      // Center the game on screen (pivot is at grid center, so position at screen center)
-      game.x = app.screen.width / 2;
-      game.y = app.screen.height / 2;
-
+      // Add to stage first so it's part of the render tree
       app.stage.addChild(game);
+
+      // Wait one frame for Pixi to finalize screen dimensions (resizeTo is async)
+      app.ticker.addOnce(() => {
+        // Auto-size to viewport (shrink tiles if grid is too large)
+        game.autoSizeToViewport(
+          app.screen.width,
+          app.screen.height,
+          tileSize,  // max tile size from tuning
+          80,        // reserved top (progress bar area)
+          100        // reserved bottom (logo area)
+        );
+
+        // Center the game on screen (pivot is at grid center, so position at screen center)
+        game.x = app.screen.width / 2;
+        game.y = app.screen.height / 2;
+      });
       setGameInstance(game);
 
       // Create progress bar HUD
@@ -219,7 +221,20 @@ export function GameScreen() {
         const controller = game.getCompletionController();
         controller.continue();
 
-        const newLevel = generateLevelWithProgression(currentLevel().levelNumber + 1);
+        const chapter = generatedChapter();
+        if (!chapter) {
+          console.error('[GameScreen] No chapter generated, cannot load next level');
+          return;
+        }
+
+        // Get next level from pre-generated chapter (wraps around at chapter end)
+        const nextLevelNumber = currentLevel().levelNumber + 1;
+        const nextIndex = (nextLevelNumber - 1) % chapter.chapterLength;
+        const newLevel = chapter.levels[nextIndex];
+
+        // Update level number for tracking (in case of chapter wrap)
+        newLevel.levelNumber = nextLevelNumber;
+
         setCurrentLevel(newLevel);
         game.loadLevel(newLevel);
 
@@ -243,7 +258,6 @@ export function GameScreen() {
           bar.setProgress(current, total);
           if (chapterLabel) chapterLabel.text = `${current} / ${total}`;
           if (ariaLiveRef) ariaLiveRef.textContent = `Chapter progress: ${current} of ${total}`;
-          console.log('[GameScreen] Progress updated after transition:', current, '/', total);
         } catch (err) {
           console.error('[GameScreen] Level transition animation error:', err);
         }
@@ -265,14 +279,12 @@ export function GameScreen() {
       if (debugParams.debugLevel !== undefined) {
         gameState.setCurrentLevel(debugParams.debugLevel);
         bar.setProgress(debugParams.debugLevel, 10, false); // No animation on initial load
-        console.log('[GameScreen] Debug: Set progress to', debugParams.debugLevel);
       } else {
         bar.setProgress(gameState.currentLevel(), gameState.totalLevels(), false); // No animation on initial load
       }
 
       if (debugParams.debugProgressAnim) {
         bar.playFillAnimation();
-        console.log('[GameScreen] Debug: Playing fill animation');
       }
       // END TEMPORARY DEBUG SUPPORT
 
@@ -290,35 +302,42 @@ export function GameScreen() {
         manager.playTileRotate();
       });
 
-      game.onGameEvent('levelComplete', (payload) => {
-        console.log('[GameScreen] Level complete!', payload);
+      game.onGameEvent('levelComplete', () => {
         manager.playLevelComplete();
 
         // Note: Progress update is deferred until after level transition completes
         // This happens in the completionStart callback after playLevelTransition()
         gameState.incrementLevel();
-        console.log('[GameScreen] Level complete, progress will update after transition');
       });
 
       // Landmark connected event (no sound - too noisy during gameplay)
-      game.onGameEvent('landmarkConnected', (landmark) => {
-        console.log('[GameScreen] Landmark connected:', landmark);
+      game.onGameEvent('landmarkConnected', () => {
+        // Silent - landmark connections are visual only
       });
 
-      // Wire completion events - show CluePopup for levels 1-9, full overlay for chapter end (level 10)
-      game.onGameEvent('completionStart', (clue, levelNumber) => {
-        const isChapterEnd = levelNumber % 10 === 0; // Level 10, 20, 30, etc.
-        console.log('[GameScreen] Level complete!', { levelNumber, isChapterEnd, clue });
+      // Wire completion events - show CluePopup for mid-chapter levels, full overlay for chapter end
+      game.onGameEvent('completionStart', (_levelClue, levelNumber) => {
+        const chapter = generatedChapter();
+        const chapterLength = chapter?.chapterLength ?? 10;
+        const isChapterEnd = levelNumber % chapterLength === 0; // Last level of chapter
+        const config = sectionConfig();
+
+        // Get clue from section config if available, otherwise fall back to level clue
+        const storyClue = config ? getClueForLevel(config, levelNumber) : null;
+        const clueText = storyClue ?? _levelClue;
 
         // Play news reveal sound
         manager.playNewsReveal();
 
         if (isChapterEnd) {
-          // Chapter end (level 10, 20, etc.) - show full companion overlay
+          // Chapter end (level 10, 20, etc.) - show full companion overlay with story reveal
           if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
 
-          // Update clue text (reusing the same dialogue box)
-          companionDialogueBox.setText(clue);
+          // Show headline and summary at chapter end
+          const displayText = config
+            ? `${config.story.headline}\n\n${config.story.summary}`
+            : clueText;
+          companionDialogueBox.setText(displayText);
 
           // Show companion group again
           companionGroup.visible = true;
@@ -365,7 +384,7 @@ export function GameScreen() {
             const gridPixelSize = game.getGridPixelSize();
             const gridTop = app.screen.height / 2 - gridPixelSize / 2;
             cluePopup.show(
-              clue,
+              clueText,
               app.screen.width,
               gridTop,
               gameTuning.cluePopup.displayDuration,
@@ -378,15 +397,17 @@ export function GameScreen() {
         }
       });
 
-      console.log('[GameScreen] City Lines game loaded');
-
       // Create companion dialogue group (reused for intro and completion)
       companionGroup = new Container();
       companionGroup.label = 'companion-dialogue-group';
 
       // Create dialogue box with text (store reference for reuse)
       companionDialogueBox = new DialogueBox(gpuLoader, app.screen.width, app.screen.height, 2.5);
-      companionDialogueBox.setText("Hi there, let's solve some tile puzzles. Blah blah blah, New Jersey something, something.");
+      // Use story summary from section config
+      const config = sectionConfig();
+      const introText = config?.story.summary
+        ?? "Hi there, let's solve some tile puzzles to uncover a local news story!";
+      companionDialogueBox.setText(introText);
       companionDialogueBox.alpha = 1; // Make visible (constructor sets to 0)
 
       // Position dialogue box at center of screen
@@ -555,7 +576,7 @@ export function GameScreen() {
 
       window.addEventListener('resize', resizeHandler);
 
-      console.log('[GameScreen] Companion dialogue setup complete (reused for intro and completion)');
+      console.log('[Game] Started');
     }
   });
 
@@ -615,8 +636,6 @@ export function GameScreen() {
     // Keep game at screen center (pivot is at grid center)
     game.x = app.screen.width / 2;
     game.y = app.screen.height / 2;
-
-    console.log('[Tuning] Grid layout updated:', { tileSize, padding, cellGap });
   });
 
   // Track previous 9-slice values for comparison guards
@@ -708,7 +727,6 @@ export function GameScreen() {
 
     prevCompletionPaint = { staggerDelay, tileDuration, blastSizePercent };
     game.setCompletionPaintConfig({ staggerDelay, tileDuration, easing, blastSizePercent });
-    console.log('[Tuning] Completion paint config updated:', { staggerDelay, tileDuration, blastSizePercent });
   });
 
   // Progress bar theme changes
@@ -724,15 +742,12 @@ export function GameScreen() {
     // For now, default to atlantic if not set
     const countyConfig = getCountyConfig('atlantic');
     bar.setTheme(countyConfig?.themeColor, tileTheme);
-
-    console.log('[Tuning] Progress bar theme updated:', { tileTheme });
   });
 
   // Reactive: Audio volume changes
   createEffect(() => {
     const volume = audio.volume();
     coordinator.audio.setMasterVolume(volume);
-    console.log('[Audio] Master volume updated:', volume);
   });
 
   // Reactive: Music enabled/disabled
@@ -777,8 +792,6 @@ export function GameScreen() {
     game.playLevelTransition().catch(err => {
       console.error('[GameScreen] Level transition animation error:', err);
     });
-
-    console.log('[Generator] Level regenerated with new config');
   };
 
   // Expose regenerateLevel to window for Tweakpane button

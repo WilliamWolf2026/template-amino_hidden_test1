@@ -14,7 +14,8 @@ import {
 import { initSentry } from '~/scaffold/lib/sentry';
 import { initPostHog } from '~/scaffold/lib/posthog';
 import { scaffoldConfig } from '~/scaffold/config';
-import { manifest, gameConfig } from '~/game';
+import { gameConfig } from '~/game';
+import { ManifestProvider } from '~/scaffold/systems/manifest/context';
 import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
@@ -51,11 +52,13 @@ export default function App() {
           <SettingsMenu />
         </div>
         <PauseProvider>
-          <AssetProvider manifest={manifest} config={{ engine: scaffoldConfig.engine }}>
-            <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
-              <ScreenRenderer screens={gameConfig.screens} />
-            </ScreenProvider>
-          </AssetProvider>
+          <ManifestProvider>
+            <AssetProvider config={{ engine: scaffoldConfig.engine }}>
+              <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+                <ScreenRenderer screens={gameConfig.screens} />
+              </ScreenProvider>
+            </AssetProvider>
+          </ManifestProvider>
         </PauseProvider>
       </TuningProvider>
     </GlobalBoundary>
