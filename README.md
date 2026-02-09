@@ -36,12 +36,17 @@ src/
 
 ## Documentation
 
-See the **[docs folder](docs/README.md)** for full documentation:
+See the **[docs folder](docs/README.md)** for full documentation.
+
+### Quick Links
 
 | Topic | Description |
 |-------|-------------|
 | [Architecture](docs/scaffold/architecture.md) | System overview and diagrams |
-| [Creating a New Game](docs/guides/new-game.md) | Step-by-step guide |
+| [Context Map](docs/scaffold/context-map.md) | Node-edge relationship map (AI context) |
+| [Creating a New Game](docs/guides/getting-started/new-game.md) | Step-by-step guide |
+| [Audio Setup](docs/guides/assets/audio-setup.md) | Howler.js audio sprites |
+| [Debugging](docs/guides/development/debugging.md) | DevTools and troubleshooting |
 | [Tuning System](docs/scaffold/systems/tuning.md) | Live parameter adjustment |
 | [Game Design Doc](docs/game/gdd.md) | CityLines game design |
 

@@ -13,6 +13,10 @@ src/game/
 ├── tuning/
 │   ├── types.ts       # Game tuning types & defaults
 │   └── index.ts       # Tuning exports
+├── audio/
+│   ├── sounds.ts      # SoundDefinition constants
+│   ├── manager.ts     # GameAudioManager (extends BaseAudioManager)
+│   └── index.ts       # Audio exports
 ├── screens/
 │   ├── LoadingScreen.tsx
 │   ├── StartScreen.tsx
@@ -122,16 +126,67 @@ const GAME_WIRED_PATHS = [
 ];
 ```
 
-## What Stays vs What Changes
+## Scaffold vs Game Code
 
-| Keep (Scaffold) | Replace (Game) |
-|-----------------|----------------|
-| `src/scaffold/` | `src/game/[gamename]/` |
-| Asset loaders | Asset manifest |
-| Screen system | Screen components |
-| Tuning panel | Tuning types/defaults |
-| Error handling | Game state |
-| Audio system | Game logic |
+### What Scaffold Provides (Don't Recreate)
+
+The scaffold handles all the boilerplate so you can focus on game logic:
+
+| System | What It Does | Location |
+|--------|--------------|----------|
+| **Asset Loading** | Loads atlases, audio sprites, images | `scaffold/systems/assets/` |
+| **Screen Management** | Screen transitions, routing | `scaffold/systems/screens/` |
+| **Audio System** | Howler.js wrapper, music/sfx control | `scaffold/systems/audio/` |
+| **Tuning Panel** | Live parameter editing (dev) | `scaffold/systems/tuning/` |
+| **Error Handling** | Global error boundary, Sentry | `scaffold/systems/errors/` |
+| **Pause System** | Pause/resume, visibility handling | `scaffold/systems/pause/` |
+| **UI Components** | Button, Spinner, ProgressBar, Logo | `scaffold/ui/` |
+| **MobileViewport** | 9:16 constraint for desktop testing | `scaffold/ui/MobileViewport` |
+| **SettingsMenu** | Audio/music toggle menu | `scaffold/utils/SettingsMenu/` |
+| **BaseAudioManager** | Audio manager base class to extend | `scaffold/systems/audio/` |
+
+### What You Create Per Game
+
+| Item | Purpose | Location |
+|------|---------|----------|
+| **Game Logic** | Core gameplay, entities, systems | `src/game/[gamename]/` |
+| **Screens** | Loading, Start, Game, Results UI | `src/game/screens/` |
+| **Audio Manager** | Extends BaseAudioManager with game sounds | `src/game/audio/manager.ts` |
+| **Sound Definitions** | SoundDefinition constants for each sound | `src/game/audio/sounds.ts` |
+| **Asset Manifest** | List of atlases, audio, images to load | `src/game/manifest.ts` |
+| **Tuning Types** | Game-specific tunable parameters | `src/game/tuning/` |
+| **Game State** | Signals for score, level, progress | `src/game/state.ts` |
+| **Screen Config** | Screen mappings and initial screen | `src/game/config.ts` |
+| **Font** | Custom font file + @font-face CSS | `public/assets/` + `app.css` |
+
+### Files to Update (Not Replace)
+
+These scaffold files need game-specific values:
+
+| File | What to Change |
+|------|----------------|
+| `src/app.css` | Add `@font-face` for your game's font |
+| `src/entry-server.tsx` | Update font preload `<link>` path |
+| `src/entry-client.tsx` | Already waits for `document.fonts.ready` (no change needed) |
+| `src/app.tsx` | Update tuning defaults import |
+
+> **Font Loading**: The scaffold preloads fonts in `entry-server.tsx` and waits for `document.fonts.ready` in `entry-client.tsx` to prevent FOUT (Flash of Unstyled Text) on the loading screen.
+
+### Recommended Constants
+
+Define these per game (not in scaffold since values vary):
+
+```typescript
+// src/game/constants/viewport.ts
+export const MIN_TOUCH_TARGET = 44;  // Apple HIG standard
+export const SAFE_PADDING = 10;      // Edge padding
+export const VIEWPORT_MIN_WIDTH = 355; // iPhone SE - side gaps
+```
+
+```typescript
+// src/game/config/fonts.ts
+export const GAME_FONT_FAMILY = 'YourFont, system-ui, sans-serif';
+```
 
 ## Tuning Storage
 
@@ -244,6 +299,25 @@ playClick(): void {
 }
 ```
 
+## Quick Setup Checklist
+
+Use this checklist when starting a new game:
+
+- [ ] Clear old game folder: `rm -rf src/game/[oldgame]/`
+- [ ] Clear localStorage: `localStorage.removeItem('tuning_game')`
+- [ ] Create `src/game/[newgame]/` folder structure
+- [ ] Create `src/game/tuning/types.ts` with game defaults
+- [ ] Create `src/game/manifest.ts` with asset list
+- [ ] Create `src/game/audio/sounds.ts` (empty skeleton)
+- [ ] Create `src/game/audio/manager.ts` (extends BaseAudioManager)
+- [ ] Create `src/game/audio/index.ts` (exports)
+- [ ] Create `src/game/screens/` (Loading, Start, Game, Results)
+- [ ] Update `src/game/config.ts` with screen mappings
+- [ ] Add font to `public/assets/` and update `src/app.css`
+- [ ] Update font preload in `src/entry-server.tsx`
+- [ ] Create `src/game/constants/viewport.ts` if needed
+- [ ] Create `src/game/state.ts` for game signals
+
 ## Tips
 
 - **Tuning Panel**: Press backtick (`) to access live tuning
@@ -251,5 +325,6 @@ playClick(): void {
 - **Hot Reload**: Most changes hot-reload, tuning changes apply instantly when wired
 - **Assets**: Place in `public/` folder, reference in manifest
 - **Team Defaults**: Create `public/config/tuning/game.json` for shared overrides
+- **Desktop Testing**: MobileViewport constrains to 9:16 on desktop browsers
 
 See [Tuning Panel](../scaffold/components/tuning-panel.md) for detailed setup guide including storage system.

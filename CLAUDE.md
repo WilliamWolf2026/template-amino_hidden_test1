@@ -1,5 +1,17 @@
 # Claude Code Project Context
 
+## Quick Context
+
+```
+app.tsx ──► scaffold/ (providers, hooks, UI)
+        └─► game/ (screens, audio, tuning, citylines/)
+
+Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager
+Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
+```
+
+**Full context map:** [docs/scaffold/context-map.md](docs/scaffold/context-map.md)
+
 ## Factory (Common Workflows)
 
 See **[docs/factory/](docs/factory/index.md)** for reusable commands.

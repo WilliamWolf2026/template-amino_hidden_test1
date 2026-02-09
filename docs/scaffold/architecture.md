@@ -108,6 +108,7 @@ graph TB
             SPIN["Spinner"]
             PROG["ProgressBar"]
             PAUSE_OV["PauseOverlay"]
+            MOB_VP["MobileViewport"]
         end
 
         subgraph DEV["Dev Tools"]
