@@ -206,7 +206,7 @@ createEffect(() => {
   if (!manager) return;
 
   if (audio.musicEnabled()) {
-    manager.startMusic();
+    manager.startGameMusic(); // Game-specific method for track rotation
   } else {
     manager.stopMusic();
   }

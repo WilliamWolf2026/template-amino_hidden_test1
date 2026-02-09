@@ -49,13 +49,13 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 | ------------------------------------------ | ------------------------------ |
 | [Scaffold](scaffold/architecture.md)       | Reusable framework systems     |
 | [Game](game/gdd.md)                        | CityLines game documentation   |
-| [New Game Guide](guides/new-game.md)       | Create your own game           |
-| [Environment Config](guides/environment-config.md) | Local, QA, production setup |
-| [Level Manifests](guides/unified-manifest-design.md) | Level files and GCS deployment |
-| [Asset Pipeline](guides/asset-pipeline.md) | Sprites, fonts, and atlases    |
-| [UID Asset Storage](guides/uid-asset-storage.md) | Cloud storage with UID suffixes |
-| [Audio Setup](guides/audio-setup.md)       | Sound effects and music        |
-| [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions  |
+| [Debugging](guides/development/debugging.md) | Daily debugging reference |
+| [Animation Cookbook](guides/development/animation-cookbook.md) | GSAP patterns |
+| [Asset Pipeline](guides/assets/asset-pipeline.md) | Sprites, fonts, and atlases |
+| [Performance](guides/platform/performance.md) | 60fps optimization |
+| [Mobile](guides/platform/mobile/index.md)  | iOS/Android comprehensive guide |
+| [All Guides](guides/index.md)              | Complete guide index           |
+| [Factory Commands](factory/index.md)       | Workflow commands              |
 
 ---
 
@@ -95,28 +95,40 @@ Game-specific implementation using the scaffold.
 
 ### Creating a New Game
 
-See the **[New Game Guide](guides/new-game.md)** for step-by-step instructions on creating a new game using this scaffold.
+See the **[New Game Guide](guides/getting-started/new-game.md)** for step-by-step instructions on creating a new game using this scaffold.
 
 ---
 
 ## Guides
 
 ### Getting Started
-- **[Creating a New Game](guides/new-game.md)** - Step-by-step guide to build your own game
-- **[Configuration](guides/configuration.md)** - Environment and build configuration
+- **[Creating a New Game](guides/getting-started/new-game.md)** - Step-by-step guide to build your own game
+- **[Configuration](guides/getting-started/configuration.md)** - Environment and build configuration
 
-### Deployment & Configuration
-- **[Environment Config](guides/environment-config.md)** - Multi-environment setup (local, QA, production)
-- **[Level Manifests](guides/unified-manifest-design.md)** - Level manifest architecture and GCS deployment
+### Development (Daily Use)
+- **[Debugging](guides/development/debugging.md)** - Pixi DevTools, console helpers, common issues
+- **[Animation Cookbook](guides/development/animation-cookbook.md)** - GSAP patterns, easings, button states
+- **[State Management](guides/development/state-management.md)** - Solid.js signals, game state
 
-### Asset & Audio
-- **[Asset Pipeline](guides/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases
-- **[UID Asset Storage](guides/uid-asset-storage.md)** - Cloud storage strategy with UID-suffixed filenames
-- **[Audio Setup](guides/audio-setup.md)** - Audio sprites, sound effects, and music
+### Assets & Media
+- **[Naming Convention](guides/assets/naming-convention.md)** - Standard naming for raw assets
+- **[Asset Pipeline](guides/assets/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases
+- **[Audio Setup](guides/assets/audio-setup.md)** - Audio sprites, sound effects, and music
+
+### Platform (Pre-Launch)
+- **[Performance](guides/platform/performance.md)** - 60fps targets, Pixi optimization
+- **[Mobile](guides/platform/mobile/index.md)** - Viewport, gestures, touch, canvas resize
+
+### Deployment & Infrastructure
+- **[Environment Config](guides/deployment/environment-config.md)** - Multi-environment setup (local, QA, production)
+- **[Level Manifests](guides/deployment/unified-manifest-design.md)** - Level manifest architecture and GCS deployment
+
+### Quality
+- **[Testing Strategy](guides/testing/testing-strategy.md)** - Unit tests, E2E, QA checklist
 
 ### Reference
 - **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
-- **[AI Development](guides/ai-development.md)** - AI-assisted development guidelines
+- **[All Guides](guides/index.md)** - Complete guide index
 
 ---
 

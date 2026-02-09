@@ -144,6 +144,106 @@ The tuning system stores scaffold and game settings **separately**:
 
 **Loading priority**: localStorage → `/public/config/tuning/*.json` → TypeScript defaults
 
+## Audio Setup (Phased Approach)
+
+Audio setup follows a two-phase approach since you won't have sound events until gameplay features exist.
+
+### Phase 1: Early Skeleton (Project Setup)
+
+Create the audio structure before you have sounds:
+
+**1. Create `src/game/audio/sounds.ts`:**
+```typescript
+import type { SoundDefinition } from '~/scaffold/systems/audio';
+export type { SoundDefinition };
+
+// Define sounds as you add them to the game
+// Example structure (add real sounds later):
+// export const SOUND_ACTION: SoundDefinition = {
+//   channel: 'sfx-mygame',
+//   sprite: 'action_sound',
+//   volume: 0.7,
+// };
+```
+
+**2. Create `src/game/audio/manager.ts`:**
+```typescript
+import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
+import { BaseAudioManager } from '~/scaffold/systems/audio';
+
+export class GameAudioManager extends BaseAudioManager {
+  constructor(audioLoader: AudioLoader) {
+    super(audioLoader);
+  }
+
+  // Add game-specific sound methods as features develop
+  // playAction(): void {
+  //   this.playSound(SOUND_ACTION);
+  // }
+}
+```
+
+**3. Create `src/game/audio/index.ts`:**
+```typescript
+export { GameAudioManager } from './manager';
+export * from './sounds';
+```
+
+### Phase 2: Adding Sounds (As Features Develop)
+
+As you implement game features, add sounds incrementally:
+
+1. **Add sound definition** to `sounds.ts`
+2. **Add play method** to `GameAudioManager`
+3. **Call from gameplay code** where the event occurs
+
+**Example - Adding a "score" sound:**
+```typescript
+// sounds.ts
+export const SOUND_SCORE: SoundDefinition = {
+  channel: 'sfx-mygame',
+  sprite: 'score_ding',
+  volume: 0.6,
+};
+
+// manager.ts
+playScore(): void {
+  this.playSound(SOUND_SCORE);
+}
+
+// In gameplay code
+audioManager.playScore();
+```
+
+### BaseAudioManager Features
+
+The scaffold provides these methods via `BaseAudioManager`:
+
+| Method | Purpose |
+|--------|---------|
+| `playSound(sound)` | Play a single sound effect |
+| `playRandomSound(sounds)` | Play random from array (variations) |
+| `startMusic(track, fadeIn?)` | Start music with optional fade |
+| `stopMusic(fadeOut?)` | Stop music with optional fade |
+| `isMusicPlaying()` | Check music state |
+
+### Sound Variations
+
+For sounds that play frequently, use arrays to prevent audio fatigue:
+
+```typescript
+export const SOUND_CLICK: readonly SoundDefinition[] = [
+  { channel: 'sfx-mygame', sprite: 'click_1', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'click_2', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'click_3', volume: 0.5 },
+] as const;
+
+// In manager
+playClick(): void {
+  this.playRandomSound(SOUND_CLICK);
+}
+```
+
 ## Tips
 
 - **Tuning Panel**: Press backtick (`) to access live tuning

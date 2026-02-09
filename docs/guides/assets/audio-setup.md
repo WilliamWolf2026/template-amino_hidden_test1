@@ -213,7 +213,7 @@ createEffect(() => {
   if (!manager) return;
 
   if (audioState.musicEnabled()) {
-    manager.startMusic();
+    manager.startGameMusic(); // Game-specific method
   } else {
     manager.stopMusic();
   }
