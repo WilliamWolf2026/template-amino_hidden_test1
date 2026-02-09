@@ -13,7 +13,7 @@ import {
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
 import { initPostHog } from '~/scaffold/lib/posthog';
-import { scaffoldConfig } from '~/scaffold/config';
+import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
 import { gameConfig } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
 import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
@@ -22,14 +22,14 @@ import { IS_DEV_ENV } from './scaffold/dev/env';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
+const environment = getEnvironment();
 const urlOverrides = urlTheme ? { 'theme.tileTheme': urlTheme } : undefined;
 
 export default function App() {
   onMount(() => {
     // Initialize error tracking
-    if (scaffoldConfig.sentry?.dsn) {
-      initSentry(scaffoldConfig.sentry.dsn);
-    }
+      initSentry(environment);
+  
     if (scaffoldConfig.posthog?.apiKey) {
       initPostHog(scaffoldConfig.posthog.apiKey, scaffoldConfig.posthog.apiHost);
     }
