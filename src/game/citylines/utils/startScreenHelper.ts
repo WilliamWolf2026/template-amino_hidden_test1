@@ -1,4 +1,5 @@
 import { getCountyConfig } from '../data/counties';
+import { getCurrentChapter, hasChapterInProgress } from '~/game/services/progress';
 
 /** Start screen display mode */
 export type StartScreenMode = 'new' | 'returning';
@@ -20,25 +21,49 @@ const DEFAULT_LEVEL = 1;
 const TOTAL_LEVELS_PER_CHAPTER = 10;
 
 /**
- * Determines the start screen mode and content based on debug params
- *
- * Pure function - no side effects, easily testable
+ * Determines the start screen mode and content based on saved progress
  *
  * @param debugProgress - Debug flag to simulate returning player (e.g., from URL param)
  * @returns Configuration for start screen display
  */
 export function getStartScreenMode(debugProgress: boolean): StartScreenConfig {
-  const mode: StartScreenMode = debugProgress ? 'returning' : 'new';
+  // Check for saved progress first
+  const hasProgress = hasChapterInProgress();
+  console.log('[startScreenHelper] hasChapterInProgress:', hasProgress);
+
+  if (hasProgress) {
+    const chapter = getCurrentChapter();
+    console.log('[startScreenHelper] getCurrentChapter:', chapter);
+    if (chapter) {
+      return {
+        mode: 'returning',
+        countyName: chapter.countyName,
+        levelNumber: chapter.currentLevel,
+        totalLevels: chapter.chapterLength,
+      };
+    }
+  }
+
+  // Debug mode to simulate returning player
+  if (debugProgress) {
+    const countyConfig = getCountyConfig(DEFAULT_COUNTY_ID);
+    const countyName = countyConfig?.name ?? 'Atlantic County';
+    return {
+      mode: 'returning',
+      countyName,
+      levelNumber: 3,
+      totalLevels: TOTAL_LEVELS_PER_CHAPTER,
+    };
+  }
+
+  // New player
   const countyConfig = getCountyConfig(DEFAULT_COUNTY_ID);
   const countyName = countyConfig?.name ?? 'Atlantic County';
 
-  // For debug/returning mode, simulate progress at level 3
-  const levelNumber = debugProgress ? 3 : DEFAULT_LEVEL;
-
   return {
-    mode,
+    mode: 'new',
     countyName,
-    levelNumber,
+    levelNumber: DEFAULT_LEVEL,
     totalLevels: TOTAL_LEVELS_PER_CHAPTER,
   };
 }

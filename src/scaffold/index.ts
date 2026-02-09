@@ -19,6 +19,14 @@ export { MobileViewport } from './ui/MobileViewport';
 
 // Utils
 export { default as SettingsMenu } from './utils/SettingsMenu';
+export {
+  getStored,
+  setStored,
+  removeStored,
+  createVersionedStore,
+  type VersionedStore,
+  type VersionedStoreConfig,
+} from './utils/storage';
 
 // Dev Tools
 export { TweakpaneConfig, isOpen, setIsOpen } from './dev';

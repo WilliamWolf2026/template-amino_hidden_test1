@@ -11,6 +11,7 @@ import volumeMediumIcon from './assets/icon_volume_medium.svg';
 import volumeLowIcon from './assets/icon_volume_low.svg';
 import volumeMutedIcon from './assets/icon_volume_muted.svg';
 import wrenchIcon from './assets/icon_wrench.svg';
+import trashIcon from './assets/icon_trash.svg';
 
 // Settings Menu Configuration
 const SETTINGS_CONFIG = {
@@ -20,6 +21,11 @@ const SETTINGS_CONFIG = {
   backgroundColor: 'rgb(23,23,23)',
   borderRadius: '26px',
 };
+
+export interface SettingsMenuProps {
+  /** Callback to reset progress (shows reset button when provided) */
+  onResetProgress?: () => void;
+}
 
 interface StatusNotificationProps {
   message: string;
@@ -63,7 +69,7 @@ function StatusNotification(props: StatusNotificationProps) {
   );
 }
 
-export default function SettingsMenu() {
+export default function SettingsMenu(props: SettingsMenuProps = {}) {
   const audio = useAudio();
 
   const [isOpen, setIsOpen] = createSignal(false);
@@ -191,6 +197,15 @@ export default function SettingsMenu() {
     const target = e.target as HTMLInputElement;
     const newVolume = parseFloat(target.value);
     audio.setVolume(newVolume);
+  };
+
+  const handleResetProgress = () => {
+    if (props.onResetProgress) {
+      props.onResetProgress();
+      showStatusNotification('PROGRESS RESET');
+      // Close menu after reset
+      toggleMenu();
+    }
   };
 
   const getVolumeIcon = () => {
@@ -328,6 +343,20 @@ export default function SettingsMenu() {
                   src={!audio.musicEnabled() ? soundMusic2MutedIcon : soundMusic2Icon}
                   alt={!audio.musicEnabled() ? 'Music Muted' : 'Music On'}
                   class="w-6 h-6"
+                />
+              </button>
+            </Show>
+
+            <Show when={props.onResetProgress}>
+              <button
+                class="h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 bg-[rgb(60,60,60)] hover:bg-red-600"
+                onClick={handleResetProgress}
+                aria-label="Reset Progress"
+              >
+                <img
+                  src={trashIcon}
+                  alt="Reset Progress"
+                  class="w-6 h-6 invert"
                 />
               </button>
             </Show>
