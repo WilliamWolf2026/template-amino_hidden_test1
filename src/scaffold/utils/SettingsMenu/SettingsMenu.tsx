@@ -247,7 +247,7 @@ export default function SettingsMenu() {
 
       <div
         ref={menuPanelRef}
-        class="settings-panel absolute right-0 top-[calc(100%+10px)] shadow-lg p-4 w-[380px] max-w-[calc(100vw-2rem)] text-white"
+        class="settings-panel absolute right-0 top-[calc(100%+10px)] shadow-lg p-3 sm:p-4 w-95 max-w-[calc(100vw-1rem)] text-white"
         style={{
           'transform-origin': 'top right',
           opacity: 0,
@@ -260,7 +260,7 @@ export default function SettingsMenu() {
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-2 sm:gap-3 justify-between w-full flex-wrap sm:flex-nowrap">
             <Show when={SETTINGS_CONFIG.showVolumeSlider}>
-              <div class="relative h-[60px] flex-grow min-w-[120px]">
+              <div class="relative h-11 sm:h-15 grow min-w-30">
                 <div class="absolute inset-0 bg-[rgb(60,60,60)] rounded-xl overflow-hidden">
                   <div
                     class="absolute top-0 left-0 h-full bg-white"
@@ -302,7 +302,7 @@ export default function SettingsMenu() {
 
             <Show when={IS_DEV_ENV}>
               <button
-                class={`h-[60px] w-[60px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
+                class={`h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
                   !isPanelOpen() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
                 }`}
                 onClick={handleTuningToggle}
@@ -318,7 +318,7 @@ export default function SettingsMenu() {
 
             <Show when={SETTINGS_CONFIG.showMusicToggle}>
               <button
-                class={`h-[60px] w-[60px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
+                class={`h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
                   !audio.musicEnabled() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
                 }`}
                 onClick={handleMusicToggle}
