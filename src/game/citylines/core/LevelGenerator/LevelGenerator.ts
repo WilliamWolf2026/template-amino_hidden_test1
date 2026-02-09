@@ -233,11 +233,12 @@ export class LevelGenerator {
 
     const paths: (Point[] | null)[] = [];
     const isRoad = new Set<string>([pointToString(entryPoint)]);
+    const pathConnectionsDuringGen = new Map<string, Set<string>>();
 
     for (const exitPoint of exitPoints) {
       // The graph for Dijkstra's is rebuilt for each path. This is important
       // because the "road" network changes after each path is added.
-      const graph = this.buildGraph(isRoad, exitPoints, exitPoint);
+      const graph = this.buildGraph(isRoad, exitPoints, exitPoint, pathConnectionsDuringGen);
 
       // --- THE SUPER START NODE TRICK ---
       // To find a path from the *entire existing road network* to the exit,
@@ -264,6 +265,16 @@ export class LevelGenerator {
         // path generation cycle can connect to it. Note that the final point
         // (the exit itself) is not added, as exits are not "roads".
         path.slice(0, -1).forEach((p) => isRoad.add(pointToString(p)));
+
+        // Track actual connections for crossroad prevention
+        for (let i = 0; i < path.length - 1; i++) {
+          const curr = pointToString(path[i]);
+          const next = pointToString(path[i + 1]);
+          if (!pathConnectionsDuringGen.has(curr)) pathConnectionsDuringGen.set(curr, new Set());
+          if (!pathConnectionsDuringGen.has(next)) pathConnectionsDuringGen.set(next, new Set());
+          pathConnectionsDuringGen.get(curr)!.add(next);
+          pathConnectionsDuringGen.get(next)!.add(curr);
+        }
       } else {
         // If no path could be found (e.g., the exit was unreachable), store null.
         // This is an edge case that could happen if the grid is partitioned.
@@ -283,6 +294,7 @@ export class LevelGenerator {
     isRoad: Set<string>,
     exitPoints: Point[],
     currentTargetExit: Point,
+    pathConnections: Map<string, Set<string>>
   ): Graph {
     const graph: Graph = {};
     const { width, height } = this.config;
@@ -342,20 +354,10 @@ export class LevelGenerator {
           // This is the most critical part of the function. It determines the "cost"
           // of building a road from the current `node` to its `neighbor`.
 
-          // First, count how many existing roads are adjacent to both the source
-          // and destination cells, using the `effectiveRoads` set.
-          const sourceRoadNeighbors = this.countRoadNeighbors(
-            effectiveRoads,
-            x,
-            y,
-          );
-          const destRoadNeighbors = this.countRoadNeighbors(
-            effectiveRoads,
-            n.x,
-            n.y,
-          );
-
-          const potentialSourceNeighbors = sourceRoadNeighbors + 1;
+          // Count actual path connections instead of adjacent road neighbors
+          const sourceConnections = pathConnections.get(node)?.size || 0;
+          const destRoadNeighbors = pathConnections.get(neighborNode)?.size || 0;
+          const potentialSourceNeighbors = sourceConnections + 1;
           const potentialDestNeighbors = destRoadNeighbors + 1;
 
           // The base cost for moving into any empty cell.
