@@ -57,6 +57,7 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 | [Audio Setup](guides/assets/audio-setup.md) | Howler.js, audio sprites      |
 | [Performance](guides/platform/performance.md) | 60fps optimization          |
 | [Mobile](guides/platform/mobile/index.md)  | iOS/Android comprehensive guide |
+| [Progress Persistence](guides/progress-persistence.md) | Save/load player progress |
 | [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions  |
 | [All Guides](guides/index.md)              | Complete guide index           |
 | [Factory Commands](factory/index.md)       | Workflow commands              |
@@ -116,6 +117,7 @@ See the **[New Game Guide](guides/getting-started/new-game.md)** for step-by-ste
 - **[Debugging](guides/development/debugging.md)** - Pixi DevTools, console helpers, common issues
 - **[Animation Cookbook](guides/development/animation-cookbook.md)** - GSAP patterns, easings, button states
 - **[State Management](guides/development/state-management.md)** - Solid.js signals, game state
+- **[Progress Persistence](guides/progress-persistence.md)** - Save/load player progress with localStorage
 
 ### Assets & Media
 - **[Naming Convention](guides/assets/naming-convention.md)** - Standard naming for raw assets
