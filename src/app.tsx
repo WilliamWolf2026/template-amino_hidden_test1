@@ -10,6 +10,7 @@ import {
   SettingsMenu,
   TuningProvider,
   TuningPanel,
+  MobileViewport,
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
 import { initPostHog } from '~/scaffold/lib/posthog';
@@ -47,19 +48,21 @@ export default function App() {
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>
-        {/* Settings Menu - Top Right Corner */}
-        <div class="fixed top-2 right-2 z-[9999]">
-          <SettingsMenu />
-        </div>
-        <PauseProvider>
-          <ManifestProvider>
-            <AssetProvider config={{ engine: scaffoldConfig.engine }}>
-              <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
-                <ScreenRenderer screens={gameConfig.screens} />
-              </ScreenProvider>
-            </AssetProvider>
-          </ManifestProvider>
-        </PauseProvider>
+        <MobileViewport>
+          {/* Settings Menu - Top Right Corner */}
+          <div class="fixed top-2 right-2 z-[9999]">
+            <SettingsMenu />
+          </div>
+          <PauseProvider>
+            <ManifestProvider>
+              <AssetProvider config={{ engine: scaffoldConfig.engine }}>
+                <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+                  <ScreenRenderer screens={gameConfig.screens} />
+                </ScreenProvider>
+              </AssetProvider>
+            </ManifestProvider>
+          </PauseProvider>
+        </MobileViewport>
       </TuningProvider>
     </GlobalBoundary>
   );

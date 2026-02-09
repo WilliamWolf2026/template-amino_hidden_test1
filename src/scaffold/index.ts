@@ -15,6 +15,7 @@ export { ProgressBar } from './ui/ProgressBar';
 export { Spinner } from './ui/Spinner';
 export { Logo } from './ui/Logo';
 export { PauseOverlay } from './ui/PauseOverlay';
+export { MobileViewport } from './ui/MobileViewport';
 
 // Utils
 export { default as SettingsMenu } from './utils/SettingsMenu';
