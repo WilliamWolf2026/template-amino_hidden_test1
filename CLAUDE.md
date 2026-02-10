@@ -1,36 +1,62 @@
 # Claude Code Project Context
 
-## AI-Driven Development (AIDD)
+## Quick Context
 
-This project uses AI-assisted development patterns. See the `ai/` folder:
+```
+app.tsx ──► scaffold/ (providers, hooks, UI)
+        └─► game/ (screens, audio, tuning, citylines/)
 
-- **[ai/commands/](ai/commands/index.md)** - Available commands (commit, plan, review, task, etc.)
-- **[ai/rules/](ai/rules/index.md)** - Coding standards and patterns
+Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager
+Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
+```
 
-Key commands:
-- `/plan` - Create implementation plans
-- `/task` - Execute tasks with tracking
-- `/review` - Code review
-- `/commit` - Commit with conventional format
+**Full context map:** [docs/scaffold/context-map.md](docs/scaffold/context-map.md)
+
+## Factory (Common Workflows)
+
+See **[docs/factory/](docs/factory/index.md)** for reusable commands.
+
+| Command | Purpose |
+|---------|---------|
+| `/research` | Investigate without code changes |
+| `/compare` | Compare solutions with trade-offs |
+| `/report` | Generate documentation |
+| `/audit` | Systematic codebase review |
+| `/debug` | Find bug root cause |
+| `/review` | Code quality review |
+| `/naming` | Asset naming convention |
+| `/commit` | Git commit |
+
+## File Permissions
+
+| Folder | Read | Edit |
+|--------|:----:|:----:|
+| `src/game/` | Yes | Yes |
+| `src/scaffold/` | Yes | **No** |
+| `docs/` | Yes | Yes |
+| `public/levels/` | Yes | Yes |
+| `ai/` | Yes | **No** |
+
+**Switch modes:** See [.claude/README.md](.claude/README.md)
+```bash
+cp .claude/settings.admin.json .claude/settings.local.json      # Admin
+cp .claude/settings.restricted.json .claude/settings.local.json # Safe
+```
 
 ## Documentation
 
-Project documentation lives in `docs/`:
-
 - **[docs/README.md](docs/README.md)** - Documentation index
 - **[docs/game/gdd.md](docs/game/gdd.md)** - Game Design Document
-- **[docs/scaffold/](docs/scaffold/)** - Framework architecture and systems
-
-### Quick Reference
+- **[docs/scaffold/](docs/scaffold/)** - Framework architecture
 
 | Topic | Location |
 |-------|----------|
 | Game Design Doc | `docs/game/gdd.md` |
 | Architecture | `docs/scaffold/architecture.md` |
-| Asset pipeline | `docs/guides/asset-pipeline.md` |
-| Audio setup | `docs/guides/audio-setup.md` |
-| SFX audit guide | `src/game/docs/sound-effects-guide.md` |
-| Audio spec | `docs/audio/audio-spec.json` |
+| Migration Guide | `docs/scaffold/scaffold-overview-and-migration.md` |
+| Asset naming | `docs/guides/assets/naming-convention.md` |
+| Asset pipeline | `docs/guides/assets/asset-pipeline.md` |
+| Audio setup | `docs/guides/assets/audio-setup.md` |
 
 ## Tech Stack
 
@@ -44,30 +70,26 @@ Project documentation lives in `docs/`:
 
 ```
 src/
-  scaffold/     # Reusable game framework (engine-agnostic)
-  game/         # Game-specific implementation
-    <game>/     # Core game logic (e.g., citylines/, wordgame/)
-    screens/    # Solid.js screens (Loading, Start, Game, Results)
+  scaffold/     # Reusable framework (DO NOT EDIT)
+  game/         # Game-specific (EDITABLE)
+    citylines/  # Core game logic
+    screens/    # Solid.js screens
     audio/      # GameAudioManager
-docs/           # Project documentation
-ai/             # AIDD commands and rules
+docs/
+  factory/      # Reusable commands
+  scaffold/     # Framework docs
+  game/         # Game docs
+  guides/       # How-to guides
+public/
+  levels/       # Level JSON configs
+ai/
+  rules/        # Coding standards (DO NOT EDIT)
 ```
-
-The `<game>/` folder name varies per project (e.g., `citylines/`, `wordgame/`).
 
 ## Common Tasks
 
-**Run development server:**
 ```bash
-bun run dev
-```
-
-**Type check:**
-```bash
-bun run typecheck
-```
-
-**Build:**
-```bash
-bun run build
+bun run dev        # Development server
+bun run typecheck  # Type check
+bun run build      # Production build
 ```

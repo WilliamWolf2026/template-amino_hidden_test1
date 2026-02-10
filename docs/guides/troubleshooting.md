@@ -92,7 +92,7 @@ public/assets/tiles_citylines_v1.png
    import { audioState } from '~/scaffold/systems/audio';
 
    if (audioState.musicEnabled()) {
-     manager.startMusic();
+     manager.startGameMusic();
    }
    ```
 

@@ -162,31 +162,78 @@ function StartScreen() {
 
 ## Integration Pattern
 
-### Game Audio Manager
+### SoundDefinition Type
 
-Create a game-specific manager that wraps the scaffold's AudioLoader:
+Define sounds using the scaffold's `SoundDefinition` type:
+
+```typescript
+// src/game/audio/sounds.ts
+import type { SoundDefinition } from '~/scaffold/systems/audio';
+
+export const SOUND_CLICK: SoundDefinition = {
+  channel: 'sfx-mygame',
+  sprite: 'button_click',
+  volume: 0.7,
+};
+
+// For variations (prevents audio fatigue)
+export const SOUND_ROTATE: readonly SoundDefinition[] = [
+  { channel: 'sfx-mygame', sprite: 'rotate_1', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'rotate_2', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'rotate_3', volume: 0.5 },
+] as const;
+```
+
+### BaseAudioManager
+
+Extend `BaseAudioManager` to create your game's audio manager:
 
 ```typescript
 // src/game/audio/manager.ts
-export class GameAudioManager {
-  private audioLoader: AudioLoader;
+import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
+import { BaseAudioManager } from '~/scaffold/systems/audio';
+import { SOUND_CLICK, SOUND_ROTATE, MUSIC_TRACKS } from './sounds';
+
+export class GameAudioManager extends BaseAudioManager {
+  private currentMusicIndex = 0;
 
   constructor(audioLoader: AudioLoader) {
-    this.audioLoader = audioLoader;
+    super(audioLoader);
   }
 
-  playTileRotate(): void {
-    // Game-specific logic (random variations, etc.)
-    const sounds = ['rotate_1', 'rotate_2', 'rotate_3'];
-    const sprite = sounds[Math.floor(Math.random() * sounds.length)];
-    this.audioLoader.play('sfx-citylines', sprite, { volume: 0.5 });
+  // Single sound
+  playClick(): void {
+    this.playSound(SOUND_CLICK);
   }
 
-  playLevelComplete(): void {
-    this.audioLoader.play('sfx-citylines', 'level_complete', { volume: 0.8 });
+  // Random from variations
+  playRotate(): void {
+    this.playRandomSound(SOUND_ROTATE);
+  }
+
+  // Game-specific music control
+  startGameMusic(): void {
+    const track = MUSIC_TRACKS[this.currentMusicIndex];
+    this.startMusic(track);
+  }
+
+  nextTrack(): void {
+    this.stopMusic();
+    this.currentMusicIndex = (this.currentMusicIndex + 1) % MUSIC_TRACKS.length;
+    this.startGameMusic();
   }
 }
 ```
+
+### BaseAudioManager Methods
+
+| Method | Purpose |
+|--------|---------|
+| `playSound(sound)` | Play a single SoundDefinition |
+| `playRandomSound(sounds)` | Play random from array (variations) |
+| `startMusic(track, fadeIn?)` | Start music with optional fade (default 1000ms) |
+| `stopMusic(fadeOut?)` | Stop music with optional fade (default 500ms) |
+| `isMusicPlaying()` | Check if music is currently playing |
 
 ### Wiring to Game Events
 
@@ -194,8 +241,15 @@ export class GameAudioManager {
 // In GameScreen
 const manager = new GameAudioManager(coordinator.audio);
 
-game.onGameEvent('tileRotated', () => manager.playTileRotate());
+// Wire to game events
+game.onGameEvent('tileRotated', () => manager.playRotate());
 game.onGameEvent('levelComplete', () => manager.playLevelComplete());
+
+// Or call directly from handlers
+const handleClick = () => {
+  manager.playClick();
+  // ... other logic
+};
 ```
 
 ### Reactive Music Control
@@ -206,7 +260,7 @@ createEffect(() => {
   if (!manager) return;
 
   if (audio.musicEnabled()) {
-    manager.startMusic();
+    manager.startGameMusic(); // Game-specific method for track rotation
   } else {
     manager.stopMusic();
   }
@@ -224,6 +278,7 @@ createEffect(() => {
 
 ## Related Documentation
 
-- [Audio Setup Guide](../guides/audio-setup.md) - Creating audio sprites
-- [Asset Pipeline](../guides/asset-pipeline.md) - Asset organization
+- [Audio Setup Guide](../../guides/assets/audio-setup.md) - Creating audio sprites
+- [Asset Pipeline](../../guides/assets/asset-pipeline.md) - Asset organization
+- [New Game Guide](../../guides/getting-started/new-game.md) - Audio setup for new games
 - [Assets System](./assets.md) - Asset loading architecture

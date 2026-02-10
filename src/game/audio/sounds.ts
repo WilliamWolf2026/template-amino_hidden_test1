@@ -3,11 +3,10 @@
  * Defines all game sounds per Game Design Document requirements
  */
 
-export interface SoundDefinition {
-  channel: string; // Audio bundle name (e.g., 'audio/sfx-game')
-  sprite: string; // Sprite name within the audio JSON
-  volume?: number; // Default volume (0-1)
-}
+import type { SoundDefinition } from '~/scaffold/systems/audio';
+
+// Re-export for convenience
+export type { SoundDefinition };
 
 // ============================================================================
 // UI SOUNDS

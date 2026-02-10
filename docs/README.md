@@ -47,15 +47,19 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 
 | Section                                    | Description                    |
 | ------------------------------------------ | ------------------------------ |
-| [Scaffold](scaffold/architecture.md)       | Reusable framework systems     |
-| [Game](game/gdd.md)                        | CityLines game documentation   |
-| [New Game Guide](guides/new-game.md)       | Create your own game           |
-| [Environment Config](guides/environment-config.md) | Local, QA, production setup |
-| [Level Manifests](guides/unified-manifest-design.md) | Level files and GCS deployment |
-| [Asset Pipeline](guides/asset-pipeline.md) | Sprites, fonts, and atlases    |
-| [UID Asset Storage](guides/uid-asset-storage.md) | Cloud storage with UID suffixes |
-| [Audio Setup](guides/audio-setup.md)       | Sound effects and music        |
+| [Scaffold Architecture](scaffold/architecture.md) | Reusable framework systems |
+| [Context Map](scaffold/context-map.md)     | Node-edge relationship map for AI |
+| [Game Design Document](game/gdd.md)        | CityLines game design          |
+| [Creating a New Game](guides/getting-started/new-game.md) | Step-by-step setup guide |
+| [Debugging](guides/development/debugging.md) | Daily debugging reference    |
+| [Animation Cookbook](guides/development/animation-cookbook.md) | GSAP patterns |
+| [Asset Pipeline](guides/assets/asset-pipeline.md) | Sprites, fonts, and atlases |
+| [Audio Setup](guides/assets/audio-setup.md) | Howler.js, audio sprites      |
+| [Performance](guides/platform/performance.md) | 60fps optimization          |
+| [Mobile](guides/platform/mobile/index.md)  | iOS/Android comprehensive guide |
 | [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions  |
+| [All Guides](guides/index.md)              | Complete guide index           |
+| [Factory Commands](factory/index.md)       | Workflow commands              |
 
 ---
 
@@ -67,6 +71,7 @@ The scaffold provides engine-agnostic systems that can power any game.
 
 - **[Architecture Overview](scaffold/architecture.md)** - System overview, diagrams, and design patterns
 - **[Deep Dive](scaffold/deep-dive.md)** - Comprehensive technical documentation with data flow analysis
+- **[Context Map](scaffold/context-map.md)** - Node-edge relationship map for AI context engineering
 - **[Overview & Migration Guide](scaffold/scaffold-overview-and-migration.md)** - Complete scaffold inventory and game swap guide
 
 ### Systems
@@ -92,31 +97,51 @@ The scaffold provides engine-agnostic systems that can power any game.
 Game-specific implementation using the scaffold.
 
 - **[Game Design Document](game/gdd.md)** - CityLines game design and mechanics
+- **[Chapter Generation](game/chapter-generation.md)** - Level generation system
+- **[Level Progression Report](game/level-progression-report.md)** - Difficulty curve analysis
 
 ### Creating a New Game
 
-See the **[New Game Guide](guides/new-game.md)** for step-by-step instructions on creating a new game using this scaffold.
+See the **[New Game Guide](guides/getting-started/new-game.md)** for step-by-step instructions on creating a new game using this scaffold.
 
 ---
 
 ## Guides
 
 ### Getting Started
-- **[Creating a New Game](guides/new-game.md)** - Step-by-step guide to build your own game
-- **[Configuration](guides/configuration.md)** - Environment and build configuration
+- **[Creating a New Game](guides/getting-started/new-game.md)** - Step-by-step guide to build your own game
+- **[Configuration](guides/getting-started/configuration.md)** - Environment and build configuration
 
-### Deployment & Configuration
-- **[Environment Config](guides/environment-config.md)** - Multi-environment setup (local, QA, production)
-- **[Level Manifests](guides/unified-manifest-design.md)** - Level manifest architecture and GCS deployment
+### Development (Daily Use)
+- **[Debugging](guides/development/debugging.md)** - Pixi DevTools, console helpers, common issues
+- **[Animation Cookbook](guides/development/animation-cookbook.md)** - GSAP patterns, easings, button states
+- **[State Management](guides/development/state-management.md)** - Solid.js signals, game state
 
-### Asset & Audio
-- **[Asset Pipeline](guides/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases
-- **[UID Asset Storage](guides/uid-asset-storage.md)** - Cloud storage strategy with UID-suffixed filenames
-- **[Audio Setup](guides/audio-setup.md)** - Audio sprites, sound effects, and music
+### Assets & Media
+- **[Naming Convention](guides/assets/naming-convention.md)** - Standard naming for raw assets
+- **[Asset Pipeline](guides/assets/asset-pipeline.md)** - TexturePacker, sprites, fonts, and atlases
+- **[Audio Setup](guides/assets/audio-setup.md)** - Audio sprites, sound effects, and music
+- **[UID Asset Storage](guides/assets/uid-asset-storage.md)** - GCS asset management
+
+### Platform (Pre-Launch)
+- **[Performance](guides/platform/performance.md)** - 60fps targets, Pixi optimization
+- **[Mobile Overview](guides/platform/mobile/index.md)** - iOS/Android comprehensive guide
+  - [Viewport](guides/platform/mobile/viewport.md) - Mobile viewport meta tags
+  - [Gestures](guides/platform/mobile/gestures.md) - Touch interaction patterns
+  - [Keyboard](guides/platform/mobile/keyboard.md) - Virtual keyboard handling
+  - [Canvas Resize](guides/platform/mobile/canvas-resize.md) - Dynamic canvas sizing
+  - [Pull-to-Refresh](guides/platform/mobile/pull-to-refresh.md) - Disable browser refresh
+
+### Deployment & Infrastructure
+- **[Environment Config](guides/deployment/environment-config.md)** - Multi-environment setup (local, QA, production)
+- **[Level Manifests](guides/deployment/unified-manifest-design.md)** - Level manifest architecture and GCS deployment
+
+### Quality
+- **[Testing Strategy](guides/testing/testing-strategy.md)** - Unit tests, E2E, QA checklist
 
 ### Reference
 - **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
-- **[AI Development](guides/ai-development.md)** - AI-assisted development guidelines
+- **[All Guides](guides/index.md)** - Complete guide index
 
 ---
 
@@ -128,6 +153,38 @@ Reusable code patterns documented for the team:
 
 ---
 
+## Factory Commands
+
+AI workflow commands for development tasks. See [factory/index.md](factory/index.md) for full documentation.
+
+| Command | Description |
+|---------|-------------|
+| [plan](factory/plan.md) | Create implementation plans |
+| [task](factory/task.md) | Execute tracked tasks |
+| [commit](factory/commit.md) | Conventional commit messages |
+| [review](factory/review.md) | Code review |
+| [audit](factory/audit.md) | System auditing |
+| [debug](factory/debug.md) | Debug assistance |
+| [discover](factory/discover.md) | Codebase exploration |
+| [research](factory/research.md) | Research tasks |
+| [compare](factory/compare.md) | Code comparison |
+| [report](factory/report.md) | Generate reports |
+| [execute](factory/execute.md) | Execute plans |
+| [run-test](factory/run-test.md) | Run tests |
+| [user-test](factory/user-test.md) | User testing |
+| [update-docs](factory/update-docs.md) | Documentation updates |
+| [naming](factory/naming.md) | Naming conventions |
+| [log](factory/log.md) | Log analysis |
+| [help](factory/help.md) | Command help |
+
+---
+
 ## Archive
 
-Historical planning documents and implementation reports are preserved in [archive/executed-plans/](archive/executed-plans/).
+Historical planning documents and implementation reports.
+
+### Executed Plans
+Implementation reports from completed work are preserved in [archive/executed-plans/](archive/executed-plans/).
+
+### CityLines Learnings
+Project-specific insights: [archive/citylines/citylines-learnings.md](archive/citylines/citylines-learnings.md)

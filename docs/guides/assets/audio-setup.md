@@ -55,99 +55,98 @@ Each sprite entry: `"name": [start_ms, duration_ms]`
 
 ## Sound Definitions
 
-Define sounds in a catalog file for type safety and easy management.
+Define sounds using the scaffold's `SoundDefinition` type for type safety and easy management.
 
 ### Create Sound Catalog
 
 ```typescript
 // src/game/audio/sounds.ts
-
-export interface SoundDefinition {
-  channel: string;  // Bundle name (without 'audio-' prefix)
-  sprite: string;   // Sprite name in JSON
-  volume?: number;  // 0-1, default 1
-}
+import type { SoundDefinition } from '~/scaffold/systems/audio';
+export type { SoundDefinition };
 
 // UI Sounds
 export const SOUND_BUTTON_CLICK: SoundDefinition = {
-  channel: 'sfx-citylines',
+  channel: 'sfx-mygame',
   sprite: 'button_click',
   volume: 0.7,
 };
 
 // Gameplay Sounds (with variations to prevent fatigue)
 export const SOUND_TILE_ROTATE: readonly SoundDefinition[] = [
-  { channel: 'sfx-citylines', sprite: 'tile_rotate_1', volume: 0.5 },
-  { channel: 'sfx-citylines', sprite: 'tile_rotate_2', volume: 0.5 },
-  { channel: 'sfx-citylines', sprite: 'tile_rotate_3', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'tile_rotate_1', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'tile_rotate_2', volume: 0.5 },
+  { channel: 'sfx-mygame', sprite: 'tile_rotate_3', volume: 0.5 },
 ] as const;
 
 // Music Tracks
 export const MUSIC_TRACKS: readonly SoundDefinition[] = [
-  { channel: 'sfx-citylines', sprite: 'music_track_1' },
-  { channel: 'sfx-citylines', sprite: 'music_track_2' },
+  { channel: 'sfx-mygame', sprite: 'music_track_1' },
+  { channel: 'sfx-mygame', sprite: 'music_track_2' },
 ] as const;
 ```
 
 ## Game Audio Manager
 
-Create a manager class to handle game-specific audio logic.
+Extend `BaseAudioManager` from scaffold to create your game's audio manager.
 
 ```typescript
 // src/game/audio/manager.ts
-
 import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
-import { audioState } from '~/scaffold/systems/audio';
-import { SOUND_TILE_ROTATE, MUSIC_TRACKS, type SoundDefinition } from './sounds';
+import { BaseAudioManager } from '~/scaffold/systems/audio';
+import {
+  SOUND_BUTTON_CLICK,
+  SOUND_TILE_ROTATE,
+  SOUND_LEVEL_COMPLETE,
+  MUSIC_TRACKS,
+} from './sounds';
 
-export class GameAudioManager {
-  private audioLoader: AudioLoader;
-  private currentMusicId: number | null = null;
+export class GameAudioManager extends BaseAudioManager {
+  private currentMusicIndex = 0;
 
   constructor(audioLoader: AudioLoader) {
-    this.audioLoader = audioLoader;
+    super(audioLoader);
   }
 
-  // Play with random variation
+  // Single sound
+  playButtonClick(): void {
+    this.playSound(SOUND_BUTTON_CLICK);
+  }
+
+  // Random from variations (prevents audio fatigue)
   playTileRotate(): void {
-    const sound = this.getRandomSound(SOUND_TILE_ROTATE);
-    this.playSound(sound);
+    this.playRandomSound(SOUND_TILE_ROTATE);
   }
 
-  // Simple sound playback
+  // Simple sound
   playLevelComplete(): void {
     this.playSound(SOUND_LEVEL_COMPLETE);
   }
 
-  // Music control
-  startMusic(): void {
-    if (!audioState.musicEnabled()) return;
-
-    const track = MUSIC_TRACKS[0];
-    this.currentMusicId = this.audioLoader.playMusic(track.channel, track.sprite, {
-      fadeIn: 1000,
-      volume: 0.6,
-    });
+  // Game-specific music control with track rotation
+  startGameMusic(): void {
+    const track = MUSIC_TRACKS[this.currentMusicIndex];
+    this.startMusic(track);  // Inherited from BaseAudioManager
   }
 
-  stopMusic(): void {
-    if (this.currentMusicId !== null) {
-      this.audioLoader.stopMusic(500);  // 500ms fade out
-      this.currentMusicId = null;
-    }
-  }
-
-  private playSound(sound: SoundDefinition): void {
-    this.audioLoader.play(sound.channel, sound.sprite, {
-      volume: sound.volume,
-    });
-  }
-
-  private getRandomSound(sounds: readonly SoundDefinition[]): SoundDefinition {
-    return sounds[Math.floor(Math.random() * sounds.length)];
+  nextTrack(): void {
+    this.stopMusic();  // Inherited from BaseAudioManager
+    this.currentMusicIndex = (this.currentMusicIndex + 1) % MUSIC_TRACKS.length;
+    this.startGameMusic();
   }
 }
 ```
+
+### BaseAudioManager Methods
+
+The scaffold provides these methods via `BaseAudioManager`:
+
+| Method | Purpose |
+|--------|---------|
+| `playSound(sound)` | Play a single SoundDefinition |
+| `playRandomSound(sounds)` | Play random from array (variations) |
+| `startMusic(track, fadeIn?)` | Start music with optional fade (default 1000ms) |
+| `stopMusic(fadeOut?)` | Stop music with optional fade (default 500ms) |
+| `isMusicPlaying()` | Check if music is currently playing |
 
 ## Register Audio Bundle
 
@@ -213,7 +212,7 @@ createEffect(() => {
   if (!manager) return;
 
   if (audioState.musicEnabled()) {
-    manager.startMusic();
+    manager.startGameMusic(); // Game-specific method
   } else {
     manager.stopMusic();
   }

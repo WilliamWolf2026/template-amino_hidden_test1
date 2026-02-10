@@ -756,7 +756,7 @@ export function GameScreen() {
     if (!manager) return;
 
     if (audio.musicEnabled()) {
-      manager.startMusic();
+      manager.startGameMusic();
     } else {
       manager.stopMusic();
     }
