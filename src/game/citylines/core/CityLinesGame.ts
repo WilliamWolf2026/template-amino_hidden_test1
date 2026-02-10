@@ -1003,6 +1003,26 @@ export class CityLinesGame extends Container {
     return this.exits;
   }
 
+  /** Get all tile rotations (for saving progress) */
+  getTileRotations(): number[] {
+    return this.roadTiles.map(tile => tile.currentRotation);
+  }
+
+  /** Set tile rotations (for loading saved progress) */
+  setTileRotations(rotations: number[]): void {
+    if (rotations.length !== this.roadTiles.length) {
+      console.warn('[CityLinesGame] Rotation count mismatch, ignoring saved state');
+      return;
+    }
+
+    for (let i = 0; i < this.roadTiles.length; i++) {
+      this.roadTiles[i].setRotation(rotations[i]);
+    }
+
+    // Update connection visuals after applying rotations
+    this.updateConnectionVisuals();
+  }
+
   /** Clean up resources */
   override destroy(): void {
     this.clearLevel();

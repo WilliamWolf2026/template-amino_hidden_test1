@@ -4,10 +4,11 @@ import { useAssets } from '~/scaffold/systems/assets';
 import { Spinner } from '~/scaffold/ui/Spinner';
 import { ProgressBar } from '~/scaffold/ui/ProgressBar';
 import { Logo } from '~/scaffold/ui/Logo';
+import { hasChapterInProgress } from '~/game/services/progress';
 
 export function LoadingScreen() {
   const { goto } = useScreen();
-  const { loadBoot, loadTheme } = useAssets();
+  const { loadBoot, loadTheme, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const [progress, setProgress] = createSignal(0);
   const [themeLoaded, setThemeLoaded] = createSignal(false);
 
@@ -23,7 +24,23 @@ export function LoadingScreen() {
       // Brief pause to show completion
       await new Promise((r) => setTimeout(r, 500));
 
-      await goto('start');
+      // Skip start screen and go directly to game if there's saved progress
+      if (hasChapterInProgress()) {
+        console.log('[LoadingScreen] Resuming saved progress, skipping start screen');
+        // Initialize GPU, core, and audio assets (normally done in StartScreen)
+        unlockAudio();
+        await initGpu();
+        await loadCore();
+        // Load audio with graceful degradation
+        try {
+          await loadAudio();
+        } catch (error) {
+          console.warn('Audio loading failed (assets may not exist yet):', error);
+        }
+        await goto('game');
+      } else {
+        await goto('start');
+      }
     } catch (error) {
       console.error('Failed to load initial assets:', error);
     }

@@ -15,6 +15,7 @@ import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
 import { getCountyConfig } from '~/game/citylines/data/counties';
 import { gameState } from '~/game/state';
+import { advanceLevel, saveTileState, getTileState, clearTileState, getCurrentChapter } from '~/game/services/progress';
 import { getDebugParams } from '~/game/utils/debugParams';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
@@ -59,6 +60,10 @@ export function GameScreen() {
   onMount(async () => {
     if (!containerRef) return;
 
+    // Check for saved progress (mid-level resume)
+    const savedProgress = getCurrentChapter();
+    const savedTileState = getTileState();
+
     // Load section config (from URL param or fallback to default)
     try {
       const config = await loadSectionConfig();
@@ -71,8 +76,16 @@ export function GameScreen() {
       // Set total levels based on chapter length
       gameState.setTotalLevels(chapter.chapterLength);
 
-      // Set first level from generated chapter
-      setCurrentLevel(chapter.levels[0]);
+      // Determine which level to load (resume or start fresh)
+      let levelIndex = 0;
+      if (savedProgress && savedProgress.currentLevel > 1) {
+        // Resume from saved level (1-indexed to 0-indexed)
+        levelIndex = Math.min(savedProgress.currentLevel - 1, chapter.chapterLength - 1);
+        gameState.setCurrentLevel(savedProgress.currentLevel);
+        console.log('[GameScreen] Resuming from level', savedProgress.currentLevel);
+      }
+
+      setCurrentLevel(chapter.levels[levelIndex]);
     } catch (err) {
       console.error('[Game] Failed to load section config:', err);
     }
@@ -137,6 +150,12 @@ export function GameScreen() {
       // Load generated level
       game.loadLevel(currentLevel());
 
+      // Apply saved tile rotations if resuming mid-level
+      if (savedTileState?.rotations) {
+        console.log('[GameScreen] Applying saved tile rotations');
+        game.setTileRotations(savedTileState.rotations);
+      }
+
       // Add to stage first so it's part of the render tree
       app.stage.addChild(game);
 
@@ -194,13 +213,14 @@ export function GameScreen() {
       const positionProgressUI = () => {
         const gridPixelSize = game.getGridPixelSize();
         const gridTop = app.screen.height / 2 - gridPixelSize / 2;
-        const barY = gridTop - 50;
+        // Ensure bar stays on screen with minimum top margin
+        const barY = Math.max(50, gridTop - 50);
         const barWidth = Math.min(320, app.screen.width - 48);
         bar.x = (app.screen.width - barWidth) / 2;
         bar.y = barY;
         if (chapterLabel) {
           chapterLabel.x = app.screen.width / 2;
-          chapterLabel.y = barY - 24;
+          chapterLabel.y = Math.max(20, barY - 24);
         }
       };
 
@@ -300,10 +320,21 @@ export function GameScreen() {
       // Wire game events to audio
       game.onGameEvent('tileRotated', () => {
         manager.playTileRotate();
+
+        // Save tile state to localStorage for mid-level resume
+        const rotations = game.getTileRotations();
+        const level = currentLevel();
+        saveTileState(rotations, level.levelNumber);
       });
 
       game.onGameEvent('levelComplete', () => {
         manager.playLevelComplete();
+
+        // Clear tile state (level is done, next level starts fresh)
+        clearTileState();
+
+        // Persist progress to localStorage
+        advanceLevel();
 
         // Note: Progress update is deferred until after level transition completes
         // This happens in the completionStart callback after playLevelTransition()

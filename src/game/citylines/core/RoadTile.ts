@@ -146,6 +146,13 @@ export class RoadTile extends Container {
     this.completedSprite.visible = connected;
   }
 
+  /** Set rotation state directly (for loading saved progress) */
+  setRotation(rotation: number): void {
+    this._currentRotation = rotation % 4;
+    this._visualRotation = this._currentRotation * 90;
+    this.applyRotation();
+  }
+
   private applyRotation(): void {
     const radians = (this._visualRotation * Math.PI) / 180;
     this.defaultSprite.rotation = radians;

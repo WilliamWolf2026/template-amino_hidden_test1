@@ -18,6 +18,7 @@ import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
 import { gameConfig } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
 import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
+import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
 
@@ -25,6 +26,13 @@ import { IS_DEV_ENV } from './scaffold/dev/env';
 const urlTheme = getThemeFromUrl();
 const environment = getEnvironment();
 const urlOverrides = urlTheme ? { 'theme.tileTheme': urlTheme } : undefined;
+
+/** Reset progress and reload the page */
+const handleResetProgress = () => {
+  clearProgress();
+  // Reload to show start screen (since progress is now cleared)
+  window.location.reload();
+};
 
 export default function App() {
   onMount(() => {
@@ -51,7 +59,7 @@ export default function App() {
         <MobileViewport>
           {/* Settings Menu - Top Right Corner */}
           <div class="fixed top-2 right-2 z-[9999]">
-            <SettingsMenu />
+            <SettingsMenu onResetProgress={handleResetProgress} />
           </div>
           <PauseProvider>
             <ManifestProvider>

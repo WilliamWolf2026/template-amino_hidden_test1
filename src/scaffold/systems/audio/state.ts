@@ -1,4 +1,5 @@
 import { createSignal, createRoot } from 'solid-js';
+import { getStored, setStored } from '~/scaffold/utils/storage';
 
 // localStorage keys
 const STORAGE_KEYS = {
@@ -7,27 +8,6 @@ const STORAGE_KEYS = {
   AMBIENT_ENABLED: 'app_ambient_enabled',
   VO_ENABLED: 'app_vo_enabled',
 } as const;
-
-// Helper to get from localStorage with fallback
-function getStored<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const stored = localStorage.getItem(key);
-    return stored !== null ? JSON.parse(stored) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-// Helper to set in localStorage
-function setStored(key: string, value: unknown): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 export interface AudioState {
   // State

@@ -10,7 +10,8 @@ import { Character } from '~/game/citylines/core/Character';
 import { SpriteButton } from '~/game/citylines/core/SpriteButton';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
-import { getStartScreenMode, markAsPlayed } from '~/game/citylines/utils/startScreenHelper';
+import { getStartScreenMode, markAsPlayed, type StartScreenConfig } from '~/game/citylines/utils/startScreenHelper';
+import { startChapter } from '~/game/services/progress';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 // Text styles cached at module level to avoid per-frame allocations
@@ -86,6 +87,7 @@ export function StartScreen() {
   const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
   const [loading, setLoading] = createSignal(false);
+  const [screenConfig, setScreenConfig] = createSignal<StartScreenConfig | null>(null);
   let containerRef: HTMLDivElement | undefined;
   let app: Application | null = null;
   let background: Sprite | null = null;
@@ -113,6 +115,19 @@ export function StartScreen() {
     try {
       // Mark that player has played (for future sessions)
       markAsPlayed();
+
+      // Start a new chapter if this is a new game (not continuing)
+      const config = screenConfig();
+      console.log('[StartScreen] handleStart - config:', config);
+      if (config && config.mode === 'new') {
+        console.log('[StartScreen] Starting new chapter');
+        startChapter({
+          manifestUrl: '', // TODO: Get actual manifest URL when available
+          chapterId: 'default',
+          countyName: config.countyName,
+          chapterLength: config.totalLevels,
+        });
+      }
 
       unlockAudio();
       await initGpu();
@@ -300,7 +315,8 @@ export function StartScreen() {
     // Detect debug mode from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const debugProgress = urlParams.get('debugProgress') === '1';
-    const screenConfig = getStartScreenMode(debugProgress);
+    const config = getStartScreenMode(debugProgress);
+    setScreenConfig(config);
 
     app = new Application();
     await app.init({
@@ -333,7 +349,7 @@ export function StartScreen() {
 
       // County text (create first to measure)
       countyText = new Text({
-        text: screenConfig.countyName,
+        text: config.countyName,
         style: COUNTY_TEXT_STYLE,
       });
       countyText.anchor.set(0.5);
@@ -354,11 +370,11 @@ export function StartScreen() {
 
       // Goal/progress text (differs for new vs returning)
       const goalContent =
-        screenConfig.mode === 'new'
+        config.mode === 'new'
           ? 'Connect landmarks to highways by rotating road tiles.\nTake your time and explore!'
-          : `Level ${screenConfig.levelNumber} of ${screenConfig.totalLevels}`;
+          : `Level ${config.levelNumber} of ${config.totalLevels}`;
 
-      const goalStyle = screenConfig.mode === 'new' ? GOAL_TEXT_STYLE : PROGRESS_TEXT_STYLE;
+      const goalStyle = config.mode === 'new' ? GOAL_TEXT_STYLE : PROGRESS_TEXT_STYLE;
 
       goalText = new Text({
         text: goalContent,
@@ -368,8 +384,8 @@ export function StartScreen() {
 
       // Goal panel (responsive to text size with cozy padding)
       goalPanel = new Graphics();
-      const goalPaddingX = screenConfig.mode === 'new' ? 28 : 34;
-      const goalPaddingY = screenConfig.mode === 'new' ? 20 : 18;
+      const goalPaddingX = config.mode === 'new' ? 28 : 34;
+      const goalPaddingY = config.mode === 'new' ? 20 : 18;
       const panelWidth = Math.min(goalText.width + goalPaddingX * 2, 460);
       const panelHeight = goalText.height + goalPaddingY * 2;
       const panelRadius = 18;
@@ -391,7 +407,7 @@ export function StartScreen() {
       uiContainer.addChild(character);
 
       // Character flavor text
-      const flavorContent = screenConfig.mode === 'new' ? "Let's connect some roads!" : 'Ready for more?';
+      const flavorContent = config.mode === 'new' ? "Let's connect some roads!" : 'Ready for more?';
 
       flavorText = new Text({
         text: flavorContent,
@@ -401,7 +417,7 @@ export function StartScreen() {
       uiContainer.addChild(flavorText);
 
       // Start/Continue button with 9-slice
-      const buttonLabel = screenConfig.mode === 'new' ? 'START' : 'CONTINUE';
+      const buttonLabel = config.mode === 'new' ? 'START' : 'CONTINUE';
 
       startButton = new SpriteButton(gpuLoader, {
         atlasName: tileBundleName,
