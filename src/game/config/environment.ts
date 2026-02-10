@@ -20,7 +20,9 @@ const GAME_PATHS = {
   gamePath: 'games/citylines/data',
   /** Local asset path (flat structure) */
   localAssetPath: '/assets',
-  /** Local levels path */
+  /** Local chapters path */
+  localChaptersPath: '/chapters',
+  /** @deprecated Local levels path (legacy, use localChaptersPath) */
   localLevelsPath: '/levels',
 };
 
@@ -50,6 +52,22 @@ export const getCdnUrl = (): string => {
 };
 
 /**
+ * Get the chapters URL for the current environment.
+ */
+export const getChaptersUrl = (): string => {
+  const baseUrl = getCdnBaseUrl();
+
+  if (!baseUrl) {
+    // Local development
+    return GAME_PATHS.localChaptersPath;
+  }
+
+  // Remote environment
+  return `${baseUrl}/${GAME_PATHS.gamePath}/chapters`;
+};
+
+/**
+ * @deprecated Use getChaptersUrl() instead.
  * Get the levels URL for the current environment.
  */
 export const getLevelsUrl = (): string => {

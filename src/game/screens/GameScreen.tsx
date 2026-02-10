@@ -18,11 +18,18 @@ import { gameState } from '~/game/state';
 import { advanceLevel, saveTileState, getTileState, clearTileState, getCurrentChapter } from '~/game/services/progress';
 import { getDebugParams } from '~/game/utils/debugParams';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
+import { useGameData } from '~/game/hooks/useGameData';
+import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
+import type { ChapterRef } from '~/game/citylines/types/gameData';
+
+/** Modal phase for the chapter start experience */
+type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
   const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
   const audio = useAudio();
+  const { gameData } = useGameData();
   let containerRef: HTMLDivElement | undefined;
 
   // Store references for reactive updates
@@ -34,7 +41,13 @@ export function GameScreen() {
   const [generatedChapter, setGeneratedChapter] = createSignal<GeneratedChapter | null>(null);
   let resizeHandler: (() => void) | null = null;
 
-  // Companion dialogue references (reused for both intro and completion)
+  // Modal phase for the chapter start flow
+  const [modalPhase, setModalPhase] = createSignal<ModalPhase>('introduction');
+
+  // Active chapter ref from new backend schema (if available)
+  const [activeChapterRef, setActiveChapterRef] = createSignal<ChapterRef | null>(null);
+
+  // Companion dialogue references (reused for intro, chapter start, and completion)
   let companionGroup: Container | null = null;
   let companionDialogueBox: DialogueBox | null = null;
   let companionCharacter: CompanionCharacter | null = null;
@@ -64,9 +77,22 @@ export function GameScreen() {
     const savedProgress = getCurrentChapter();
     const savedTileState = getTileState();
 
-    // Load section config (from URL param or fallback to default)
+    // Load section config: try new game data schema first, fall back to legacy
     try {
-      const config = await loadSectionConfig();
+      let config: SectionConfig;
+      const gd = gameData();
+
+      if (gd && gd.chapters?.length > 0) {
+        // New schema: convert first chapter from game data
+        const chapterRef = getChapterByIndex(gd, 0)!;
+        setActiveChapterRef(chapterRef);
+        config = chapterRefToLevelManifest(chapterRef);
+        console.log('[GameScreen] Loaded chapter from game data:', chapterRef.name);
+      } else {
+        // Legacy: load from URL param or default.json
+        config = await loadSectionConfig();
+      }
+
       setSectionConfig(config);
 
       // Generate full chapter upfront
@@ -83,6 +109,8 @@ export function GameScreen() {
         levelIndex = Math.min(savedProgress.currentLevel - 1, chapter.chapterLength - 1);
         gameState.setCurrentLevel(savedProgress.currentLevel);
         console.log('[GameScreen] Resuming from level', savedProgress.currentLevel);
+        // Skip intro/chapter-start modals when resuming
+        setModalPhase('playing');
       }
 
       setCurrentLevel(chapter.levels[levelIndex]);
@@ -147,14 +175,21 @@ export function GameScreen() {
       // Configure completion paint animation
       game.setCompletionPaintConfig(gameTuning.completionPaint);
 
-      // Load generated level
-      game.loadLevel(currentLevel());
+      // Defer tile painting based on modal phase:
+      // - 'introduction': game container visible but no tiles painted yet
+      // - 'playing': immediate load (resuming saved progress)
+      const isResuming = modalPhase() === 'playing';
 
-      // Apply saved tile rotations if resuming mid-level
-      if (savedTileState?.rotations) {
-        console.log('[GameScreen] Applying saved tile rotations');
-        game.setTileRotations(savedTileState.rotations);
+      if (isResuming) {
+        game.loadLevel(currentLevel());
+
+        // Apply saved tile rotations if resuming mid-level
+        if (savedTileState?.rotations) {
+          console.log('[GameScreen] Applying saved tile rotations');
+          game.setTileRotations(savedTileState.rotations);
+        }
       }
+      // else: game container added to stage but loadLevel() deferred until after chapter start dialogue
 
       // Add to stage first so it's part of the render tree
       app.stage.addChild(game);
@@ -321,6 +356,12 @@ export function GameScreen() {
       game.onGameEvent('tileRotated', () => {
         manager.playTileRotate();
 
+        // Start music on first tile tap if it isn't playing yet
+        // (handles resume case where audio context was suspended)
+        if (audio.musicEnabled() && !manager.isMusicPlaying()) {
+          manager.startGameMusic();
+        }
+
         // Save tile state to localStorage for mid-level resume
         const rotations = game.getTileRotations();
         const level = currentLevel();
@@ -362,49 +403,11 @@ export function GameScreen() {
 
         if (isChapterEnd) {
           // Chapter end (level 10, 20, etc.) - show full companion overlay with story reveal
-          if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
-
-          // Show headline and summary at chapter end
           const displayText = config
             ? `${config.story.headline}\n\n${config.story.summary}`
             : clueText;
-          companionDialogueBox.setText(displayText);
-
-          // Show companion group again
-          companionGroup.visible = true;
-          companionGroup.x = app.screen.width + 400; // Reset to off-screen right
-          companionGroup.alpha = 1;
-
-          // Mark that we're showing completion clue (for dismiss handler)
           isShowingCompletionClue = true;
-
-          // Start animation
-          isCompanionAnimating = true;
-
-          // Fade in dark overlay
-          gsap.to(darkOverlay, {
-            alpha: companionConfig.overlayAlpha,
-            duration: companionConfig.overlayFadeInDuration / 1000,
-            ease: 'power2.out',
-          });
-
-          // Slide companion in from right (same animation as intro)
-          setTimeout(() => {
-            gsap.to(companionGroup, {
-              x: app.screen.width / 2,
-              duration: companionConfig.slideInDuration / 1000,
-              ease: companionConfig.slideInEasing,
-              delay: 0.2,
-              onComplete: () => {
-                isCompanionAnimating = false;
-                if (darkOverlay) {
-                  darkOverlay.eventMode = 'static'; // Enable clicks
-                }
-                // Play dog bark after slide-in completes
-                manager.playDogBark();
-              },
-            });
-          }, companionConfig.slideInDelay);
+          showCompanion(displayText, gameTuning.companion.overlayAlpha);
         } else {
           // Regular level (1-9) - show lightweight Pixi CluePopup
           if (cluePopup) {
@@ -428,16 +431,19 @@ export function GameScreen() {
         }
       });
 
-      // Create companion dialogue group (reused for intro and completion)
+      // Create companion dialogue group (reused for intro, chapter start, and completion)
       companionGroup = new Container();
       companionGroup.label = 'companion-dialogue-group';
 
       // Create dialogue box with text (store reference for reuse)
       companionDialogueBox = new DialogueBox(gpuLoader, app.screen.width, app.screen.height, 2.5);
-      // Use story summary from section config
+
+      // Determine intro text: use story.info from new schema, fall back to story.summary
       const config = sectionConfig();
-      const introText = config?.story.summary
-        ?? "Hi there, let's solve some tile puzzles to uncover a local news story!";
+      const chapterRef = activeChapterRef();
+      const introText = chapterRef
+        ? getChapterIntroduction(chapterRef)
+        : (config?.story.summary ?? "Hi there, let's solve some tile puzzles to uncover a local news story!");
       companionDialogueBox.setText(introText);
       companionDialogueBox.alpha = 1; // Make visible (constructor sets to 0)
 
@@ -475,6 +481,95 @@ export function GameScreen() {
       // Get companion animation settings from tuning
       const companionConfig = gameTuning.companion;
 
+      // -- Helper: Slide companion in with text and overlay --
+      const showCompanion = (text: string, overlayAlpha: number) => {
+        if (!companionDialogueBox || !companionGroup || !darkOverlay) return;
+
+        companionDialogueBox.setText(text);
+        companionGroup.visible = true;
+        companionGroup.x = app.screen.width + 400; // Off-screen right
+        companionGroup.alpha = 1;
+
+        isCompanionAnimating = true;
+
+        setTimeout(() => {
+          // Fade in dark overlay to specified alpha
+          gsap.to(darkOverlay, {
+            alpha: overlayAlpha,
+            duration: companionConfig.overlayFadeInDuration / 1000,
+            ease: 'power2.out',
+          });
+
+          // Calculate target position
+          const gt = companionCharacter!.y - (charHeight / 2);
+          const gvc = (gt + 0) / 2;
+
+          // Slide group from right
+          gsap.to(companionGroup, {
+            x: app.screen.width / 2,
+            y: app.screen.height / 2 - gvc,
+            duration: companionConfig.slideInDuration / 1000,
+            ease: companionConfig.slideInEasing,
+            delay: 0.2,
+            onComplete: () => {
+              isCompanionAnimating = false;
+              if (darkOverlay) {
+                darkOverlay.eventMode = 'static';
+              }
+              manager.playDogBark();
+            },
+          });
+        }, companionConfig.slideInDelay);
+      };
+
+      // -- Helper: Slide companion out, returns promise --
+      // Waits for BOTH the slide-out and overlay fade to complete before resolving.
+      const hideCompanion = (): Promise<void> => {
+        return new Promise((resolve) => {
+          if (!companionGroup || !darkOverlay) {
+            resolve();
+            return;
+          }
+
+          isCompanionAnimating = true;
+          darkOverlay.eventMode = 'none';
+
+          let slideOutDone = false;
+          let overlayDone = false;
+
+          const checkDone = () => {
+            if (slideOutDone && overlayDone) {
+              if (companionGroup) {
+                companionGroup.visible = false;
+              }
+              isCompanionAnimating = false;
+              resolve();
+            }
+          };
+
+          gsap.to(companionGroup, {
+            x: -400,
+            alpha: 0,
+            duration: companionConfig.slideOutDuration / 1000,
+            ease: companionConfig.slideOutEasing,
+            onComplete: () => {
+              slideOutDone = true;
+              checkDone();
+            },
+          });
+
+          gsap.to(darkOverlay, {
+            alpha: 0,
+            duration: companionConfig.overlayFadeOutDuration / 1000,
+            ease: 'power2.in',
+            onComplete: () => {
+              overlayDone = true;
+              checkDone();
+            },
+          });
+        });
+      };
+
       // Add dark overlay (blocks clicks, positioned UNDER companion group)
       darkOverlay = new Graphics();
       darkOverlay.rect(0, 0, app.screen.width, app.screen.height);
@@ -482,39 +577,99 @@ export function GameScreen() {
       darkOverlay.alpha = 0; // Start transparent (animate this property)
       darkOverlay.eventMode = 'none'; // Start disabled, enable after animation completes
       darkOverlay.cursor = 'pointer';
-      darkOverlay.on('pointertap', () => {
+      darkOverlay.on('pointertap', async () => {
         // Prevent clicks during animation
         if (isCompanionAnimating || !darkOverlay) return;
 
-        isCompanionAnimating = true;
-        darkOverlay.eventMode = 'none'; // Disable further clicks
+        const phase = modalPhase();
 
-        // Dismiss dialogue with slide-left + fade animation
-        gsap.to(companionGroup, {
-          x: -400, // Slide off to the left
-          alpha: 0, // Fade out
-          duration: companionConfig.slideOutDuration / 1000,
-          ease: companionConfig.slideOutEasing,
-        });
+        if (phase === 'introduction') {
+          // Companion stays on screen — staggered text swap while level loads behind
+          isCompanionAnimating = true;
+          setModalPhase('loading-puzzle');
 
-        // Fade out dark overlay with completion callback
-        gsap.to(darkOverlay, {
-          alpha: 0,
-          duration: companionConfig.overlayFadeOutDuration / 1000,
-          ease: 'power2.in',
-          onComplete: () => {
-            if (companionGroup) {
-              companionGroup.visible = false;
-            }
-            isCompanionAnimating = false;
+          const chapterStartText = config
+            ? `${config.story.headline}\n\n${config.story.summary}`
+            : "Let's begin!";
 
-            // If we were showing completion clue, generate and load a new level
-            if (isShowingCompletionClue) {
-              isShowingCompletionClue = false;
-              loadNextLevelWithTransition();
-            }
-          },
-        });
+          // --- Timing delays (seconds) — adjust these to taste ---
+          const TEXT_FADE_OUT      = 0.2;   // text fades out
+          const BOX_FADE_OUT       = 0.2;   // box fades out after text
+          const DELAY_BEFORE_LEVEL = 0.4;   // pause before level loads
+          const DELAY_BEFORE_BOX_IN = 0.6;  // pause after level starts before box fades back
+          const BOX_FADE_IN        = 0.3;   // box fades back in
+          const TEXT_FADE_IN       = 0.3;   // text fades in after box
+          const DELAY_CHAR_SWAP    = 0.3;   // delay after level pop-in before character swap
+          // ---
+
+          // DialogueBox children: [0] = boxSprite, [1] = textField
+          const boxSprite = companionDialogueBox!.children[0];
+          const textField = companionDialogueBox!.children[1];
+
+          // Staggered fade-out/swap/fade-in with level load in the gap
+          const textSwap = new Promise<void>((resolve) => {
+            const tl = gsap.timeline({ onComplete: resolve });
+
+            // 1. Fade out text first
+            tl.to(textField, { alpha: 0, duration: TEXT_FADE_OUT, ease: 'power2.in' });
+
+            // 2. Fade out box sprite
+            tl.to(boxSprite, { alpha: 0, duration: BOX_FADE_OUT, ease: 'power2.in' });
+
+            // 3. Delay, then load level behind overlay
+            tl.call(() => {
+              game.loadLevel(currentLevel());
+              game.autoSizeToViewport(
+                app.screen.width,
+                app.screen.height,
+                gameTuning.grid.tileSize,
+                80,
+                100
+              );
+              game.x = app.screen.width / 2;
+              game.y = app.screen.height / 2;
+              positionProgressUI();
+
+              game.playLevelTransition().catch((err) => {
+                console.error('[GameScreen] Level transition animation error:', err);
+              });
+
+              // Swap text while box is invisible
+              companionDialogueBox!.setText(chapterStartText);
+            }, undefined, `+=${DELAY_BEFORE_LEVEL}`);
+
+            // 4. After level has started, swap character with a delay
+            tl.call(() => {
+              companionCharacter!.setCharacterType('paper_kid');
+            }, undefined, `+=${DELAY_CHAR_SWAP}`);
+
+            // 5. Delay, then fade box sprite back in
+            tl.to(boxSprite, { alpha: 1, duration: BOX_FADE_IN, ease: 'power2.out', delay: DELAY_BEFORE_BOX_IN });
+
+            // 6. Fade text back in
+            tl.to(textField, { alpha: 1, duration: TEXT_FADE_IN, ease: 'power2.out' });
+          });
+
+          await textSwap;
+
+          setModalPhase('chapter-start');
+          isCompanionAnimating = false;
+
+        } else if (phase === 'chapter-start') {
+          // Chapter start dismissed — level is already loaded, slide out and begin gameplay
+          await hideCompanion();
+          setModalPhase('playing');
+
+        } else if (isShowingCompletionClue) {
+          // Chapter-end completion clue dismissed — load next level
+          await hideCompanion();
+          isShowingCompletionClue = false;
+          loadNextLevelWithTransition();
+
+        } else {
+          // Default dismiss (shouldn't normally reach here)
+          await hideCompanion();
+        }
       });
       app.stage.addChild(darkOverlay);
 
@@ -524,39 +679,14 @@ export function GameScreen() {
       companionGroup.alpha = 1;
       app.stage.addChild(companionGroup);
 
-      // Animate group sliding in from right
-      isCompanionAnimating = true;
-      setTimeout(() => {
-        // Fade in dark overlay
-        gsap.to(darkOverlay, {
-          alpha: companionConfig.overlayAlpha,
-          duration: companionConfig.overlayFadeInDuration / 1000,
-          ease: 'power2.out',
-        });
-
-        // Calculate target position
-        const groupTop = companionCharacter.y - (charHeight / 2);
-        const groupBottom = 0;
-        const groupVerticalCenter = (groupTop + groupBottom) / 2;
-
-        // Slide group from right
-        gsap.to(companionGroup, {
-          x: app.screen.width / 2,
-          y: app.screen.height / 2 - groupVerticalCenter,
-          duration: companionConfig.slideInDuration / 1000,
-          ease: companionConfig.slideInEasing,
-          delay: 0.2,
-          onComplete: () => {
-            // Enable clicks after animation completes
-            isCompanionAnimating = false;
-            if (darkOverlay) {
-              darkOverlay.eventMode = 'static';
-            }
-            // Play dog bark after slide-in completes
-            manager.playDogBark();
-          },
-        });
-      }, companionConfig.slideInDelay);
+      // Show companion intro (or skip if resuming)
+      if (modalPhase() === 'introduction') {
+        // Introduction phase: game container visible but no tiles painted yet
+        showCompanion(introText, companionConfig.overlayAlpha);
+      } else {
+        // Resuming: companion starts hidden, no intro
+        companionGroup.visible = false;
+      }
 
       // Resize handler for responsive behavior
       resizeHandler = () => {
@@ -586,22 +716,24 @@ export function GameScreen() {
         }
 
         // Update dialogue box dimensions
-        companionDialogueBox.resize(app.screen.width, app.screen.height);
+        if (companionDialogueBox && companionCharacter) {
+          companionDialogueBox.resize(app.screen.width, app.screen.height);
 
-        // Recalculate character position relative to new dialogue box size
-        const dialogueBoxLeftEdge = -(companionDialogueBox.getWidth() / 2);
-        companionCharacter.x = dialogueBoxLeftEdge + (charWidth / 2);
-        companionCharacter.y = -companionDialogueBox.getHeight() - (charHeight * 0.25);
+          // Recalculate character position relative to new dialogue box size
+          const dialogueBoxLeftEdge = -(companionDialogueBox.getWidth() / 2);
+          companionCharacter.x = dialogueBoxLeftEdge + (charWidth / 2);
+          companionCharacter.y = -companionDialogueBox.getHeight() - (charHeight * 0.25);
 
-        // Recalculate vertical center offset
-        const groupTop = companionCharacter.y - (charHeight / 2);
-        const groupBottom = 0;
-        const groupVerticalCenter = (groupTop + groupBottom) / 2;
+          // Recalculate vertical center offset
+          const groupTop = companionCharacter.y - (charHeight / 2);
+          const groupBottom = 0;
+          const groupVerticalCenter = (groupTop + groupBottom) / 2;
 
-        // Reposition group at center
-        if (companionGroup && companionGroup.visible) {
-          companionGroup.x = app.screen.width / 2;
-          companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
+          // Reposition group at center
+          if (companionGroup && companionGroup.visible) {
+            companionGroup.x = app.screen.width / 2;
+            companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
+          }
         }
       };
 

@@ -93,9 +93,7 @@ export const SOUND_DOG_PANT: SoundDefinition = {
  * Rotates between chapters
  */
 export const MUSIC_TRACKS: readonly SoundDefinition[] = [
-  { channel: 'sfx-citylines', sprite: 'bg_track_1' },
-  { channel: 'sfx-citylines', sprite: 'bg_track_2' },
-  { channel: 'sfx-citylines', sprite: 'bg_track_3' },
+  { channel: 'music-citylines-1', sprite: 'music_1' },
 ] as const;
 
 // ============================================================================

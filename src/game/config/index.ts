@@ -6,6 +6,7 @@ export {
   isProduction,
   getLocalAssetPath,
   getCdnUrl,
+  getChaptersUrl,
   getLevelsUrl,
   resolveLevelUrl,
 } from './environment';

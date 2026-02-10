@@ -1,0 +1,1 @@
+export { useGameData } from './useGameData';
