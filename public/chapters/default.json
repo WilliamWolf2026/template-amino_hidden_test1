@@ -3,41 +3,307 @@
   "name": "Goodboi on Patrol",
   "chapters": [
     {
-      "id": 1,
-      "uid": "local-chapter-patrol-1",
-      "name": "Goodboi on Patrol",
+      "id": 0,
+      "uid": "patrol-tutorial",
+      "name": "Tutorial Patrol",
       "county": {
-        "uid": "local-county-default",
+        "uid": "county-default",
         "name": "default",
         "texturePack": {
-          "uid": "local-tp-county-default",
+          "uid": "tp-county-default",
           "name": "default",
           "type": "common",
           "packFileKey": "atlas-tiles-citylines.json"
         }
       },
       "story": {
-        "uid": "local-story-patrol-1",
+        "uid": "story-patrol-tutorial",
         "info": "Woof! I'm Goodboi. Part of my daily patrol isn't connecting today. A few of my usual routes are blocked. Let's fix that!",
-        "headline": "Goodboi on Patrol",
-        "summary": "Sniff\u2026 something's off. A few paths in my loop aren't lining up. Let's get this place back in order.",
+        "headline": "Tutorial Patrol",
+        "summary": "Sniff\u2026 something's off. A few roads aren't lining up the way they should. Tap a tile and turn it until the path fits.",
         "imageUrl": "",
         "articleUrl": ""
       },
       "texturePack": {
-        "uid": "local-tp-default",
+        "uid": "tp-default",
         "name": "default",
         "type": "common",
         "packFileKey": "atlas-tiles-citylines.json"
       },
       "levels": [
-        { "uid": "local-level-1", "levelNumber": 1, "config": {}, "seed": 42001, "clues": [{ "uid": "local-clue-1", "text": "There we go. I always start around the busiest stretch. Good to have that path open again." }] },
-        { "uid": "local-level-2", "levelNumber": 2, "config": {}, "seed": 42002, "clues": [{ "uid": "local-clue-2", "text": "Nice. This part's quieter. I like taking it slow through here." }] },
-        { "uid": "local-level-3", "levelNumber": 3, "config": {}, "seed": 42003, "clues": [{ "uid": "local-clue-3", "text": "Sniff-sniff\u2026 this corner matters. Lots of familiar faces pass through." }] },
-        { "uid": "local-level-4", "levelNumber": 4, "config": {}, "seed": 42004, "clues": [{ "uid": "local-clue-4", "text": "Alright. This one's a little tucked away. Easy to miss if the roads don't connect." }] },
-        { "uid": "local-level-5", "levelNumber": 5, "config": {}, "seed": 42005, "clues": [{ "uid": "local-clue-5", "text": "Good. Open space again. Feels better when I can move freely." }] },
-        { "uid": "local-level-6", "levelNumber": 6, "config": {}, "seed": 42006, "clues": [{ "uid": "local-clue-6", "text": "That's better. This stretch always comes after the long bend." }] },
-        { "uid": "local-level-7", "levelNumber": 7, "config": {}, "seed": 42007, "clues": [{ "uid": "local-clue-7", "text": "All set! Every path's connected, and all is right in the world!" }] }
+        { "uid": "tutorial-level-1", "levelNumber": 1, "config": {}, "seed": 10001, "clues": [{ "uid": "tutorial-clue-1", "text": "There we go. Turn the roads until they connect all the way through." }] },
+        { "uid": "tutorial-level-2", "levelNumber": 2, "config": {}, "seed": 10002, "clues": [{ "uid": "tutorial-clue-2", "text": "That's it. When a place connects, the road lights up. That means I can get through." }] },
+        { "uid": "tutorial-level-3", "levelNumber": 3, "config": {}, "seed": 10003, "clues": [{ "uid": "tutorial-clue-3", "text": "Nice! Some paths bend. Some go straight. Rotate them until the lines meet cleanly." }] },
+        { "uid": "tutorial-level-4", "levelNumber": 4, "config": {}, "seed": 10004, "clues": [{ "uid": "tutorial-clue-4", "text": "Good. Keep turning the pieces until the road reaches the exit cleanly." }] },
+        { "uid": "tutorial-level-5", "levelNumber": 5, "config": {}, "seed": 10005, "clues": [{ "uid": "tutorial-clue-5", "text": "Keep going! Line it up so everything flows." }] },
+        { "uid": "tutorial-level-6", "levelNumber": 6, "config": {}, "seed": 10006, "clues": [{ "uid": "tutorial-clue-6", "text": "Almost there. Make sure every stop has a clear path." }] },
+        { "uid": "tutorial-level-7", "levelNumber": 7, "config": {}, "seed": 10007, "clues": [{ "uid": "tutorial-clue-7", "text": "Yes! Every road's connected and my patrol's wide open again. Let's keep moving." }] }
+      ]
+    },
+    {
+      "id": 1,
+      "uid": "patrol-chapter-1",
+      "name": "Patrol Route 1",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-1",
+        "info": "Woof! I'm Goodboi. Part of my daily patrol isn't connecting today. A few of my usual routes are blocked. Let's fix that!",
+        "headline": "Patrol Route 1",
+        "summary": "Sniff\u2026 something's off. A few paths in my loop aren't lining up. Let's get this place back in order.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p1-level-1", "levelNumber": 1, "config": {}, "seed": 42001, "clues": [{ "uid": "p1-clue-1", "text": "There we go. I always start around the busiest stretch. Good to have that path open again." }] },
+        { "uid": "p1-level-2", "levelNumber": 2, "config": {}, "seed": 42002, "clues": [{ "uid": "p1-clue-2", "text": "Nice. This part's quieter. I like taking it slow through here." }] },
+        { "uid": "p1-level-3", "levelNumber": 3, "config": {}, "seed": 42003, "clues": [{ "uid": "p1-clue-3", "text": "Sniff-sniff\u2026 this corner matters. Lots of familiar faces pass through." }] },
+        { "uid": "p1-level-4", "levelNumber": 4, "config": {}, "seed": 42004, "clues": [{ "uid": "p1-clue-4", "text": "Alright. This one's a little tucked away. Easy to miss if the roads don't connect." }] },
+        { "uid": "p1-level-5", "levelNumber": 5, "config": {}, "seed": 42005, "clues": [{ "uid": "p1-clue-5", "text": "Good. Open space again. Feels better when I can move freely." }] },
+        { "uid": "p1-level-6", "levelNumber": 6, "config": {}, "seed": 42006, "clues": [{ "uid": "p1-clue-6", "text": "That's better. This stretch always comes after the long bend." }] },
+        { "uid": "p1-level-7", "levelNumber": 7, "config": {}, "seed": 42007, "clues": [{ "uid": "p1-clue-7", "text": "All set! Every path's connected, and all is right in the world!" }] }
+      ]
+    },
+    {
+      "id": 2,
+      "uid": "patrol-chapter-2",
+      "name": "Patrol Route 2",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-2",
+        "info": "Hey. I'm Goodboi. My patrol loop isn't fully connected today. Let's open up the paths so I can get moving.",
+        "headline": "Patrol Route 2",
+        "summary": "Sniff\u2026 something's off. A few parts of my route don't feel right. Let's straighten it out.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p2-level-1", "levelNumber": 1, "config": {}, "seed": 52001, "clues": [{ "uid": "p2-clue-1", "text": "There we go. That feels better already." }] },
+        { "uid": "p2-level-2", "levelNumber": 2, "config": {}, "seed": 52002, "clues": [{ "uid": "p2-clue-2", "text": "Nice. I can move through here again." }] },
+        { "uid": "p2-level-3", "levelNumber": 3, "config": {}, "seed": 52003, "clues": [{ "uid": "p2-clue-3", "text": "Sniff-sniff\u2026 this part always helps the loop flow." }] },
+        { "uid": "p2-level-4", "levelNumber": 4, "config": {}, "seed": 52004, "clues": [{ "uid": "p2-clue-4", "text": "Good. I don't have to double back anymore." }] },
+        { "uid": "p2-level-5", "levelNumber": 5, "config": {}, "seed": 52005, "clues": [{ "uid": "p2-clue-5", "text": "Almost there. Just a little more to fix." }] },
+        { "uid": "p2-level-6", "levelNumber": 6, "config": {}, "seed": 52006, "clues": [{ "uid": "p2-clue-6", "text": "That's it. The long stretch is open again." }] },
+        { "uid": "p2-level-7", "levelNumber": 7, "config": {}, "seed": 52007, "clues": [{ "uid": "p2-clue-7", "text": "Now we're moving! The whole loop's wide open." }] }
+      ]
+    },
+    {
+      "id": 3,
+      "uid": "patrol-chapter-3",
+      "name": "Patrol Route 3",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-3",
+        "info": "Hey. I'm Goodboi. Looks like my patrol's got a few gaps today. Let's reconnect the paths so I can make the full loop.",
+        "headline": "Patrol Route 3",
+        "summary": "Sniff\u2026 yeah, I can feel it. Parts of my route aren't lining up. Time to get things flowing again.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p3-level-1", "levelNumber": 1, "config": {}, "seed": 62001, "clues": [{ "uid": "p3-clue-1", "text": "Nice. That's one stretch back in place." }] },
+        { "uid": "p3-level-2", "levelNumber": 2, "config": {}, "seed": 62002, "clues": [{ "uid": "p3-clue-2", "text": "Good. I can move forward without stopping." }] },
+        { "uid": "p3-level-3", "levelNumber": 3, "config": {}, "seed": 62003, "clues": [{ "uid": "p3-clue-3", "text": "Sniff-sniff\u2026 that feels smoother already." }] },
+        { "uid": "p3-level-4", "levelNumber": 4, "config": {}, "seed": 62004, "clues": [{ "uid": "p3-clue-4", "text": "Alright. No more awkward turns here." }] },
+        { "uid": "p3-level-5", "levelNumber": 5, "config": {}, "seed": 62005, "clues": [{ "uid": "p3-clue-5", "text": "Almost there. Just a couple more paths to fix." }] },
+        { "uid": "p3-level-6", "levelNumber": 6, "config": {}, "seed": 62006, "clues": [{ "uid": "p3-clue-6", "text": "Yes! That's the long run opened back up." }] },
+        { "uid": "p3-level-7", "levelNumber": 7, "config": {}, "seed": 62007, "clues": [{ "uid": "p3-clue-7", "text": "Woof! That's a full patrol right there. Every path's open \u2014 let's go!" }] }
+      ]
+    },
+    {
+      "id": 4,
+      "uid": "patrol-chapter-4",
+      "name": "Patrol Route 4",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-4",
+        "info": "Hey there. I was just about to start my patrol, but something's not lining up. Let's reconnect the paths so I can get going.",
+        "headline": "Patrol Route 4",
+        "summary": "Sniff\u2026 yeah, that's not right. My loop's all twisted up. We can fix this.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p4-level-1", "levelNumber": 1, "config": {}, "seed": 72001, "clues": [{ "uid": "p4-clue-1", "text": "There we go. That's a good start." }] },
+        { "uid": "p4-level-2", "levelNumber": 2, "config": {}, "seed": 72002, "clues": [{ "uid": "p4-clue-2", "text": "Nice. I can stretch my legs through here again." }] },
+        { "uid": "p4-level-3", "levelNumber": 3, "config": {}, "seed": 72003, "clues": [{ "uid": "p4-clue-3", "text": "Sniff-sniff\u2026 that's one of my favorite stretches. Glad it's open." }] },
+        { "uid": "p4-level-4", "levelNumber": 4, "config": {}, "seed": 72004, "clues": [{ "uid": "p4-clue-4", "text": "Okay! The middle's starting to feel connected." }] },
+        { "uid": "p4-level-5", "levelNumber": 5, "config": {}, "seed": 72005, "clues": [{ "uid": "p4-clue-5", "text": "Almost there. I can see the rest of the loop coming together." }] },
+        { "uid": "p4-level-6", "levelNumber": 6, "config": {}, "seed": 72006, "clues": [{ "uid": "p4-clue-6", "text": "Yes! That was the tricky part." }] },
+        { "uid": "p4-level-7", "levelNumber": 7, "config": {}, "seed": 72007, "clues": [{ "uid": "p4-clue-7", "text": "Woof! That's what I'm talking about. Full loop, clear paths \u2014 patrol complete!" }] }
+      ]
+    },
+    {
+      "id": 5,
+      "uid": "patrol-chapter-5",
+      "name": "Patrol Route 5",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-5",
+        "info": "Hey. I'm ready for my patrol, but the route's not fully open. Let's straighten it out so I can make the full loop.",
+        "headline": "Patrol Route 5",
+        "summary": "Sniff\u2026 yeah, this won't do. Parts of my path are cut off. We're fixing this.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p5-level-1", "levelNumber": 1, "config": {}, "seed": 82001, "clues": [{ "uid": "p5-clue-1", "text": "Good. That's one path cleared." }] },
+        { "uid": "p5-level-2", "levelNumber": 2, "config": {}, "seed": 82002, "clues": [{ "uid": "p5-clue-2", "text": "Nice. I can move through here without stopping." }] },
+        { "uid": "p5-level-3", "levelNumber": 3, "config": {}, "seed": 82003, "clues": [{ "uid": "p5-clue-3", "text": "Sniff-sniff\u2026 this stretch always keeps things flowing." }] },
+        { "uid": "p5-level-4", "levelNumber": 4, "config": {}, "seed": 82004, "clues": [{ "uid": "p5-clue-4", "text": "Alright. No more backtracking." }] },
+        { "uid": "p5-level-5", "levelNumber": 5, "config": {}, "seed": 82005, "clues": [{ "uid": "p5-clue-5", "text": "Almost there. Just a little more to reconnect." }] },
+        { "uid": "p5-level-6", "levelNumber": 6, "config": {}, "seed": 82006, "clues": [{ "uid": "p5-clue-6", "text": "That's it. The loop's nearly whole again." }] },
+        { "uid": "p5-level-7", "levelNumber": 7, "config": {}, "seed": 82007, "clues": [{ "uid": "p5-clue-7", "text": "Yes! That's a clean patrol. Every path's open \u2014 let's roll!" }] }
+      ]
+    },
+    {
+      "id": 6,
+      "uid": "patrol-chapter-6",
+      "name": "Patrol Route 6",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-6",
+        "info": "Woof! I was ready to sprint my whole loop, but some of my paths are twisted up. C'mon! Let's fix this so I can run it right!",
+        "headline": "Patrol Route 6",
+        "summary": "Sniff-sniff\u2026 yeah, nope. That bend's all wrong. I can't zoom like this.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p6-level-1", "levelNumber": 1, "config": {}, "seed": 92001, "clues": [{ "uid": "p6-clue-1", "text": "Ohhh that's better! I can stretch my legs there." }] },
+        { "uid": "p6-level-2", "levelNumber": 2, "config": {}, "seed": 92002, "clues": [{ "uid": "p6-clue-2", "text": "Yes! Now I don't have to double back." }] },
+        { "uid": "p6-level-3", "levelNumber": 3, "config": {}, "seed": 92003, "clues": [{ "uid": "p6-clue-3", "text": "Sniff! This turn always smells important." }] },
+        { "uid": "p6-level-4", "levelNumber": 4, "config": {}, "seed": 92004, "clues": [{ "uid": "p6-clue-4", "text": "There it is! That click felt good." }] },
+        { "uid": "p6-level-5", "levelNumber": 5, "config": {}, "seed": 92005, "clues": [{ "uid": "p6-clue-5", "text": "We're getting fast now. I can feel it." }] },
+        { "uid": "p6-level-6", "levelNumber": 6, "config": {}, "seed": 92006, "clues": [{ "uid": "p6-clue-6", "text": "Almost a full sprint!" }] },
+        { "uid": "p6-level-7", "levelNumber": 7, "config": {}, "seed": 92007, "clues": [{ "uid": "p6-clue-7", "text": "Ha! Full loop unlocked! That's a tail-wagging patrol right there!" }] }
+      ]
+    },
+    {
+      "id": 7,
+      "uid": "patrol-chapter-7",
+      "name": "Patrol Route 7",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-7",
+        "info": "Hey! I had this whole route planned in my head\u2026 but something's blocking my zoomies. Let's open it up!",
+        "headline": "Patrol Route 7",
+        "summary": "Sniff\u2026 I know this stretch by heart. It shouldn't feel this tangled.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p7-level-1", "levelNumber": 1, "config": {}, "seed": 10201, "clues": [{ "uid": "p7-clue-1", "text": "Good! That clears my first dash." }] },
+        { "uid": "p7-level-2", "levelNumber": 2, "config": {}, "seed": 10202, "clues": [{ "uid": "p7-clue-2", "text": "Nice. I can trot through here again." }] },
+        { "uid": "p7-level-3", "levelNumber": 3, "config": {}, "seed": 10203, "clues": [{ "uid": "p7-clue-3", "text": "Ooooh. This part always has good smells." }] },
+        { "uid": "p7-level-4", "levelNumber": 4, "config": {}, "seed": 10204, "clues": [{ "uid": "p7-clue-4", "text": "That's a smooth turn. I like smooth turns." }] },
+        { "uid": "p7-level-5", "levelNumber": 5, "config": {}, "seed": 10205, "clues": [{ "uid": "p7-clue-5", "text": "We're lining it up. I can almost see the whole path." }] },
+        { "uid": "p7-level-6", "levelNumber": 6, "config": {}, "seed": 10206, "clues": [{ "uid": "p7-clue-6", "text": "One more fix and I can really move." }] },
+        { "uid": "p7-level-7", "levelNumber": 7, "config": {}, "seed": 10207, "clues": [{ "uid": "p7-clue-7", "text": "That's it! Wide open roads and happy paws. Best patrol ever!" }] }
       ]
     }
   ]
