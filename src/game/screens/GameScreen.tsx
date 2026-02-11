@@ -15,11 +15,12 @@ import { GameAudioManager } from '~/game/audio/manager';
 import { ProgressBar } from '~/game/citylines/core/ProgressBar';
 import { getCountyConfig } from '~/game/citylines/data/counties';
 import { gameState } from '~/game/state';
-import { advanceLevel, saveTileState, getTileState, clearTileState, getCurrentChapter } from '~/game/services/progress';
+import { advanceLevel, saveTileState, getTileState, clearTileState, getCurrentChapter, startChapter, completeChapter } from '~/game/services/progress';
 import { getDebugParams } from '~/game/utils/debugParams';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 import { useGameData } from '~/game/hooks/useGameData';
 import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
+import { initCatalog, getCatalog, setCatalogIndex, hasNextChapter, fetchNextChapter, fetchChapterAtIndex, findIndexByUid } from '~/game/services/chapterCatalog';
 import type { ChapterRef } from '~/game/citylines/types/gameData';
 
 /** Modal phase for the chapter start experience */
@@ -77,20 +78,44 @@ export function GameScreen() {
     const savedProgress = getCurrentChapter();
     const savedTileState = getTileState();
 
-    // Load section config: try new game data schema first, fall back to legacy
+    // Load chapter from catalog (index.json), fall back to baked-in game data
     try {
       let config: SectionConfig;
-      const gd = gameData();
 
-      if (gd && gd.chapters?.length > 0) {
-        // New schema: convert first chapter from game data
-        const chapterRef = getChapterByIndex(gd, 0)!;
+      // Initialize chapter catalog from index.json
+      await initCatalog();
+
+      // Determine which catalog index to load
+      let catalogIndex = 0;
+      if (savedProgress) {
+        if (savedProgress.catalogIndex != null) {
+          catalogIndex = savedProgress.catalogIndex;
+        } else if (savedProgress.chapterId) {
+          const idx = findIndexByUid(savedProgress.chapterId);
+          if (idx >= 0) catalogIndex = idx;
+        }
+        setCatalogIndex(catalogIndex);
+      }
+
+      // Fetch chapter from catalog (local or CDN)
+      const fetchedData = await fetchChapterAtIndex(catalogIndex);
+
+      if (fetchedData && fetchedData.chapters?.length > 0) {
+        const chapterRef = fetchedData.chapters[0];
         setActiveChapterRef(chapterRef);
         config = chapterRefToLevelManifest(chapterRef);
-        console.log('[GameScreen] Loaded chapter from game data:', chapterRef.name);
+        console.log('[GameScreen] Loaded chapter from catalog:', chapterRef.name);
       } else {
-        // Legacy: load from URL param or default.json
-        config = await loadSectionConfig();
+        // Fallback: try baked-in game data
+        const gd = gameData();
+        if (gd && gd.chapters?.length > 0) {
+          const chapterRef = getChapterByIndex(gd, 0)!;
+          setActiveChapterRef(chapterRef);
+          config = chapterRefToLevelManifest(chapterRef);
+          console.log('[GameScreen] Loaded chapter from fallback game data:', chapterRef.name);
+        } else {
+          config = await loadSectionConfig();
+        }
       }
 
       setSectionConfig(config);
@@ -111,6 +136,18 @@ export function GameScreen() {
         console.log('[GameScreen] Resuming from level', savedProgress.currentLevel);
         // Skip intro/chapter-start modals when resuming
         setModalPhase('playing');
+      } else {
+        // Fresh start — persist chapter progress
+        const chapterRef = activeChapterRef();
+        if (chapterRef) {
+          startChapter({
+            manifestUrl: '',
+            chapterId: chapterRef.uid,
+            countyName: chapterRef.county.name,
+            chapterLength: chapter.chapterLength,
+            catalogIndex,
+          });
+        }
       }
 
       setCurrentLevel(chapter.levels[levelIndex]);
@@ -460,18 +497,18 @@ export function GameScreen() {
       const charWidth = 222 * 0.8;   // 177.6px
       const charHeight = 243 * 0.8;  // 194.4px
 
-      // Position character on left side, with 3/4 above dialogue box
+      // Position character on left side, with 3/4 above dialogue box top edge
       const dialogueBoxLeftEdge = -(companionDialogueBox.getWidth() / 2);
       companionCharacter.x = dialogueBoxLeftEdge + (charWidth / 2); // Left edge aligned
-      companionCharacter.y = -companionDialogueBox.getHeight() - (charHeight * 0.25); // 3/4 above, 1/4 below
+      companionCharacter.y = -(charHeight * 0.25); // 3/4 above box top, 1/4 overlapping
 
       // Add character BEFORE dialogue box (behind it)
       companionGroup.addChildAt(companionCharacter, 0);
 
       // Calculate vertical center offset for the group
-      // Dialogue box bottom is at y=0, character top is at companionCharacter.y - charHeight/2
+      // Character top to dialogue box bottom (box now grows downward from y=0)
       const groupTop = companionCharacter.y - (charHeight / 2);
-      const groupBottom = 0; // Dialogue box bottom
+      const groupBottom = companionDialogueBox.getHeight();
       const groupVerticalCenter = (groupTop + groupBottom) / 2;
 
       // Position group at center of screen, adjusted for group's vertical center
@@ -500,9 +537,10 @@ export function GameScreen() {
             ease: 'power2.out',
           });
 
-          // Calculate target position
+          // Recalculate group center (dialogue box height may have changed from setText)
           const gt = companionCharacter!.y - (charHeight / 2);
-          const gvc = (gt + 0) / 2;
+          const gb = companionDialogueBox!.getHeight();
+          const gvc = (gt + gb) / 2;
 
           // Slide group from right
           gsap.to(companionGroup, {
@@ -588,8 +626,9 @@ export function GameScreen() {
           isCompanionAnimating = true;
           setModalPhase('loading-puzzle');
 
-          const chapterStartText = config
-            ? `${config.story.headline}\n\n${config.story.summary}`
+          const currentConfig = sectionConfig();
+          const chapterStartText = currentConfig
+            ? `${currentConfig.story.headline}\n\n${currentConfig.story.summary}`
             : "Let's begin!";
 
           // --- Timing delays (seconds) — adjust these to taste ---
@@ -661,10 +700,94 @@ export function GameScreen() {
           setModalPhase('playing');
 
         } else if (isShowingCompletionClue) {
-          // Chapter-end completion clue dismissed — load next level
-          await hideCompanion();
+          // Chapter-end completion clue dismissed — advance to next chapter
+          // Slide out companion but KEEP overlay dark (level loads behind it)
+          isCompanionAnimating = true;
+          darkOverlay!.eventMode = 'none';
+          await new Promise<void>((resolve) => {
+            gsap.to(companionGroup!, {
+              x: -400,
+              alpha: 0,
+              duration: companionConfig.slideOutDuration / 1000,
+              ease: companionConfig.slideOutEasing,
+              onComplete: () => {
+                companionGroup!.visible = false;
+                isCompanionAnimating = false;
+                resolve();
+              },
+            });
+          });
+
           isShowingCompletionClue = false;
-          loadNextLevelWithTransition();
+
+          // Mark current chapter as complete
+          completeChapter();
+
+          if (hasNextChapter()) {
+            // Fetch and start the next chapter
+            const nextData = await fetchNextChapter();
+            if (nextData && nextData.chapters?.length > 0) {
+              const nextChapterRef = nextData.chapters[0];
+              const nextConfig = chapterRefToLevelManifest(nextChapterRef);
+              const nextChapter = ChapterGenerationService.generateChapter(nextConfig, gameTuning.generator);
+
+              // Update all signals
+              setActiveChapterRef(nextChapterRef);
+              setSectionConfig(nextConfig);
+              setGeneratedChapter(nextChapter);
+              setCurrentLevel(nextChapter.levels[0]);
+
+              // Reset HUD
+              gameState.setCurrentLevel(1);
+              gameState.setTotalLevels(nextChapter.chapterLength);
+
+              // Persist progress for new chapter
+              const cat = getCatalog();
+              startChapter({
+                manifestUrl: '',
+                chapterId: nextChapterRef.uid,
+                countyName: nextChapterRef.county.name,
+                chapterLength: nextChapter.chapterLength,
+                catalogIndex: cat?.currentIndex ?? 0,
+              });
+
+              // Update progress bar
+              bar.setProgress(1, nextChapter.chapterLength, false);
+              if (chapterLabel) chapterLabel.text = `1 / ${nextChapter.chapterLength}`;
+
+              // Load the first level behind the still-dark overlay (invisible to player)
+              game.loadLevel(nextChapter.levels[0]);
+              game.autoSizeToViewport(
+                app.screen.width,
+                app.screen.height,
+                gameTuning.grid.tileSize,
+                80,
+                100
+              );
+              game.x = app.screen.width / 2;
+              game.y = app.screen.height / 2;
+              positionProgressUI();
+              game.playLevelTransition().catch((err) => {
+                console.error('[GameScreen] Level transition animation error:', err);
+              });
+
+              // Show chapter-start modal (overlay still dark, one tap to dismiss)
+              const chapterStartText = `${nextConfig.story.headline}\n\n${nextConfig.story.summary}`;
+              setModalPhase('chapter-start');
+              showCompanion(chapterStartText, companionConfig.overlayAlpha);
+
+              console.log('[GameScreen] Started next chapter:', nextChapterRef.name);
+            } else {
+              // Fetch failed — wrap around same chapter as fallback
+              loadNextLevelWithTransition();
+            }
+          } else {
+            // All chapters complete
+            showCompanion(
+              "Amazing work! You've completed all available patrols. Check back soon for new routes!",
+              companionConfig.overlayAlpha
+            );
+          }
 
         } else {
           // Default dismiss (shouldn't normally reach here)
