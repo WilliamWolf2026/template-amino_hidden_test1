@@ -25,6 +25,8 @@ export interface CurrentChapter {
   currentLevel: number;
   /** When the chapter was started */
   startedAt: number;
+  /** Index into the chapter catalog (for resume) */
+  catalogIndex?: number;
   /** Tile rotations for current level (saved mid-level) */
   tileRotations?: number[];
   /** Level seed for reproducibility */

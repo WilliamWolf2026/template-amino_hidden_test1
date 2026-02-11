@@ -1,0 +1,44 @@
+{
+  "games": [
+    {
+      "uid": "patrol-tutorial",
+      "url": "patrol-tutorial.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-1",
+      "url": "patrol-1.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-2",
+      "url": "patrol-2.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-3",
+      "url": "patrol-3.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-4",
+      "url": "patrol-4.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-5",
+      "url": "patrol-5.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-6",
+      "url": "patrol-6.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-7",
+      "url": "patrol-7.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    }
+  ]
+}

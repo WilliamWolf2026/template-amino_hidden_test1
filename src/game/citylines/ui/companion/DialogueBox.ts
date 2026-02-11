@@ -33,7 +33,7 @@ export class DialogueBox extends Container {
       rightWidth: 20,
       bottomHeight: 20,
     });
-    this.boxSprite.anchor.set(0.5, 1); // Bottom center anchor
+    this.boxSprite.anchor.set(0.5, 0); // Top center anchor — box grows downward so taller text doesn't cover character
 
     // Calculate target dimensions
     const targetWidth = Math.min(
@@ -65,7 +65,7 @@ export class DialogueBox extends Container {
     // Position text inside dialogue box with more padding
     this.textField.anchor.set(0, 0.5); // Left-center anchor
     this.textField.x = -(targetWidth / 2) + 40; // 40px left padding
-    this.textField.y = -(this.targetHeight / 2); // Centered vertically
+    this.textField.y = this.targetHeight / 2; // Centered vertically (box grows downward from top)
     this.addChild(this.textField);
 
     // Position at bottom center
@@ -92,8 +92,8 @@ export class DialogueBox extends Container {
     this.targetHeight = newHeight;
     this.boxSprite.height = newHeight;
 
-    // Re-center text vertically
-    this.textField.y = -(newHeight / 2);
+    // Re-center text vertically (box grows downward from top)
+    this.textField.y = newHeight / 2;
   }
 
   /**

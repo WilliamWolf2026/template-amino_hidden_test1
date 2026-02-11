@@ -1,0 +1,44 @@
+{
+  "uid": "local-fallback-patrol",
+  "name": "Goodboi on Patrol — Tutorial",
+  "chapters": [
+    {
+      "id": 0,
+      "uid": "patrol-tutorial",
+      "name": "Tutorial Patrol",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-tutorial",
+        "info": "Woof! I'm Goodboi. Part of my daily patrol isn't connecting today. A few of my usual routes are blocked. Let's fix that!",
+        "headline": "Tutorial Patrol",
+        "summary": "Sniff\u2026 something's off. A few roads aren't lining up the way they should. Tap a tile and turn it until the path fits.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "tutorial-level-1", "levelNumber": 1, "config": {}, "seed": 10001, "clues": [{ "uid": "tutorial-clue-1", "text": "There we go. Turn the roads until they connect all the way through." }] },
+        { "uid": "tutorial-level-2", "levelNumber": 2, "config": {}, "seed": 10002, "clues": [{ "uid": "tutorial-clue-2", "text": "That's it. When a place connects, the road lights up. That means I can get through." }] },
+        { "uid": "tutorial-level-3", "levelNumber": 3, "config": {}, "seed": 10003, "clues": [{ "uid": "tutorial-clue-3", "text": "Nice! Some paths bend. Some go straight. Rotate them until the lines meet cleanly." }] },
+        { "uid": "tutorial-level-4", "levelNumber": 4, "config": {}, "seed": 10004, "clues": [{ "uid": "tutorial-clue-4", "text": "Good. Keep turning the pieces until the road reaches the exit cleanly." }] },
+        { "uid": "tutorial-level-5", "levelNumber": 5, "config": {}, "seed": 10005, "clues": [{ "uid": "tutorial-clue-5", "text": "Keep going! Line it up so everything flows." }] },
+        { "uid": "tutorial-level-6", "levelNumber": 6, "config": {}, "seed": 10006, "clues": [{ "uid": "tutorial-clue-6", "text": "Almost there. Make sure every stop has a clear path." }] },
+        { "uid": "tutorial-level-7", "levelNumber": 7, "config": {}, "seed": 10007, "clues": [{ "uid": "tutorial-clue-7", "text": "Yes! Every road's connected and my patrol's wide open again. Let's keep moving." }] }
+      ]
+    }
+  ]
+}

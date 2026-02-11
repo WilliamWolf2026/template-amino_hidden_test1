@@ -92,6 +92,7 @@ export class CityLinesGame extends Container {
   // Completion paint animation config
   private completionPaintConfig = { staggerDelay: 50, tileDuration: 150, easing: 'power2.out', blastSizePercent: 200 };
   private isPaintAnimationPlaying = false;
+  private isSolved = false;
 
   // Completion lifecycle
   private completionController: LevelCompletionController;
@@ -176,6 +177,7 @@ export class CityLinesGame extends Container {
 
     this.currentLevelConfig = config;
     this.moveCount = 0;
+    this.isSolved = false;
     this.levelStartTime = Date.now();
     this.completionController.reset();
 
@@ -275,8 +277,8 @@ export class CityLinesGame extends Container {
 
   /** Handle tile rotation */
   private handleTileRotate(tile: RoadTile): void {
-    // Block input during completion sequence or level transition
-    if (this.completionController.isInputBlocked || this.isTransitioning) {
+    // Block input during completion sequence, level transition, or solved puzzle
+    if (this.completionController.isInputBlocked || this.isTransitioning || this.isSolved) {
       return;
     }
 
@@ -294,6 +296,12 @@ export class CityLinesGame extends Container {
 
     // Update visuals immediately (tile colors change right away)
     this.updateConnectionVisuals();
+
+    // Check if this rotation solved the puzzle — block input immediately
+    const result = this.evaluateCurrentConnections();
+    if (result.solved) {
+      this.isSolved = true;
+    }
 
     // Delay level completion check until tile rotation animation finishes
     const rotationDuration = this.rotationAnimationConfig?.duration ?? 300;

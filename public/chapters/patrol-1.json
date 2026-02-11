@@ -1,0 +1,44 @@
+{
+  "uid": "local-fallback-patrol",
+  "name": "Goodboi on Patrol — Chapter 1",
+  "chapters": [
+    {
+      "id": 1,
+      "uid": "patrol-chapter-1",
+      "name": "Patrol Route 1",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-1",
+        "info": "Woof! I'm Goodboi. Part of my daily patrol isn't connecting today. A few of my usual routes are blocked. Let's fix that!",
+        "headline": "Patrol Route 1",
+        "summary": "Sniff\u2026 something's off. A few paths in my loop aren't lining up. Let's get this place back in order.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p1-level-1", "levelNumber": 1, "config": {}, "seed": 42001, "clues": [{ "uid": "p1-clue-1", "text": "There we go. I always start around the busiest stretch. Good to have that path open again." }] },
+        { "uid": "p1-level-2", "levelNumber": 2, "config": {}, "seed": 42002, "clues": [{ "uid": "p1-clue-2", "text": "Nice. This part's quieter. I like taking it slow through here." }] },
+        { "uid": "p1-level-3", "levelNumber": 3, "config": {}, "seed": 42003, "clues": [{ "uid": "p1-clue-3", "text": "Sniff-sniff\u2026 this corner matters. Lots of familiar faces pass through." }] },
+        { "uid": "p1-level-4", "levelNumber": 4, "config": {}, "seed": 42004, "clues": [{ "uid": "p1-clue-4", "text": "Alright. This one's a little tucked away. Easy to miss if the roads don't connect." }] },
+        { "uid": "p1-level-5", "levelNumber": 5, "config": {}, "seed": 42005, "clues": [{ "uid": "p1-clue-5", "text": "Good. Open space again. Feels better when I can move freely." }] },
+        { "uid": "p1-level-6", "levelNumber": 6, "config": {}, "seed": 42006, "clues": [{ "uid": "p1-clue-6", "text": "That's better. This stretch always comes after the long bend." }] },
+        { "uid": "p1-level-7", "levelNumber": 7, "config": {}, "seed": 42007, "clues": [{ "uid": "p1-clue-7", "text": "All set! Every path's connected, and all is right in the world!" }] }
+      ]
+    }
+  ]
+}

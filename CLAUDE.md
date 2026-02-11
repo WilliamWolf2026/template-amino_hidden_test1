@@ -12,6 +12,12 @@ Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
 
 **Full context map:** [docs/scaffold/context-map.md](docs/scaffold/context-map.md)
 
+## Coding Standards & Docs
+
+Before making changes, consult the relevant files in:
+- `ai/rules/` — coding standards, review guidelines, JS/TS patterns, UI rules
+- `docs/` — game design, architecture, guides, animation patterns, asset pipeline
+
 ## Factory (Common Workflows)
 
 See **[docs/factory/](docs/factory/index.md)** for reusable commands.
@@ -41,22 +47,8 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 ```bash
 cp .claude/settings.admin.json .claude/settings.local.json      # Admin
 cp .claude/settings.restricted.json .claude/settings.local.json # Safe
+cp CLAUDE.lite.md CLAUDE.md                                      # Lite (no rules/docs)
 ```
-
-## Documentation
-
-- **[docs/README.md](docs/README.md)** - Documentation index
-- **[docs/game/gdd.md](docs/game/gdd.md)** - Game Design Document
-- **[docs/scaffold/](docs/scaffold/)** - Framework architecture
-
-| Topic | Location |
-|-------|----------|
-| Game Design Doc | `docs/game/gdd.md` |
-| Architecture | `docs/scaffold/architecture.md` |
-| Migration Guide | `docs/scaffold/scaffold-overview-and-migration.md` |
-| Asset naming | `docs/guides/assets/naming-convention.md` |
-| Asset pipeline | `docs/guides/assets/asset-pipeline.md` |
-| Audio setup | `docs/guides/assets/audio-setup.md` |
 
 ## Tech Stack
 

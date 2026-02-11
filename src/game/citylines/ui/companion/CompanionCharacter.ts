@@ -20,6 +20,7 @@ export class CompanionCharacter extends Container {
   private sprite: Sprite;
   private characterType: CharacterType;
   private displayMode: CompanionDisplayMode;
+  private gpuLoader: PixiLoader;
 
   constructor(
     type: CharacterType,
@@ -30,6 +31,7 @@ export class CompanionCharacter extends Container {
 
     this.characterType = type;
     this.displayMode = mode;
+    this.gpuLoader = gpuLoader;
 
     // Load character sprite from atlas
     const spriteName = CHARACTER_SPRITES[type];
@@ -91,5 +93,24 @@ export class CompanionCharacter extends Container {
     const scale = CHARACTER_SCALES[mode];
     this.sprite.width = CHARACTER_BASE_SIZE.width * scale;
     this.sprite.height = CHARACTER_BASE_SIZE.height * scale;
+  }
+
+  /**
+   * Swap character type at runtime (replaces sprite texture)
+   */
+  setCharacterType(type: CharacterType): void {
+    if (this.characterType === type) return;
+
+    this.characterType = type;
+    const spriteName = CHARACTER_SPRITES[type];
+    const texture = this.gpuLoader.getTexture(getAtlasName(), spriteName);
+    this.sprite.texture = texture;
+
+    // Re-apply current scale
+    const scale = CHARACTER_SCALES[this.displayMode];
+    this.sprite.width = CHARACTER_BASE_SIZE.width * scale;
+    this.sprite.height = CHARACTER_BASE_SIZE.height * scale;
+
+    this.label = `companion-${type}-${this.displayMode}`;
   }
 }

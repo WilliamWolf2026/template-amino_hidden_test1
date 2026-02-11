@@ -1,19 +1,30 @@
 import {
   createContext,
   useContext,
+  createSignal,
   type ParentComponent,
-  createResource,
-  Show,
   onMount,
   onCleanup,
   type Accessor,
 } from 'solid-js';
 import type { Manifest } from '~/scaffold/systems/assets';
-import { manifest as manifestDefault } from '~/game';
+import { manifest as manifestDefault, defaultGameData } from '~/game';
 import { gameConfig } from '~/game/config';
 
+/** Provider mode: standalone (default) or injected (embed/parent context) */
+export type ManifestMode = 'standalone' | 'injected';
+
 interface ManifestContextValue {
+  /** Asset manifest for bundle loading (consumed by AssetProvider) */
   manifest: Accessor<Manifest>;
+  /** Game data from backend (chapters, levels, stories, etc.) */
+  gameData: Accessor<unknown>;
+  /** Current mode: standalone or injected */
+  mode: Accessor<ManifestMode>;
+  /** Inject data from parent context (overrides other sources) */
+  injectData: (data: unknown) => void;
+  /** Accessor for current game data */
+  getGameData: () => unknown;
 }
 
 const ManifestContext = createContext<ManifestContextValue>();
@@ -22,35 +33,24 @@ export const ManifestProvider: ParentComponent = (props) => {
   const params = new URLSearchParams(window.location.search);
   const isEmbed = params.get('mode') === 'embed';
 
-  const [manifest, { mutate }] = createResource<Manifest>(async () => {
-    // Embed mode: wait for parent to send manifest via postMessage
-    if (isEmbed) {
-      return undefined as unknown as Manifest;
-    }
+  // -- Signals --
+  const [manifest, setManifest] = createSignal<Manifest>(manifestDefault);
+  const [gameData, setGameData] = createSignal<unknown>(defaultGameData);
+  const [mode, setMode] = createSignal<ManifestMode>(
+    isEmbed ? 'injected' : 'standalone'
+  );
 
-    // No server URL configured: use static manifest (local development)
-    if (!gameConfig.serverStorageUrl) {
-      return manifestDefault;
-    }
+  // -- Injection subscriber --
+  const injectData = (data: unknown) => {
+    setGameData(data);
+    setMode('injected');
+    console.log('[Manifest] Data injected from parent context');
+  };
 
-    // Fetch manifest from server
-    try {
-      const response = await fetch(`${gameConfig.serverStorageUrl}/manifest.json`);
-      if (!response.ok) {
-        console.warn('[Manifest] Server fetch failed, using default');
-        return manifestDefault;
-      }
-      return response.json();
-    } catch (error) {
-      console.warn('[Manifest] Server fetch error, using default:', error);
-      return manifestDefault;
-    }
-  });
-
-  onMount(() => {
+  // -- Data source resolution --
+  onMount(async () => {
+    // Source 1: Injection via postMessage (highest priority)
     const ac = new AbortController();
-
-    // Listen for manifest updates via postMessage (for embed mode)
     window.addEventListener(
       'message',
       (e) => {
@@ -65,28 +65,66 @@ export const ManifestProvider: ParentComponent = (props) => {
             const parsed = typeof e.data.value === 'string'
               ? JSON.parse(e.data.value)
               : e.data.value;
-            mutate(parsed);
+
+            // If it looks like an asset manifest, update manifest signal
+            if (parsed && parsed.bundles && parsed.cdnBase) {
+              setManifest(parsed);
+            }
+
+            // Always update game data (injection overrides everything)
+            injectData(parsed);
           } catch (error) {
-            console.error('[Manifest] Failed to parse postMessage manifest:', error);
+            console.error('[Manifest] Failed to parse postMessage data:', error);
           }
         }
       },
       { signal: ac.signal }
     );
 
-    onCleanup(() => {
-      ac.abort();
-    });
+    onCleanup(() => ac.abort());
+
+    // Source 2: CDN fetch (if not in embed mode waiting for injection)
+    if (!isEmbed && gameConfig.serverStorageUrl) {
+      try {
+        const response = await fetch(`${gameConfig.serverStorageUrl}/chapters/default.json`);
+        if (response.ok) {
+          const data = await response.json();
+
+          // If CDN returns an asset manifest shape, update it
+          if (data && data.bundles && data.cdnBase) {
+            setManifest(data);
+          }
+
+          // If CDN returns game data, set it (only if not already injected)
+          if (mode() !== 'injected') {
+            setGameData(data);
+            console.log('[Manifest] Game data loaded from CDN');
+          }
+        } else {
+          console.warn('[Manifest] CDN fetch failed, using local defaults');
+        }
+      } catch (error) {
+        console.warn('[Manifest] CDN fetch error, using local defaults:', error);
+      }
+    }
+
+    // Source 3: Local defaults are already set via signal initializers
+    // manifestDefault is the local asset manifest
+    // defaultGameData is the local game data (chapters, levels, stories)
   });
 
+  const value: ManifestContextValue = {
+    manifest,
+    gameData,
+    mode,
+    injectData,
+    getGameData: () => gameData(),
+  };
+
   return (
-    <Show when={manifest()} fallback={<div>Loading manifest...</div>}>
-      {(m) => (
-        <ManifestContext.Provider value={{ manifest: m }}>
-          {props.children}
-        </ManifestContext.Provider>
-      )}
-    </Show>
+    <ManifestContext.Provider value={value}>
+      {props.children}
+    </ManifestContext.Provider>
   );
 };
 

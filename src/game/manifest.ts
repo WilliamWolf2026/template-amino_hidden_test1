@@ -19,5 +19,6 @@ export const manifest: Manifest = {
 
     // AUDIO
     { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] },
+    { name: 'audio-music-citylines-1', assets: ['music-citylines-1.json'] },
   ],
 };
