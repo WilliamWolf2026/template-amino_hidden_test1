@@ -14,8 +14,8 @@ export function useGameData(): {
   const { gameData, mode, injectData } = useManifest();
 
   return {
-    gameData: () => gameData() as GameData | null,
+    gameData: gameData as Accessor<GameData | null>,
     mode,
-    injectData: (data: GameData) => injectData(data),
+    injectData: injectData as (data: GameData) => void,
   };
 }

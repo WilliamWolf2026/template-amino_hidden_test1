@@ -11,6 +11,8 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) to play.
 
+Starting a new game? See the **[New Game Guide](docs/guides/getting-started/new-game.md)**.
+
 ## Project Structure
 
 ```

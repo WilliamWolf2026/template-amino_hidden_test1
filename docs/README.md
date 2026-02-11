@@ -181,6 +181,98 @@ AI workflow commands for development tasks. See [factory/index.md](factory/index
 
 ---
 
+## AI-Driven Development (AIDD) — How It Connects
+
+`CLAUDE.md` is the entry point. Claude Code loads it every session as a system prompt, and two bullet points trigger the entire system:
+
+```
+You type a request
+        │
+        ▼
+CLAUDE.md loaded (system prompt)
+        │
+        ├─► Activity detected? ──► ai/rules/*.mdc consulted (coding standards)
+        ├─► Architecture question? ──► docs/**/*.md consulted (ground truth)
+        ├─► Slash command? ──► docs/factory/*.md loaded (workflow template)
+        └─► Edit attempted? ──► .claude/settings.local.json (permission gate)
+```
+
+### Connection Graph
+
+```
+                        ┌──────────────────────────────────┐
+                        │       Claude Code Session        │
+                        │  (loads CLAUDE.md at startup)    │
+                        └──────────────┬───────────────────┘
+                                       │
+                                       ▼
+                        ┌──────────────────────────────────┐
+                        │           CLAUDE.md              │
+                        ├──────────────────────────────────┤
+                        │ • Quick Context (architecture)   │
+                        │ • Coding Standards & Docs ─────────── trigger words
+                        │ • Factory Commands (table) ────────── slash commands
+                        │ • File Permissions               │
+                        │ • Tech Stack / Structure         │
+                        └───┬──────────┬──────────┬────────┘
+                            │          │          │
+              ┌─────────────┘          │          └─────────────┐
+              ▼                        ▼                        ▼
+┌─────────────────────────┐ ┌──────────────────┐ ┌──────────────────────────┐
+│    ai/rules/ (AIDD)     │ │     docs/        │ │   docs/factory/          │
+│    READ-ONLY            │ │     EDITABLE     │ │   (workflow commands)    │
+├─────────────────────────┤ ├──────────────────┤ ├──────────────────────────┤
+│                         │ │                  │ │                          │
+│ Always Active:          │ │ scaffold/        │ │ Research (no code):      │
+│ ├─ agent-orchestrator   │ │ ├─ architecture  │ │ ├─ /research             │
+│ └─ please.mdc           │ │ ├─ context-map   │ │ ├─ /compare              │
+│                         │ │ └─ systems/      │ │ ├─ /report               │
+│ Activity-Matched:       │ │                  │ │ ├─ /audit                │
+│ ├─ review.mdc           │ │ game/            │ │ ├─ /review               │
+│ ├─ javascript.mdc       │ │ ├─ gdd           │ │ └─ /naming               │
+│ ├─ ui.mdc               │ │ └─ chapter-gen   │ │                          │
+│ ├─ tdd.mdc              │ │                  │ │ Action (changes code):   │
+│ ├─ task-creator.mdc     │ │ guides/          │ │ ├─ /debug                │
+│ ├─ productmanager.mdc   │ │ ├─ getting-started│ │ ├─ /plan                │
+│ ├─ requirements.mdc     │ │ ├─ development   │ │ ├─ /task                 │
+│ └─ log.mdc              │ │ ├─ assets        │ │ ├─ /commit               │
+│                         │ │ ├─ platform      │ │ └─ /update-docs          │
+│ Subdirectories:         │ │ └─ deployment    │ │                          │
+│ ├─ javascript/          │ │                  │ └──────────────────────────┘
+│ ├─ security/            │ │ patterns/        │
+│ └─ frameworks/          │ │ reports/         │
+└─────────────────────────┘ └──────────────────┘
+                    ┌──────────────────────────────────┐
+                    │        .claude/                   │
+                    ├──────────────────────────────────┤
+                    │ settings.local.json ← ACTIVE     │
+                    │ settings.admin.json  (full access)│
+                    │ settings.restricted.json (safe)   │
+                    └──────────────────────────────────┘
+```
+
+### How Each Connection Works
+
+| Connection | Trigger | What Happens |
+|------------|---------|--------------|
+| **CLAUDE.md → ai/rules/** | "consult `ai/rules/`" instruction | Claude name-matches your activity to rule files (e.g. code review → `review.mdc`, UI work → `ui.mdc`) |
+| **CLAUDE.md → docs/** | "consult `docs/`" instruction | Claude reads architecture/design docs as ground truth before making changes |
+| **CLAUDE.md → docs/factory/** | Slash command table | `/review`, `/commit`, `/debug` etc. load the corresponding workflow template |
+| **.claude/ → permissions** | Every edit attempt | `settings.local.json` gates what Claude can modify (`src/scaffold/` and `ai/` are read-only in restricted mode) |
+
+### Toggle Modes
+
+| Switch | Command | Effect |
+|--------|---------|--------|
+| Full context | `git checkout CLAUDE.md` | AI reads coding standards + docs before every change |
+| Lite context | `cp CLAUDE.lite.md CLAUDE.md` | Minimal prompt, no rule/doc lookups (faster) |
+| Admin permissions | `cp .claude/settings.admin.json .claude/settings.local.json` | Full edit access |
+| Restricted permissions | `cp .claude/settings.restricted.json .claude/settings.local.json` | Protects scaffold + ai/ |
+
+See [Claude Code Setup Guide](guides/claude-code-setup-prompt.md) for applying this pattern to a new repo.
+
+---
+
 ## Archive
 
 Historical planning documents and implementation reports.

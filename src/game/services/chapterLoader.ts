@@ -9,28 +9,19 @@ import type { County } from '~/game/citylines/types/level';
 import type { LevelManifest, StoryData } from '~/game/citylines/types/section';
 import { VALID_COUNTIES } from '~/game/citylines/types/section';
 
-/**
- * Fetch the games index from a URL.
- * Returns the list of available games with their download URLs.
- */
-export async function fetchGamesIndex(url: string): Promise<GamesIndex> {
+async function fetchJson<T>(url: string, label: string): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`[ChapterLoader] Failed to fetch games index: HTTP ${response.status}`);
+    throw new Error(`[ChapterLoader] Failed to fetch ${label}: HTTP ${response.status}`);
   }
   return response.json();
 }
 
-/**
- * Fetch game data from a game's download URL.
- */
-export async function fetchGameData(url: string): Promise<GameData> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`[ChapterLoader] Failed to fetch game data: HTTP ${response.status}`);
-  }
-  return response.json();
-}
+/** Fetch the games index from a URL. */
+export const fetchGamesIndex = (url: string) => fetchJson<GamesIndex>(url, 'games index');
+
+/** Fetch game data from a game's download URL. */
+export const fetchGameData = (url: string) => fetchJson<GameData>(url, 'game data');
 
 /**
  * Convert a ChapterRef from the new backend schema into a LevelManifest
