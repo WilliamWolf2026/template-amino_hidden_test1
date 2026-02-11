@@ -22,11 +22,16 @@ src/game/
 │   ├── StartScreen.tsx
 │   ├── GameScreen.tsx
 │   └── ResultsScreen.tsx
+├── shared/            # Reusable game-level components & controllers
+│   ├── components/    # SpriteButton, ProgressBar, DialogueBox, CharacterSprite, AvatarPopup
+│   └── controllers/   # LevelCompletionController
 └── [gamename]/        # Game-specific logic (e.g., citylines/)
     ├── core/          # Game entities and systems
     ├── types/         # Type definitions
     └── data/          # Static data
 ```
+
+> **Shared vs Game-Specific:** `src/game/shared/` contains generic, reusable components that work across any game built on this scaffold (buttons, progress bars, character sprites, dialogue boxes, completion controllers). These accept configuration through constructor params rather than importing game-specific constants. Game-specific code in `[gamename]/` creates thin wrappers that inject game config (atlas names, fonts, sprite mappings) into shared components.
 
 ## Step-by-Step Guide
 
@@ -142,6 +147,7 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 | **Pause System** | Pause/resume, visibility handling | `scaffold/systems/pause/` |
 | **UI Components** | Button, Spinner, ProgressBar, Logo | `scaffold/ui/` |
 | **MobileViewport** | 9:16 constraint for desktop testing | `scaffold/ui/MobileViewport` |
+| **Viewport Config** | Min width, touch targets, safe padding | `scaffold/config/viewport.ts` |
 | **SettingsMenu** | Audio/music toggle menu | `scaffold/utils/SettingsMenu/` |
 | **BaseAudioManager** | Audio manager base class to extend | `scaffold/systems/audio/` |
 
@@ -150,6 +156,7 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 | Item | Purpose | Location |
 |------|---------|----------|
 | **Game Logic** | Core gameplay, entities, systems | `src/game/[gamename]/` |
+| **Shared Components** | Reusable Pixi components (buttons, popups, etc.) | `src/game/shared/` |
 | **Screens** | Loading, Start, Game, Results UI | `src/game/screens/` |
 | **Audio Manager** | Extends BaseAudioManager with game sounds | `src/game/audio/manager.ts` |
 | **Sound Definitions** | SoundDefinition constants for each sound | `src/game/audio/sounds.ts` |
@@ -172,20 +179,45 @@ These scaffold files need game-specific values:
 
 > **Font Loading**: The scaffold preloads fonts in `entry-server.tsx` and waits for `document.fonts.ready` in `entry-client.tsx` to prevent FOUT (Flash of Unstyled Text) on the loading screen.
 
-### Recommended Constants
+### Platform Constants (Scaffold-Provided)
 
-Define these per game (not in scaffold since values vary):
+Viewport constraints are provided by the scaffold — no need to recreate:
 
 ```typescript
-// src/game/constants/viewport.ts
-export const MIN_TOUCH_TARGET = 44;  // Apple HIG standard
-export const SAFE_PADDING = 10;      // Edge padding
-export const VIEWPORT_MIN_WIDTH = 355; // iPhone SE - side gaps
+// Already available from scaffold:
+import { VIEWPORT_MIN_WIDTH, SAFE_PADDING, MIN_TOUCH_TARGET } from '~/scaffold/config/viewport';
 ```
+
+### Recommended Constants
+
+Define these per game:
 
 ```typescript
 // src/game/config/fonts.ts
 export const GAME_FONT_FAMILY = 'YourFont, system-ui, sans-serif';
+```
+
+### Using Shared Components
+
+See the **[Shared Components Guide](../development/shared-components.md)** for the full catalog, decision framework, and integration checklist.
+
+The `src/game/shared/` directory provides reusable Pixi components. Create game-specific wrappers that inject your config:
+
+```typescript
+// src/game/[gamename]/core/MyCharacter.ts
+import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
+import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+
+export class MyCharacter extends CharacterSprite<'hero' | 'villain'> {
+  constructor(type: 'hero' | 'villain', gpuLoader: PixiLoader, scale = 1) {
+    super(gpuLoader, {
+      type,
+      spriteMap: { hero: 'hero.png', villain: 'villain.png' },
+      atlasName: 'my_sprites',
+      baseSize: { width: 200, height: 200 },
+    }, scale);
+  }
+}
 ```
 
 ## Tuning Storage
@@ -315,8 +347,8 @@ Use this checklist when starting a new game:
 - [ ] Update `src/game/config.ts` with screen mappings
 - [ ] Add font to `public/assets/` and update `src/app.css`
 - [ ] Update font preload in `src/entry-server.tsx`
-- [ ] Create `src/game/constants/viewport.ts` if needed
 - [ ] Create `src/game/state.ts` for game signals
+- [ ] Create game-specific wrappers in `[gamename]/` for shared components
 
 ## Tips
 

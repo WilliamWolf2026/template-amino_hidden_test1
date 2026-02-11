@@ -1,5 +1,5 @@
 import { onMount, onCleanup, Show, createEffect, createSignal, untrack } from 'solid-js';
-import { Pane } from 'tweakpane';
+import type { Pane } from 'tweakpane';
 import { useTuning } from '../systems/tuning/context';
 import { bindTuningToPane, addPresetControls } from './bindings';
 import type { ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
@@ -37,8 +37,10 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
     right: 'top-0 right-0 bottom-0',
   };
 
-  onMount(() => {
+  onMount(async () => {
     if (!IS_DEV_ENV || !containerRef) return;
+
+    const { Pane } = await import('tweakpane');
 
     pane = new Pane({
       container: containerRef,

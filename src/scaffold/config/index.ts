@@ -10,3 +10,5 @@ export {
   isProduction,
   ENV_CONFIG,
 } from './environment';
+
+export { getViewportModeFromUrl } from './viewport';

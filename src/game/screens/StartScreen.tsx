@@ -82,7 +82,7 @@ const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
   padding: 6,
 };
 
-export function StartScreen() {
+export default function StartScreen() {
   const { goto } = useScreen();
   const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();

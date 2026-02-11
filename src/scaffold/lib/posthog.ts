@@ -1,9 +1,12 @@
-import posthog from 'posthog-js';
+type PostHogModule = typeof import('posthog-js').default;
 
+let ph: PostHogModule | null = null;
 let initialized = false;
 
-export function initPostHog(apiKey?: string, apiHost?: string) {
+export async function initPostHog(apiKey?: string, apiHost?: string) {
   if (initialized || !apiKey) return;
+
+  const { default: posthog } = await import('posthog-js');
 
   posthog.init(apiKey, {
     api_host: apiHost ?? 'https://app.posthog.com',
@@ -12,30 +15,31 @@ export function initPostHog(apiKey?: string, apiHost?: string) {
         posthog.debug();
       }
     },
-    capture_pageview: false, // We'll handle this manually for SPA
-    autocapture: false, // Manual control for game events
+    capture_pageview: false,
+    autocapture: false,
   });
 
+  ph = posthog;
   initialized = true;
 }
 
 export function capture(event: string, properties?: Record<string, unknown>) {
-  if (!initialized) {
+  if (!ph) {
     console.log('[PostHog not initialized]', event, properties);
     return;
   }
 
-  posthog.capture(event, properties);
+  ph.capture(event, properties);
 }
 
 export function identify(userId: string, properties?: Record<string, unknown>) {
-  if (!initialized) return;
-  posthog.identify(userId, properties);
+  if (!ph) return;
+  ph.identify(userId, properties);
 }
 
 export function setPersonProperties(properties: Record<string, unknown>) {
-  if (!initialized) return;
-  posthog.people.set(properties);
+  if (!ph) return;
+  ph.people.set(properties);
 }
 
-export { posthog };
+export { ph as posthog };

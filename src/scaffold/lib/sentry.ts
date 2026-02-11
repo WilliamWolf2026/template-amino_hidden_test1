@@ -1,49 +1,35 @@
-import * as Sentry from "@sentry/browser";
-import { Environment, scaffoldConfig } from "../config";
+import { type Environment, scaffoldConfig } from "../config";
 
-/**
- * Configuration per environment
- */
+type SentryModule = typeof import("@sentry/browser");
+
 interface SentryConfig {
   enabled: boolean;
   dsn: string;
   environment: Environment;
 }
 
-/**
- * User context
- */
 export interface SentryUserContext {
   userId: string;
   email?: string;
   sessionId: string;
 }
 
-/**
- * Error tracker type
- */
 type ErrorTracker = (params: {
   error_type: string;
   user_id: string;
   session_id: string;
 }) => void;
 
-/**
- * State for automatic tracking
- */
+let Sentry: SentryModule | null = null;
 let errorTracker: ErrorTracker | null = null;
 let userId: string | null = null;
 let sessionId: string | null = null;
 
-/**
- * Get environment-specific configuration
- */
 function getSentryConfig(environment: Environment): SentryConfig {
   const dsn =
     import.meta.env.VITE_SENTRY_DSN || (scaffoldConfig?.sentry?.dsn ?? "");
 
   const enabledEnvironments: Environment[] = ["qa", "staging", "production"];
-
   const enabled = enabledEnvironments.includes(environment);
 
   return {
@@ -53,11 +39,7 @@ function getSentryConfig(environment: Environment): SentryConfig {
   };
 }
 
-/**
- * Initialize Sentry with automatic PostHog tracking
- *
- */
-export function initSentry(environment: Environment): boolean {
+export async function initSentry(environment: Environment): Promise<boolean> {
   const config = getSentryConfig(environment);
 
   if (!config.enabled || !config.dsn) {
@@ -68,6 +50,8 @@ export function initSentry(environment: Environment): boolean {
   }
 
   try {
+    Sentry = await import("@sentry/browser");
+
     Sentry.init({
       dsn: config.dsn,
       environment: config.environment,
@@ -75,23 +59,20 @@ export function initSentry(environment: Environment): boolean {
       integrations: [Sentry.browserTracingIntegration()],
 
       beforeSend(event, hint) {
-        // Automatically track in PostHog if available
         if (errorTracker && userId && sessionId) {
           try {
             const hasException = !!event.exception?.values?.length;
             if (!hasException) return event;
 
-            if (errorTracker && userId && sessionId) {
-              const errorType = event.exception!.values![0]!.type ?? "Error";
-              errorTracker({
-                error_type: errorType,
-                user_id: userId,
-                session_id: sessionId,
-              });
-              console.log(
-                `[Sentry] Auto-tracked error in PostHog: ${errorType}`
-              );
-            }
+            const errorType = event.exception!.values![0]!.type ?? "Error";
+            errorTracker({
+              error_type: errorType,
+              user_id: userId,
+              session_id: sessionId,
+            });
+            console.log(
+              `[Sentry] Auto-tracked error in PostHog: ${errorType}`
+            );
           } catch (trackingError) {
             console.warn("[Sentry] PostHog tracking failed:", trackingError);
           }
@@ -111,18 +92,15 @@ export function initSentry(environment: Environment): boolean {
   }
 }
 
-/**
- * Check if Sentry is enabled
- */
 export function isSentryEnabled(): boolean {
-  return Sentry.getClient() !== undefined;
+  return Sentry?.getClient() !== undefined;
 }
 
 export function captureException(
   error: Error,
   context?: Record<string, unknown>
 ) {
-  if (!isSentryEnabled()) {
+  if (!Sentry || !isSentryEnabled()) {
     console.warn("[Sentry not initialized]", error, context);
     return;
   }
@@ -131,18 +109,18 @@ export function captureException(
     if (context) {
       scope.setContext("additional_info", context);
     }
-    const eventId = Sentry.captureException(error);
+    const eventId = Sentry!.captureException(error);
     console.log(`[Sentry] Exception sent. Event ID: ${eventId}`);
   });
 }
 
-export function setUser(userId: string) {
-  if (!isSentryEnabled()) return;
-  Sentry.setUser({ id: userId });
+export function setUser(id: string) {
+  if (!Sentry || !isSentryEnabled()) return;
+  Sentry.setUser({ id });
 }
 
 export function addBreadcrumb(message: string, data?: Record<string, unknown>) {
-  if (!isSentryEnabled()) return;
+  if (!Sentry || !isSentryEnabled()) return;
   Sentry.addBreadcrumb({
     message,
     data,

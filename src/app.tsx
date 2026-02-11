@@ -1,4 +1,4 @@
-import { onMount, Show } from 'solid-js';
+import { onMount, Show, Switch, Match, type JSX } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -11,6 +11,8 @@ import {
   TuningProvider,
   TuningPanel,
   MobileViewport,
+  useTuning,
+  type ScaffoldTuning,
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
 import { initPostHog } from '~/scaffold/lib/posthog';
@@ -18,12 +20,15 @@ import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
 import { gameConfig } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
 import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
+import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
+import { ViewportToggle } from '~/game/shared/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
+const urlViewportMode = getViewportModeFromUrl();
 const environment = getEnvironment();
 const urlOverrides = urlTheme ? { 'theme.tileTheme': urlTheme } : undefined;
 
@@ -34,13 +39,44 @@ const handleResetProgress = () => {
   window.location.reload();
 };
 
-export default function App() {
+/** Reads viewport mode from scaffold tuning and wraps children in the appropriate MobileViewport config */
+function ViewportModeWrapper(props: { children: JSX.Element }) {
+  const tuning = useTuning<ScaffoldTuning>();
+  const mode = () => tuning.scaffold.viewport?.mode ?? 'small';
+
   onMount(() => {
-    // Initialize error tracking
-      initSentry(environment);
-  
+    // Apply game config default if tuning hasn't been customized yet
+    if (gameConfig.defaultViewportMode && tuning.scaffold.viewport?.mode === 'small') {
+      tuning.setScaffoldPath('viewport.mode', gameConfig.defaultViewportMode);
+    }
+    // URL param overrides everything (session only, not persisted)
+    if (urlViewportMode) {
+      tuning.setScaffoldPath('viewport.mode', urlViewportMode);
+    }
+  });
+
+  return (
+    <Switch fallback={<MobileViewport>{props.children}</MobileViewport>}>
+      <Match when={mode() === 'none'}>
+        <div class="fixed inset-0">{props.children}</div>
+      </Match>
+      <Match when={mode() === 'large'}>
+        <MobileViewport maxWidth={768}>{props.children}</MobileViewport>
+      </Match>
+      <Match when={mode() === 'small'}>
+        <MobileViewport>{props.children}</MobileViewport>
+      </Match>
+    </Switch>
+  );
+}
+
+export default function App() {
+  onMount(async () => {
+    // Initialize error tracking (lazy-loaded)
+    await initSentry(environment);
+
     if (scaffoldConfig.posthog?.apiKey) {
-      initPostHog(scaffoldConfig.posthog.apiKey, scaffoldConfig.posthog.apiHost);
+      await initPostHog(scaffoldConfig.posthog.apiKey, scaffoldConfig.posthog.apiHost);
     }
 
     // Setup global error handlers
@@ -56,11 +92,17 @@ export default function App() {
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>
-        <MobileViewport>
+        <ViewportModeWrapper>
           {/* Settings Menu - Top Right Corner */}
           <div class="fixed top-2 right-2 z-[9999]">
             <SettingsMenu onResetProgress={handleResetProgress} />
           </div>
+          {/* Viewport Toggle - Top Left Corner (dev only) */}
+          <Show when={IS_DEV_ENV}>
+            <div class="fixed top-2 left-2 z-[9999]">
+              <ViewportToggle />
+            </div>
+          </Show>
           <PauseProvider>
             <ManifestProvider>
               <AssetProvider config={{ engine: scaffoldConfig.engine }}>
@@ -70,7 +112,7 @@ export default function App() {
               </AssetProvider>
             </ManifestProvider>
           </PauseProvider>
-        </MobileViewport>
+        </ViewportModeWrapper>
       </TuningProvider>
     </GlobalBoundary>
   );

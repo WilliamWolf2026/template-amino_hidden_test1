@@ -3,10 +3,11 @@
 ## Quick Context
 
 ```
-app.tsx ──► scaffold/ (providers, hooks, UI)
-        └─► game/ (screens, audio, tuning, citylines/)
+app.tsx ──► scaffold/ (providers, hooks, UI, viewport config)
+        └─► game/ (screens, audio, tuning, shared/, citylines/)
 
-Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager
+Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager, viewport config
+Game shared/: SpriteButton, ProgressBar, DialogueBox, CharacterSprite, AvatarPopup, LevelCompletionController
 Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
 ```
 
@@ -63,8 +64,10 @@ cp CLAUDE.lite.md CLAUDE.md                                      # Lite (no rule
 ```
 src/
   scaffold/     # Reusable framework (DO NOT EDIT)
+    config/     # Viewport constraints
   game/         # Game-specific (EDITABLE)
-    citylines/  # Core game logic
+    shared/     # Reusable components & controllers (game-level)
+    citylines/  # Core game logic (wraps shared/ with game config)
     screens/    # Solid.js screens
     audio/      # GameAudioManager
 docs/

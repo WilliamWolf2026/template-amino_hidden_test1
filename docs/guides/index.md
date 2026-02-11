@@ -8,6 +8,7 @@ How-to documentation organized by topic.
 
 | Guide | Purpose | When to Use |
 |-------|---------|-------------|
+| [Shared Components](development/shared-components.md) | Reusable UI catalog | Adding game features |
 | [Debugging](development/debugging.md) | Fix issues fast | Daily |
 | [Animation Cookbook](development/animation-cookbook.md) | GSAP patterns | Adding animations |
 | [Asset Pipeline](assets/asset-pipeline.md) | Sprites, fonts, atlases | Adding assets |
@@ -20,6 +21,7 @@ How-to documentation organized by topic.
 ## By Category
 
 ### Development (Daily Use)
+- **[Shared Components](development/shared-components.md)** - Reusable component catalog, decision framework, integration checklist
 - **[Debugging](development/debugging.md)** - Pixi DevTools, console helpers, common issues
 - **[Animation Cookbook](development/animation-cookbook.md)** - GSAP patterns, easings, button states
 - **[State Management](development/state-management.md)** - Solid.js signals, game state, persistence
@@ -77,6 +79,7 @@ docs/guides/
 │   ├── new-game.md
 │   └── configuration.md
 ├── development/
+│   ├── shared-components.md
 │   ├── debugging.md
 │   ├── animation-cookbook.md
 │   └── state-management.md

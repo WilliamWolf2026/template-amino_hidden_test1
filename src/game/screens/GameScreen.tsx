@@ -26,7 +26,7 @@ import type { ChapterRef } from '~/game/citylines/types/gameData';
 /** Modal phase for the chapter start experience */
 type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing';
 
-export function GameScreen() {
+export default function GameScreen() {
   const { coordinator } = useAssets();
   const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
   const audio = useAudio();
@@ -274,8 +274,8 @@ export function GameScreen() {
       const bar = new ProgressBar(gpuLoader, tileBundleName, {
         width: barWidth,
         height: 36,
+        fontFamily: GAME_FONT_FAMILY,
         themeColor: countyConfig?.themeColor,
-        tileTheme: tileTheme,
         showLabel: false, // Label is shown above the bar instead
       });
       app.stage.addChild(bar);
@@ -1027,7 +1027,7 @@ export function GameScreen() {
     // Get current county from level config (future: track active county)
     // For now, default to atlantic if not set
     const countyConfig = getCountyConfig('atlantic');
-    bar.setTheme(countyConfig?.themeColor, tileTheme);
+    bar.setTheme(countyConfig?.themeColor);
   });
 
   // Reactive: Audio volume changes

@@ -1,5 +1,5 @@
 import { onMount, onCleanup, createSignal } from 'solid-js';
-import { Pane } from 'tweakpane';
+import type { Pane } from 'tweakpane';
 
 const [isOpen, setIsOpen] = createSignal(false);
 
@@ -19,7 +19,8 @@ export default function TweakpaneConfig() {
   let containerRef: HTMLDivElement | undefined;
   let pane: Pane | undefined;
 
-  onMount(() => {
+  onMount(async () => {
+    const { Pane } = await import('tweakpane');
     pane = new Pane({
       container: containerRef,
       title: 'Config',

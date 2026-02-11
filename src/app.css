@@ -3,7 +3,8 @@
 /* Local Baloo font - works on all devices */
 @font-face {
   font-family: 'Baloo';
-  src: url('/assets/Baloo-Regular.ttf') format('truetype');
+  src: url('/assets/Baloo-Regular.woff2') format('woff2'),
+       url('/assets/Baloo-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
