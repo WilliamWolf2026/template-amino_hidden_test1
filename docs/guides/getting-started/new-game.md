@@ -103,19 +103,21 @@ Update screens in `src/game/screens/`:
 Edit `src/game/config.ts`:
 
 ```typescript
+import { lazy } from 'solid-js';
 import { LoadingScreen } from './screens/LoadingScreen';
-import { StartScreen } from './screens/StartScreen';
-import { GameScreen } from './screens/GameScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import type { GameConfig } from './config';
 
-export const gameConfig = {
+export const gameConfig: GameConfig = {
   screens: {
     loading: LoadingScreen,
-    start: StartScreen,
-    game: GameScreen,
+    start: lazy(() => import('./screens/StartScreen')),
+    game: lazy(() => import('./screens/GameScreen')),
     results: ResultsScreen,
   },
   initialScreen: 'loading',
+  defaultViewportMode: 'small', // 'small' (430px phone), 'large' (768px tablet), or 'none' (full desktop)
+  serverStorageUrl: null,
 };
 ```
 
@@ -163,7 +165,7 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 | **Asset Manifest** | List of atlases, audio, images to load | `src/game/manifest.ts` |
 | **Tuning Types** | Game-specific tunable parameters | `src/game/tuning/` |
 | **Game State** | Signals for score, level, progress | `src/game/state.ts` |
-| **Screen Config** | Screen mappings and initial screen | `src/game/config.ts` |
+| **Screen Config** | Screen mappings, initial screen, viewport default | `src/game/config.ts` |
 | **Font** | Custom font file + @font-face CSS | `public/assets/` + `app.css` |
 
 ### Files to Update (Not Replace)
@@ -344,7 +346,7 @@ Use this checklist when starting a new game:
 - [ ] Create `src/game/audio/manager.ts` (extends BaseAudioManager)
 - [ ] Create `src/game/audio/index.ts` (exports)
 - [ ] Create `src/game/screens/` (Loading, Start, Game, Results)
-- [ ] Update `src/game/config.ts` with screen mappings
+- [ ] Update `src/game/config.ts` with screen mappings and `defaultViewportMode`
 - [ ] Add font to `public/assets/` and update `src/app.css`
 - [ ] Update font preload in `src/entry-server.tsx`
 - [ ] Create `src/game/state.ts` for game signals
@@ -357,6 +359,6 @@ Use this checklist when starting a new game:
 - **Hot Reload**: Most changes hot-reload, tuning changes apply instantly when wired
 - **Assets**: Place in `public/` folder, reference in manifest
 - **Team Defaults**: Create `public/config/tuning/game.json` for shared overrides
-- **Desktop Testing**: MobileViewport constrains to 9:16 on desktop browsers
+- **Viewport Mode**: Set `defaultViewportMode` in `config.ts` to control the desktop preview frame. Toggle at runtime via URL (`?viewport=large`), TweakPane dropdown, or the dev toggle button (top-left: S/L/∞). See [Viewport Mode](../../scaffold/systems/viewport-mode.md)
 
 See [Tuning Panel](../scaffold/components/tuning-panel.md) for detailed setup guide including storage system.
