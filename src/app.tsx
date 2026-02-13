@@ -21,6 +21,7 @@ import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
 import { AnalyticsProvider } from '~/contexts/AnalyticsContext';
+import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
@@ -58,6 +59,7 @@ export default function App() {
             <SettingsMenu onResetProgress={handleResetProgress} />
           </div>
           <AnalyticsProvider>
+            <FeatureFlagProvider>
             <PauseProvider>
               <ManifestProvider>
                 <AssetProvider config={{ engine: scaffoldConfig.engine }}>
@@ -67,6 +69,7 @@ export default function App() {
                 </AssetProvider>
               </ManifestProvider>
             </PauseProvider>
+            </FeatureFlagProvider>
           </AnalyticsProvider>
         </MobileViewport>
       </TuningProvider>
