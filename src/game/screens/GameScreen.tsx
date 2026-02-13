@@ -8,6 +8,7 @@ import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, ChapterGenerationService, type GeneratedChapter } from '~/game/citylines';
+import { TutorialHand } from '~/game/citylines/core/TutorialHand';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/citylines/types/section';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
@@ -56,6 +57,8 @@ export default function GameScreen() {
   let darkOverlay: Graphics | null = null;
   let isCompanionAnimating = false;
   let isShowingCompletionClue = false; // Track if currently showing level completion (chapter end overlay)
+  let tutorialHand: TutorialHand | null = null;
+  const TUTORIAL_DONE_KEY = 'citylines-tutorial-done';
 
   // Pixi-based CluePopup for levels 1-9
   let cluePopup: CluePopup | null = null;
@@ -394,6 +397,13 @@ export default function GameScreen() {
       game.onGameEvent('tileRotated', () => {
         manager.playTileRotate();
 
+        // Dismiss tutorial hand on first player tap
+        if (tutorialHand) {
+          tutorialHand.hide();
+          tutorialHand = null;
+          localStorage.setItem(TUTORIAL_DONE_KEY, '1');
+        }
+
         // Start music on first tile tap if it isn't playing yet
         // (handles resume case where audio context was suspended)
         if (audio.musicEnabled() && !manager.isMusicPlaying()) {
@@ -695,6 +705,18 @@ export default function GameScreen() {
           // Chapter start dismissed — level is already loaded, slide out and begin gameplay
           await hideCompanion();
           setModalPhase('playing');
+
+          // Show tutorial hand on first play ever
+          if (
+            currentLevel().levelNumber === 1 &&
+            !localStorage.getItem(TUTORIAL_DONE_KEY) &&
+            game.getFirstTilePosition()
+          ) {
+            const pos = game.getFirstTilePosition()!;
+            tutorialHand = new TutorialHand(gpuLoader, gameTuning.tutorialHand);
+            game.addChild(tutorialHand);
+            tutorialHand.show(pos.x, pos.y);
+          }
 
         } else if (isShowingCompletionClue) {
           // Chapter-end completion clue dismissed — advance to next chapter

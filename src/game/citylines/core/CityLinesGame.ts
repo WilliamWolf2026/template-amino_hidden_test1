@@ -1031,6 +1031,19 @@ export class CityLinesGame extends Container {
     this.updateConnectionVisuals();
   }
 
+  /** Get first road tile position (for tutorial hand targeting) */
+  getFirstTilePosition(): { x: number; y: number } | null {
+    if (this.roadTiles.length === 0) return null;
+    const tile = this.roadTiles[0];
+    return { x: tile.x, y: tile.y };
+  }
+
+  /** Programmatically rotate the first road tile (for tutorial demo) */
+  rotateFirstTile(): void {
+    if (this.roadTiles.length === 0) return;
+    this.handleTileRotate(this.roadTiles[0]);
+  }
+
   /** Clean up resources */
   override destroy(): void {
     this.clearLevel();
