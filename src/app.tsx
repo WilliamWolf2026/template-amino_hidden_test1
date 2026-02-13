@@ -13,7 +13,6 @@ import {
   MobileViewport,
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
-import { initPostHog } from '~/scaffold/lib/posthog';
 import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
 import { gameConfig } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
@@ -21,6 +20,7 @@ import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
+import { AnalyticsProvider } from '~/contexts/AnalyticsContext';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
@@ -39,10 +39,6 @@ export default function App() {
     // Initialize error tracking
       initSentry(environment);
   
-    if (scaffoldConfig.posthog?.apiKey) {
-      initPostHog(scaffoldConfig.posthog.apiKey, scaffoldConfig.posthog.apiHost);
-    }
-
     // Setup global error handlers
     setupGlobalErrorHandlers();
 
@@ -61,15 +57,17 @@ export default function App() {
           <div class="fixed top-2 right-2 z-[9999]">
             <SettingsMenu onResetProgress={handleResetProgress} />
           </div>
-          <PauseProvider>
-            <ManifestProvider>
-              <AssetProvider config={{ engine: scaffoldConfig.engine }}>
-                <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
-                  <ScreenRenderer screens={gameConfig.screens} />
-                </ScreenProvider>
-              </AssetProvider>
-            </ManifestProvider>
-          </PauseProvider>
+          <AnalyticsProvider>
+            <PauseProvider>
+              <ManifestProvider>
+                <AssetProvider config={{ engine: scaffoldConfig.engine }}>
+                  <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+                    <ScreenRenderer screens={gameConfig.screens} />
+                  </ScreenProvider>
+                </AssetProvider>
+              </ManifestProvider>
+            </PauseProvider>
+          </AnalyticsProvider>
         </MobileViewport>
       </TuningProvider>
     </GlobalBoundary>
