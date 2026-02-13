@@ -1,0 +1,45 @@
+{
+  "uid": "local-fallback-patrol",
+  "name": "Goodboi on Patrol — Chapter 8",
+  "chapters": [
+    {
+      "id": 8,
+      "uid": "patrol-chapter-8",
+      "name": "Patrol Route 8",
+      "county": {
+        "uid": "county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "story-patrol-8",
+        "intro": "Woof! My usual route feels all jumbled up today. Roads are crossed where they shouldn't be. Let's untangle this!",
+        "headline": "Patrol Route 8",
+        "chapterStart": "Sniff\u2026 yeah, this is a mess. I know where everything should go, but nothing's connecting. Time to sort it out.",
+        "completion": "There it is! Every road's back where it belongs. That's a good patrol!",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "p8-level-1", "levelNumber": 1, "config": {}, "seed": 11201, "clues": [{ "uid": "p8-clue-1", "text": "There we go. First crossing untangled." }] },
+        { "uid": "p8-level-2", "levelNumber": 2, "config": {}, "seed": 11202, "clues": [{ "uid": "p8-clue-2", "text": "Nice. That stretch feels right again." }] },
+        { "uid": "p8-level-3", "levelNumber": 3, "config": {}, "seed": 11203, "clues": [{ "uid": "p8-clue-3", "text": "Sniff-sniff\u2026 I remember this spot. Good to have it back." }] },
+        { "uid": "p8-level-4", "levelNumber": 4, "config": {}, "seed": 11204, "clues": [{ "uid": "p8-clue-4", "text": "That's the one. The whole middle section just clicked." }] },
+        { "uid": "p8-level-5", "levelNumber": 5, "config": {}, "seed": 11205, "clues": [{ "uid": "p8-clue-5", "text": "Getting close. I can feel the loop forming." }] },
+        { "uid": "p8-level-6", "levelNumber": 6, "config": {}, "seed": 11206, "clues": [{ "uid": "p8-clue-6", "text": "Almost done. Just one more tangle to fix." }] },
+        { "uid": "p8-level-7", "levelNumber": 7, "config": {}, "seed": 11207, "clues": [{ "uid": "p8-clue-7", "text": "Yes! Clean lines all the way through." }] }
+      ]
+    }
+  ]
+}

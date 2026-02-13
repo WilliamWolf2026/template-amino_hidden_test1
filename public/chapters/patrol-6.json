@@ -18,9 +18,10 @@
       },
       "story": {
         "uid": "story-patrol-6",
-        "info": "Woof! I was ready to sprint my whole loop, but some of my paths are twisted up. C'mon! Let's fix this so I can run it right!",
+        "intro": "Woof! I was ready to sprint my whole loop, but some of my paths are twisted up. C'mon! Let's fix this so I can run it right!",
         "headline": "Patrol Route 6",
-        "summary": "Sniff-sniff\u2026 yeah, nope. That bend's all wrong. I can't zoom like this.",
+        "chapterStart": "Sniff-sniff\u2026 yeah, nope. That bend's all wrong. I can't zoom like this.",
+        "completion": "Ha! Full loop unlocked! That's a tail-wagging patrol right there!",
         "imageUrl": "",
         "articleUrl": ""
       },
@@ -37,7 +38,7 @@
         { "uid": "p6-level-4", "levelNumber": 4, "config": {}, "seed": 92004, "clues": [{ "uid": "p6-clue-4", "text": "There it is! That click felt good." }] },
         { "uid": "p6-level-5", "levelNumber": 5, "config": {}, "seed": 92005, "clues": [{ "uid": "p6-clue-5", "text": "We're getting fast now. I can feel it." }] },
         { "uid": "p6-level-6", "levelNumber": 6, "config": {}, "seed": 92006, "clues": [{ "uid": "p6-clue-6", "text": "Almost a full sprint!" }] },
-        { "uid": "p6-level-7", "levelNumber": 7, "config": {}, "seed": 92007, "clues": [{ "uid": "p6-clue-7", "text": "Ha! Full loop unlocked! That's a tail-wagging patrol right there!" }] }
+        { "uid": "p6-level-7", "levelNumber": 7, "config": {}, "seed": 92007, "clues": [{ "uid": "p6-clue-7", "text": "YES! That lines up perfectly." }] }
       ]
     }
   ]

@@ -18,9 +18,10 @@
       },
       "story": {
         "uid": "story-patrol-5",
-        "info": "Hey. I'm ready for my patrol, but the route's not fully open. Let's straighten it out so I can make the full loop.",
+        "intro": "Hey. I'm ready for my patrol, but the route's not fully open. Let's straighten it out so I can make the full loop.",
         "headline": "Patrol Route 5",
-        "summary": "Sniff\u2026 yeah, this won't do. Parts of my path are cut off. We're fixing this.",
+        "chapterStart": "Sniff\u2026 yeah, this won't do. Parts of my path are cut off. We're fixing this.",
+        "completion": "Yes! That's a clean patrol. Every path's open \u2014 let's roll!",
         "imageUrl": "",
         "articleUrl": ""
       },
@@ -37,7 +38,7 @@
         { "uid": "p5-level-4", "levelNumber": 4, "config": {}, "seed": 82004, "clues": [{ "uid": "p5-clue-4", "text": "Alright. No more backtracking." }] },
         { "uid": "p5-level-5", "levelNumber": 5, "config": {}, "seed": 82005, "clues": [{ "uid": "p5-clue-5", "text": "Almost there. Just a little more to reconnect." }] },
         { "uid": "p5-level-6", "levelNumber": 6, "config": {}, "seed": 82006, "clues": [{ "uid": "p5-clue-6", "text": "That's it. The loop's nearly whole again." }] },
-        { "uid": "p5-level-7", "levelNumber": 7, "config": {}, "seed": 82007, "clues": [{ "uid": "p5-clue-7", "text": "Yes! That's a clean patrol. Every path's open \u2014 let's roll!" }] }
+        { "uid": "p5-level-7", "levelNumber": 7, "config": {}, "seed": 82007, "clues": [{ "uid": "p5-clue-7", "text": "Perfect. Everything lines up." }] }
       ]
     }
   ]

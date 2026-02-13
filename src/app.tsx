@@ -95,7 +95,7 @@ export default function App() {
         <ViewportModeWrapper>
           {/* Settings Menu - Top Right Corner */}
           <div class="fixed top-2 right-2 z-[9999]">
-            <SettingsMenu onResetProgress={handleResetProgress} />
+            <SettingsMenu onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined} />
           </div>
           {/* Viewport Toggle - Top Left Corner (dev only) */}
           <Show when={IS_DEV_ENV}>

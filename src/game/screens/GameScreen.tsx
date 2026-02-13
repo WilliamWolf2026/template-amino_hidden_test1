@@ -17,6 +17,7 @@ import { getCountyConfig } from '~/game/citylines/data/counties';
 import { gameState } from '~/game/state';
 import { advanceLevel, saveTileState, getTileState, clearTileState, getCurrentChapter, startChapter, completeChapter } from '~/game/services/progress';
 import { getDebugParams } from '~/game/utils/debugParams';
+import { IS_DEV_ENV } from '~/scaffold/dev/env';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 import { useGameData } from '~/game/hooks/useGameData';
 import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
@@ -439,10 +440,8 @@ export default function GameScreen() {
         manager.playNewsReveal();
 
         if (isChapterEnd) {
-          // Chapter end (level 10, 20, etc.) - show full companion overlay with story reveal
-          const displayText = config
-            ? `${config.story.headline}\n\n${config.story.summary}`
-            : clueText;
+          // Chapter end — show full companion overlay with completion text
+          const displayText = config?.story.completion ?? clueText;
           isShowingCompletionClue = true;
           showCompanion(displayText, gameTuning.companion.overlayAlpha);
         } else {
@@ -627,9 +626,7 @@ export default function GameScreen() {
           setModalPhase('loading-puzzle');
 
           const currentConfig = sectionConfig();
-          const chapterStartText = currentConfig
-            ? `${currentConfig.story.headline}\n\n${currentConfig.story.summary}`
-            : "Let's begin!";
+          const chapterStartText = currentConfig?.story.summary ?? "Let's begin!";
 
           // --- Timing delays (seconds) — adjust these to taste ---
           const TEXT_FADE_OUT      = 0.2;   // text fades out
@@ -772,7 +769,7 @@ export default function GameScreen() {
               });
 
               // Show chapter-start modal (overlay still dark, one tap to dismiss)
-              const chapterStartText = `${nextConfig.story.headline}\n\n${nextConfig.story.summary}`;
+              const chapterStartText = nextConfig.story.summary;
               setModalPhase('chapter-start');
               showCompanion(chapterStartText, companionConfig.overlayAlpha);
 
@@ -861,6 +858,34 @@ export default function GameScreen() {
       };
 
       window.addEventListener('resize', resizeHandler);
+
+      // Dev only: 'S' key skips the current level (simulates full completion)
+      if (IS_DEV_ENV) {
+        const devSkipLevel = () => {
+          const controller = game.getCompletionController();
+          // If already in completion flow, force through it
+          if (controller.state !== 'playing') {
+            controller.reset();
+          }
+          // Do what levelComplete handler does
+          clearTileState();
+          advanceLevel();
+          gameState.incrementLevel();
+          // Update progress bar
+          bar.setProgress(gameState.currentLevel(), gameState.totalLevels());
+          // Load next level
+          loadNextLevelWithTransition();
+        };
+        (window as any).skipLevel = devSkipLevel;
+        const handleSkipKey = (e: KeyboardEvent) => {
+          if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            console.log('[Dev] Skipping to next level');
+            devSkipLevel();
+          }
+        };
+        window.addEventListener('keydown', handleSkipKey);
+      }
 
       console.log('[Game] Started');
     }
