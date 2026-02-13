@@ -12,11 +12,13 @@ Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
 ```
 
 **Full context map:** [docs/scaffold/context-map.md](docs/scaffold/context-map.md)
+**Doc index:** [docs/doc-index.md](docs/doc-index.md) — flat routing table for all docs & factory commands
 
 ## Coding Standards & Docs
 
 Before making changes, consult the relevant files in:
 - `ai/rules/` — coding standards, review guidelines, JS/TS patterns, UI rules
+- `docs/doc-index.md` — find any doc by intent (read this first)
 - `docs/` — game design, architecture, guides, animation patterns, asset pipeline
 
 ## Factory (Common Workflows)

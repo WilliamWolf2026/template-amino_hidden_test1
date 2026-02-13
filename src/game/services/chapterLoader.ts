@@ -47,7 +47,7 @@ export function chapterRefToLevelManifest(chapter: ChapterRef): LevelManifest {
   const story: StoryData = {
     headline: chapter.story.headline,
     summary: chapter.story.chapterStart ?? chapter.story.summary ?? '',
-    completion: chapter.story.completion,
+    completion: chapter.story.completion ?? '',
     imageUrl: chapter.story.imageUrl,
     articleUrl: chapter.story.articleUrl,
     clues,
