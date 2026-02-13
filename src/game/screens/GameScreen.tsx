@@ -451,7 +451,7 @@ export default function GameScreen() {
 
         if (isChapterEnd) {
           // Chapter end — show full companion overlay with completion text
-          const displayText = config?.story.completion ?? clueText;
+          const displayText = config?.story.completion ?? clueText ?? 'Great work!';
           isShowingCompletionClue = true;
           showCompanion(displayText, gameTuning.companion.overlayAlpha);
         } else {
@@ -791,7 +791,7 @@ export default function GameScreen() {
               });
 
               // Show chapter-start modal (overlay still dark, one tap to dismiss)
-              const chapterStartText = nextConfig.story.summary;
+              const chapterStartText = nextConfig.story.summary || "Let's begin!";
               setModalPhase('chapter-start');
               showCompanion(chapterStartText, companionConfig.overlayAlpha);
 
