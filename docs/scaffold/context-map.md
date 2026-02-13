@@ -8,7 +8,7 @@ A relationship map for understanding the scaffold/game architecture. Optimized f
 
 ```
                     ┌─────────────────────────────────────────┐
-                    │              ENTRY POINTS               │
+                    │      ENTRY POINTS (entry-points.md)     │
                     └─────────────────────────────────────────┘
                                       │
            ┌──────────────────────────┼──────────────────────────┐

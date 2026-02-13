@@ -9,7 +9,7 @@ import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, ChapterGenerationService, type GeneratedChapter } from '~/game/citylines';
 import { TutorialHand } from '~/game/citylines/core/TutorialHand';
-import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { getTileBundleName, type GameTuning } from '~/game/tuning';
 import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/citylines/types/section';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
@@ -30,7 +30,7 @@ type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing
 
 export default function GameScreen() {
   const { coordinator } = useAssets();
-  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const audio = useAudio();
   const { gameData } = useGameData();
   let containerRef: HTMLDivElement | undefined;
@@ -58,7 +58,7 @@ export default function GameScreen() {
   let isCompanionAnimating = false;
   let isShowingCompletionClue = false; // Track if currently showing level completion (chapter end overlay)
   let tutorialHand: TutorialHand | null = null;
-  const TUTORIAL_DONE_KEY = 'citylines-tutorial-done';
+  const TUTORIAL_DONE_KEY = 'game-tutorial-done';
 
   // Pixi-based CluePopup for levels 1-9
   let cluePopup: CluePopup | null = null;

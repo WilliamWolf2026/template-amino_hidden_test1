@@ -2,7 +2,7 @@ import type { GameTuningBase } from '~/scaffold/systems/tuning/types';
 import type { GridSize } from '~/game/citylines/types/grid';
 
 // ============================================
-// CITYLINES TUNING TYPES
+// GAME TUNING TYPES
 // ============================================
 
 export type TileTheme = 'regular' | 'fall' | 'winter';
@@ -203,7 +203,7 @@ export interface TutorialHandTuning {
   fadeOutDuration: number;
 }
 
-export interface CityLinesTuning extends GameTuningBase {
+export interface GameTuning extends GameTuningBase {
   theme: ThemeConfig;
   grid: GridConfig;
   difficulty: {
@@ -228,7 +228,7 @@ export interface CityLinesTuning extends GameTuningBase {
 // DEFAULT VALUES
 // ============================================
 
-export const CITYLINES_DEFAULTS: CityLinesTuning = {
+export const GAME_DEFAULTS: GameTuning = {
   version: '1.0.0',
   theme: {
     tileTheme: 'regular',

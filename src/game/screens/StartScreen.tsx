@@ -8,7 +8,7 @@ import { gameState } from '~/game/state';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { Character } from '~/game/citylines/core/Character';
 import { SpriteButton } from '~/game/citylines/core/SpriteButton';
-import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { getTileBundleName, type GameTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { getStartScreenMode, markAsPlayed, type StartScreenConfig } from '~/game/citylines/utils/startScreenHelper';
 import { startChapter } from '~/game/services/progress';
@@ -85,7 +85,7 @@ const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
 export default function StartScreen() {
   const { goto } = useScreen();
   const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
-  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const [loading, setLoading] = createSignal(false);
   const [screenConfig, setScreenConfig] = createSignal<StartScreenConfig | null>(null);
   let containerRef: HTMLDivElement | undefined;

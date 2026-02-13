@@ -19,7 +19,7 @@ import { initPostHog } from '~/scaffold/lib/posthog';
 import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
 import { gameConfig } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
-import { CITYLINES_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
+import { GAME_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
 import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
@@ -88,7 +88,7 @@ export default function App() {
 
   return (
     <GlobalBoundary>
-      <TuningProvider gameDefaults={CITYLINES_DEFAULTS} urlOverrides={urlOverrides}>
+      <TuningProvider gameDefaults={GAME_DEFAULTS} urlOverrides={urlOverrides}>
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>

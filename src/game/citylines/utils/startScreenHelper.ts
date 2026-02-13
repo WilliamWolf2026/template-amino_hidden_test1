@@ -13,7 +13,7 @@ export interface StartScreenConfig {
 }
 
 /** localStorage key for tracking if player has started the game before */
-const STORAGE_KEY_PLAYED = 'citylines_has_played';
+const STORAGE_KEY_PLAYED = 'game_has_played';
 
 /** Default county for new players */
 const DEFAULT_COUNTY_ID = 'atlantic';
