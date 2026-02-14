@@ -1,22 +1,24 @@
-// --- 1. GameKIT Initialization ---
+import { Environment, GameKIT } from '@wolfgames/game-kit';
+import { getEnvironment } from '../config';
+import { projectId } from '../../../wolf-game-kit.json';
 
-import { GameKIT } from "@wolfgames/game-kit";
-import { getEnvironment } from "../config";
-
-type GameKITEnv = ConstructorParameters<typeof GameKIT>[0]["environment"];
-
-export const PROJECT_ID = "CityLines" as const;
-export const ENVIRONMENT: GameKITEnv = getEnvironment() as GameKITEnv;
+export const environment = getEnvironment() === 'production'
+  ? Environment.Production
+  : Environment.QA;
 
 let instance: GameKIT | null = null;
 
 export function getGameKit(): GameKIT {
-  if (instance) return instance;
+  if (instance) {
+    return instance;
+  }
+
   instance = new GameKIT({
-    projectId: PROJECT_ID,
-    environment: ENVIRONMENT,
+    projectId,
+    environment,
   });
+
   return instance;
 }
 
-export { type PostHog } from "@wolfgames/game-kit";
+export { type PostHog } from '@wolfgames/game-kit';
