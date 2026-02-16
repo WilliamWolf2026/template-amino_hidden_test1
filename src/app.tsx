@@ -15,7 +15,6 @@ import {
   type ScaffoldTuning,
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
-import { initPostHog } from '~/scaffold/lib/posthog';
 import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
 import { gameConfig } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
@@ -24,6 +23,8 @@ import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
+import { AnalyticsProvider } from '~/scaffold/systems/telemetry/AnalyticsContext';
+import { FeatureFlagProvider } from '~/scaffold/systems/telemetry/FeatureFlagContext';
 import { ViewportToggle } from '~/game/shared/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
@@ -72,12 +73,8 @@ function ViewportModeWrapper(props: { children: JSX.Element }) {
 
 export default function App() {
   onMount(async () => {
-    // Initialize error tracking (lazy-loaded)
-    await initSentry(environment);
-
-    if (scaffoldConfig.posthog?.apiKey) {
-      await initPostHog(scaffoldConfig.posthog.apiKey, scaffoldConfig.posthog.apiHost);
-    }
+    // Initialize error tracking
+    initSentry(environment);
 
     // Setup global error handlers
     setupGlobalErrorHandlers();
@@ -92,27 +89,31 @@ export default function App() {
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>
-        <ViewportModeWrapper>
-          {/* Settings Menu - Top Right Corner */}
-          <div class="fixed top-2 right-2 z-[9999]">
-            <SettingsMenu onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined} />
-          </div>
-          {/* Viewport Toggle - Top Left Corner (dev only) */}
-          <Show when={IS_DEV_ENV}>
-            <div class="fixed top-2 left-2 z-[9999]">
-              <ViewportToggle />
-            </div>
-          </Show>
-          <PauseProvider>
-            <ManifestProvider>
-              <AssetProvider config={{ engine: scaffoldConfig.engine }}>
-                <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
-                  <ScreenRenderer screens={gameConfig.screens} />
-                </ScreenProvider>
-              </AssetProvider>
-            </ManifestProvider>
-          </PauseProvider>
-        </ViewportModeWrapper>
+        <AnalyticsProvider>
+          <FeatureFlagProvider>
+            <ViewportModeWrapper>
+              {/* Settings Menu - Top Right Corner */}
+              <div class="fixed top-2 right-2 z-[9999]">
+                <SettingsMenu onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined} />
+              </div>
+              {/* Viewport Toggle - Top Left Corner (dev only) */}
+              <Show when={IS_DEV_ENV}>
+                <div class="fixed top-2 left-2 z-[9999]">
+                  <ViewportToggle />
+                </div>
+              </Show>
+              <PauseProvider>
+                <ManifestProvider>
+                  <AssetProvider config={{ engine: scaffoldConfig.engine }}>
+                    <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+                      <ScreenRenderer screens={gameConfig.screens} />
+                    </ScreenProvider>
+                  </AssetProvider>
+                </ManifestProvider>
+              </PauseProvider>
+            </ViewportModeWrapper>
+          </FeatureFlagProvider>
+        </AnalyticsProvider>
       </TuningProvider>
     </GlobalBoundary>
   );
