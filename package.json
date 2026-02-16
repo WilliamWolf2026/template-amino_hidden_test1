@@ -2,15 +2,13 @@
   "name": "example-with-tailwindcss",
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev",
-    "build": "vinxi build",
-    "build:qa": "vinxi build --mode qa",
-    "start": "vinxi start"
+    "dev": "vite",
+    "build": "vite build",
+    "build:qa": "vite build --mode qa",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
-    "@solidjs/router": "^0.15.0",
-    "@solidjs/start": "^1.1.0",
     "@wolfgames/game-kit": "^0.0.41",
     "arktype": "^2.1.27",
     "gsap": "^3.14.2",
@@ -18,13 +16,15 @@
     "pixi.js": "^8.15.0",
     "posthog-js": "^1.331.1",
     "solid-js": "^1.9.5",
-    "tweakpane": "^4.0.5",
-    "vinxi": "^0.5.7"
+    "tweakpane": "^4.0.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",
     "@types/howler": "^2.2.12",
-    "tailwindcss": "^4.0.7"
+    "qrcode-terminal": "^0.12.0",
+    "tailwindcss": "^4.0.7",
+    "vite": "^6.1.0",
+    "vite-plugin-solid": "^2.11.0"
   },
   "engines": {
     "node": ">=22"
