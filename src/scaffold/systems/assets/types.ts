@@ -70,10 +70,13 @@ export interface LoadedJson<T = unknown> {
   data: T;
 }
 
+// Progress callback (0.0 to 1.0)
+export type ProgressCallback = (progress: number) => void;
+
 // Loader interface
 export interface AssetLoader {
   init(manifest: Manifest): void;
-  loadBundle(name: string): Promise<void>;
+  loadBundle(name: string, onProgress?: ProgressCallback): Promise<void>;
   loadBundles(prefix: string): Promise<void>;
   isLoaded(bundle: string): boolean;
 }

@@ -1,4 +1,4 @@
-import type { Manifest, SpriteSheetData, LoadedSheet, LoadedImage, AssetLoader } from '../types';
+import type { Manifest, SpriteSheetData, LoadedSheet, LoadedImage, AssetLoader, ProgressCallback } from '../types';
 import { inferAssetType } from '../types';
 
 type CachedAsset = LoadedSheet | LoadedImage | unknown;
@@ -20,17 +20,63 @@ export class DomLoader implements AssetLoader {
       : this.manifest.cdnBase;
   }
 
-  async loadBundle(name: string): Promise<void> {
-    if (this.loadedBundles.has(name)) return;
+  // XHR download with progress events — returns a Blob
+  private xhrBlob(url: string, onProgress?: ProgressCallback): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.responseType = 'blob';
+      if (onProgress) {
+        xhr.onprogress = (e) => {
+          if (e.lengthComputable) {
+            onProgress(e.loaded / e.total);
+          }
+        };
+      }
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response as Blob);
+        } else {
+          reject(new Error(`HTTP ${xhr.status}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error(`Network error: ${url}`));
+      xhr.send();
+    });
+  }
+
+  async loadBundle(name: string, onProgress?: ProgressCallback): Promise<void> {
+    if (this.loadedBundles.has(name)) {
+      onProgress?.(1);
+      return;
+    }
 
     const bundle = this.manifest.bundles.find((b) => b.name === name);
     if (!bundle) throw new Error(`Unknown bundle: ${name}`);
 
-    await Promise.all(
-      bundle.assets
-        .filter((p) => !p.includes('audio/')) // Audio handled by AudioLoader
-        .map((p) => this.loadAsset(p))
-    );
+    const assets = bundle.assets.filter((p) => !p.includes('audio/'));
+
+    if (assets.length === 0) {
+      onProgress?.(1);
+      this.loadedBundles.add(name);
+      return;
+    }
+
+    if (assets.length === 1) {
+      // Single-asset bundle: progress maps directly
+      await this.loadAsset(assets[0], onProgress);
+    } else {
+      // Multi-asset: combine per-asset progress
+      const perAsset = new Array(assets.length).fill(0);
+      await Promise.all(
+        assets.map((p, i) =>
+          this.loadAsset(p, (prog) => {
+            perAsset[i] = prog;
+            onProgress?.(perAsset.reduce((a, b) => a + b, 0) / assets.length);
+          })
+        )
+      );
+    }
 
     this.loadedBundles.add(name);
   }
@@ -45,13 +91,14 @@ export class DomLoader implements AssetLoader {
   }
 
   // Load any asset type
-  async loadAsset(path: string): Promise<CachedAsset> {
+  async loadAsset(path: string, onProgress?: ProgressCallback): Promise<CachedAsset> {
     // Use just the filename (without directory and extension) as the key
     // e.g., 'branding/atlas-branding-wolf.json' -> 'atlas-branding-wolf'
     const filename = path.split('/').pop() || path;
     const key = filename.replace(/\.(json|png|jpg|jpeg|webp|gif|svg)$/i, '');
 
     if (this.cache.has(key)) {
+      onProgress?.(1);
       return this.cache.get(key)!;
     }
 
@@ -64,10 +111,10 @@ export class DomLoader implements AssetLoader {
 
     switch (type) {
       case 'spritesheet':
-        promise = this.doLoadSheet(path);
+        promise = this.doLoadSheet(path, onProgress);
         break;
       case 'image':
-        promise = this.doLoadImage(path);
+        promise = this.doLoadImage(path, onProgress);
         break;
       case 'json':
         promise = this.doLoadJson(path);
@@ -81,6 +128,7 @@ export class DomLoader implements AssetLoader {
     try {
       const result = await promise;
       this.cache.set(key, result);
+      onProgress?.(1);
       return result;
     } finally {
       this.loading.delete(key);
@@ -92,7 +140,7 @@ export class DomLoader implements AssetLoader {
     return this.loadAsset(jsonPath) as Promise<LoadedSheet>;
   }
 
-  private async doLoadSheet(jsonPath: string): Promise<LoadedSheet> {
+  private async doLoadSheet(jsonPath: string, onProgress?: ProgressCallback): Promise<LoadedSheet> {
     let baseUrl = this.getBaseUrl();
     let jsonUrl = `${baseUrl}/${jsonPath}`;
     let response: Response;
@@ -119,16 +167,15 @@ export class DomLoader implements AssetLoader {
     }
 
     const json: SpriteSheetData = await response.json();
+    onProgress?.(0.1); // JSON metadata loaded (~10%)
 
     const dir = jsonPath.substring(0, jsonPath.lastIndexOf('/'));
     const imageUrl = `${baseUrl}/${dir}/${json.meta.image}`;
 
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to load ${imageUrl}: ${imageResponse.status}`);
-    }
-
-    const blob = await imageResponse.blob();
+    // Use XHR for image download to get byte-level progress
+    const blob = await this.xhrBlob(imageUrl, onProgress ? (p) => {
+      onProgress(0.1 + p * 0.9); // Image progress: 10% → 100%
+    } : undefined);
     const image = await createImageBitmap(blob);
 
     return { json, image };
@@ -139,32 +186,24 @@ export class DomLoader implements AssetLoader {
     return this.loadAsset(imagePath) as Promise<LoadedImage>;
   }
 
-  private async doLoadImage(imagePath: string): Promise<LoadedImage> {
-    let baseUrl = this.getBaseUrl();
-    let url = `${baseUrl}/${imagePath}`;
-    let response: Response;
+  private async doLoadImage(imagePath: string, onProgress?: ProgressCallback): Promise<LoadedImage> {
+    let url = `${this.getBaseUrl()}/${imagePath}`;
 
+    let blob: Blob;
     try {
-      response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      blob = await this.xhrBlob(url, onProgress);
     } catch (error) {
       // If CDN fails and we have a local fallback, try that
       if (!this.usingFallback && this.manifest.localBase) {
         console.warn(`[Assets] CDN failed for ${imagePath}, falling back to local`);
         this.usingFallback = true;
         url = `${this.manifest.localBase}/${imagePath}`;
-        response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to load ${url}: ${response.status}`);
-        }
+        blob = await this.xhrBlob(url, onProgress);
       } else {
-        throw new Error(`Failed to load ${url}`);
+        throw error;
       }
     }
 
-    const blob = await response.blob();
     const image = await createImageBitmap(blob);
 
     return {

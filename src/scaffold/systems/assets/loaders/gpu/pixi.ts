@@ -1,5 +1,5 @@
 import { Assets, Texture, Sprite, AnimatedSprite, Rectangle, Cache, type Spritesheet } from 'pixi.js';
-import type { Manifest, AssetLoader } from '../../types';
+import type { Manifest, AssetLoader, ProgressCallback } from '../../types';
 
 export class PixiLoader implements AssetLoader {
   private manifest!: Manifest;
@@ -35,8 +35,11 @@ export class PixiLoader implements AssetLoader {
     return this.initialized;
   }
 
-  async loadBundle(name: string): Promise<void> {
-    if (this.loadedBundles.has(name)) return;
+  async loadBundle(name: string, onProgress?: ProgressCallback): Promise<void> {
+    if (this.loadedBundles.has(name)) {
+      onProgress?.(1);
+      return;
+    }
 
     const bundle = this.manifest.bundles.find((b) => b.name === name);
     if (!bundle) throw new Error(`Unknown bundle: ${name}`);
@@ -46,6 +49,7 @@ export class PixiLoader implements AssetLoader {
     const hasAssets = bundle.assets.some((p) => !isAudioFile(p));
     if (!hasAssets) {
       this.loadedBundles.add(name);
+      onProgress?.(1);
       return;
     }
 
@@ -66,7 +70,7 @@ export class PixiLoader implements AssetLoader {
 
     try {
       // Pixi handles everything: fetch, parse, texture creation, caching
-      await Assets.loadBundle(name);
+      await Assets.loadBundle(name, onProgress);
       this.loadedBundles.add(name);
     } catch (error) {
       // If CDN fails and we have a local fallback, try that
@@ -76,7 +80,7 @@ export class PixiLoader implements AssetLoader {
         // Re-register bundles with local URLs
         this.registerBundles(this.manifest.localBase);
         // Retry the load
-        await Assets.loadBundle(name);
+        await Assets.loadBundle(name, onProgress);
         this.loadedBundles.add(name);
       } else {
         throw error;

@@ -22,11 +22,16 @@ src/game/
 │   ├── StartScreen.tsx
 │   ├── GameScreen.tsx
 │   └── ResultsScreen.tsx
+├── shared/            # Reusable game-level components & controllers
+│   ├── components/    # SpriteButton, ProgressBar, DialogueBox, CharacterSprite, AvatarPopup
+│   └── controllers/   # LevelCompletionController
 └── [gamename]/        # Game-specific logic (e.g., citylines/)
     ├── core/          # Game entities and systems
     ├── types/         # Type definitions
     └── data/          # Static data
 ```
+
+> **Shared vs Game-Specific:** `src/game/shared/` contains generic, reusable components that work across any game built on this scaffold (buttons, progress bars, character sprites, dialogue boxes, completion controllers). These accept configuration through constructor params rather than importing game-specific constants. Game-specific code in `[gamename]/` creates thin wrappers that inject game config (atlas names, fonts, sprite mappings) into shared components.
 
 ## Step-by-Step Guide
 
@@ -98,19 +103,21 @@ Update screens in `src/game/screens/`:
 Edit `src/game/config.ts`:
 
 ```typescript
+import { lazy } from 'solid-js';
 import { LoadingScreen } from './screens/LoadingScreen';
-import { StartScreen } from './screens/StartScreen';
-import { GameScreen } from './screens/GameScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import type { GameConfig } from './config';
 
-export const gameConfig = {
+export const gameConfig: GameConfig = {
   screens: {
     loading: LoadingScreen,
-    start: StartScreen,
-    game: GameScreen,
+    start: lazy(() => import('./screens/StartScreen')),
+    game: lazy(() => import('./screens/GameScreen')),
     results: ResultsScreen,
   },
   initialScreen: 'loading',
+  defaultViewportMode: 'small', // 'small' (430px phone), 'large' (768px tablet), or 'none' (full desktop)
+  serverStorageUrl: null,
 };
 ```
 
@@ -142,6 +149,7 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 | **Pause System** | Pause/resume, visibility handling | `scaffold/systems/pause/` |
 | **UI Components** | Button, Spinner, ProgressBar, Logo | `scaffold/ui/` |
 | **MobileViewport** | 9:16 constraint for desktop testing | `scaffold/ui/MobileViewport` |
+| **Viewport Config** | Min width, touch targets, safe padding | `scaffold/config/viewport.ts` |
 | **SettingsMenu** | Audio/music toggle menu | `scaffold/utils/SettingsMenu/` |
 | **BaseAudioManager** | Audio manager base class to extend | `scaffold/systems/audio/` |
 
@@ -150,13 +158,14 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 | Item | Purpose | Location |
 |------|---------|----------|
 | **Game Logic** | Core gameplay, entities, systems | `src/game/[gamename]/` |
+| **Shared Components** | Reusable Pixi components (buttons, popups, etc.) | `src/game/shared/` |
 | **Screens** | Loading, Start, Game, Results UI | `src/game/screens/` |
 | **Audio Manager** | Extends BaseAudioManager with game sounds | `src/game/audio/manager.ts` |
 | **Sound Definitions** | SoundDefinition constants for each sound | `src/game/audio/sounds.ts` |
 | **Asset Manifest** | List of atlases, audio, images to load | `src/game/manifest.ts` |
 | **Tuning Types** | Game-specific tunable parameters | `src/game/tuning/` |
 | **Game State** | Signals for score, level, progress | `src/game/state.ts` |
-| **Screen Config** | Screen mappings and initial screen | `src/game/config.ts` |
+| **Screen Config** | Screen mappings, initial screen, viewport default | `src/game/config.ts` |
 | **Font** | Custom font file + @font-face CSS | `public/assets/` + `app.css` |
 
 ### Files to Update (Not Replace)
@@ -172,20 +181,45 @@ These scaffold files need game-specific values:
 
 > **Font Loading**: The scaffold preloads fonts in `entry-server.tsx` and waits for `document.fonts.ready` in `entry-client.tsx` to prevent FOUT (Flash of Unstyled Text) on the loading screen.
 
-### Recommended Constants
+### Platform Constants (Scaffold-Provided)
 
-Define these per game (not in scaffold since values vary):
+Viewport constraints are provided by the scaffold — no need to recreate:
 
 ```typescript
-// src/game/constants/viewport.ts
-export const MIN_TOUCH_TARGET = 44;  // Apple HIG standard
-export const SAFE_PADDING = 10;      // Edge padding
-export const VIEWPORT_MIN_WIDTH = 355; // iPhone SE - side gaps
+// Already available from scaffold:
+import { VIEWPORT_MIN_WIDTH, SAFE_PADDING, MIN_TOUCH_TARGET } from '~/scaffold/config/viewport';
 ```
+
+### Recommended Constants
+
+Define these per game:
 
 ```typescript
 // src/game/config/fonts.ts
 export const GAME_FONT_FAMILY = 'YourFont, system-ui, sans-serif';
+```
+
+### Using Shared Components
+
+See the **[Shared Components Guide](../development/shared-components.md)** for the full catalog, decision framework, and integration checklist.
+
+The `src/game/shared/` directory provides reusable Pixi components. Create game-specific wrappers that inject your config:
+
+```typescript
+// src/game/[gamename]/core/MyCharacter.ts
+import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
+import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+
+export class MyCharacter extends CharacterSprite<'hero' | 'villain'> {
+  constructor(type: 'hero' | 'villain', gpuLoader: PixiLoader, scale = 1) {
+    super(gpuLoader, {
+      type,
+      spriteMap: { hero: 'hero.png', villain: 'villain.png' },
+      atlasName: 'my_sprites',
+      baseSize: { width: 200, height: 200 },
+    }, scale);
+  }
+}
 ```
 
 ## Tuning Storage
@@ -312,11 +346,11 @@ Use this checklist when starting a new game:
 - [ ] Create `src/game/audio/manager.ts` (extends BaseAudioManager)
 - [ ] Create `src/game/audio/index.ts` (exports)
 - [ ] Create `src/game/screens/` (Loading, Start, Game, Results)
-- [ ] Update `src/game/config.ts` with screen mappings
+- [ ] Update `src/game/config.ts` with screen mappings and `defaultViewportMode`
 - [ ] Add font to `public/assets/` and update `src/app.css`
 - [ ] Update font preload in `src/entry-server.tsx`
-- [ ] Create `src/game/constants/viewport.ts` if needed
 - [ ] Create `src/game/state.ts` for game signals
+- [ ] Create game-specific wrappers in `[gamename]/` for shared components
 
 ## Tips
 
@@ -325,6 +359,6 @@ Use this checklist when starting a new game:
 - **Hot Reload**: Most changes hot-reload, tuning changes apply instantly when wired
 - **Assets**: Place in `public/` folder, reference in manifest
 - **Team Defaults**: Create `public/config/tuning/game.json` for shared overrides
-- **Desktop Testing**: MobileViewport constrains to 9:16 on desktop browsers
+- **Viewport Mode**: Set `defaultViewportMode` in `config.ts` to control the desktop preview frame. Toggle at runtime via URL (`?viewport=large`), TweakPane dropdown, or the dev toggle button (top-left: S/L/∞). See [Viewport Mode](../../scaffold/systems/viewport-mode.md)
 
 See [Tuning Panel](../scaffold/components/tuning-panel.md) for detailed setup guide including storage system.

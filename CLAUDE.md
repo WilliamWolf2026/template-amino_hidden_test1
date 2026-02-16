@@ -3,19 +3,22 @@
 ## Quick Context
 
 ```
-app.tsx ──► scaffold/ (providers, hooks, UI)
-        └─► game/ (screens, audio, tuning, citylines/)
+app.tsx ──► scaffold/ (providers, hooks, UI, viewport config)
+        └─► game/ (screens, audio, tuning, shared/, citylines/)
 
-Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager
+Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager, viewport config
+Game shared/: SpriteButton, ProgressBar, DialogueBox, CharacterSprite, AvatarPopup, LevelCompletionController
 Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
 ```
 
 **Full context map:** [docs/scaffold/context-map.md](docs/scaffold/context-map.md)
+**Doc index:** [docs/doc-index.md](docs/doc-index.md) — flat routing table for all docs & factory commands
 
 ## Coding Standards & Docs
 
 Before making changes, consult the relevant files in:
 - `ai/rules/` — coding standards, review guidelines, JS/TS patterns, UI rules
+- `docs/doc-index.md` — find any doc by intent (read this first)
 - `docs/` — game design, architecture, guides, animation patterns, asset pipeline
 
 ## Factory (Common Workflows)
@@ -63,8 +66,10 @@ cp CLAUDE.lite.md CLAUDE.md                                      # Lite (no rule
 ```
 src/
   scaffold/     # Reusable framework (DO NOT EDIT)
+    config/     # Viewport constraints
   game/         # Game-specific (EDITABLE)
-    citylines/  # Core game logic
+    shared/     # Reusable components & controllers (game-level)
+    citylines/  # Core game logic (wraps shared/ with game config)
     screens/    # Solid.js screens
     audio/      # GameAudioManager
 docs/

@@ -7,6 +7,19 @@
  * - 3:4 aspect ratio (standard camera photo ratio)
  */
 
+import type { ViewportMode } from '../systems/tuning/types';
+
+/** Parse viewport mode from URL params (?viewport=small, ?viewport=large, ?viewport=none) */
+export function getViewportModeFromUrl(): ViewportMode | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('viewport');
+  if (mode === 'small' || mode === 'large' || mode === 'none') {
+    return mode;
+  }
+  return null;
+}
+
 /** Minimum supported viewport width in pixels */
 export const VIEWPORT_MIN_WIDTH = 355;
 

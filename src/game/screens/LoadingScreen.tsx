@@ -12,33 +12,46 @@ export function LoadingScreen() {
   const [progress, setProgress] = createSignal(0);
   const [themeLoaded, setThemeLoaded] = createSignal(false);
 
+  // Map a phase's 0→1 progress into a weighted range of the overall bar
+  const phaseProgress = (phaseStart: number, phaseEnd: number) => {
+    return (p: number) => setProgress(phaseStart + p * (phaseEnd - phaseStart));
+  };
+
   onMount(async () => {
     try {
-      setProgress(10);
-      await loadBoot();
-      setProgress(50);
-      await loadTheme();
-      setProgress(100);
-      setThemeLoaded(true);
+      const resuming = hasChapterInProgress();
 
-      // Brief pause to show completion
-      await new Promise((r) => setTimeout(r, 500));
+      // Phase weights differ based on path:
+      //   New game:  boot 0→5, theme 5→90, done 100
+      //   Resuming:  boot 0→5, theme 5→45, gpu 45→55, core 55→60, audio 60→95, done 100
+      if (resuming) {
+        await loadBoot(phaseProgress(0, 5));
+        await loadTheme(phaseProgress(5, 45));
+        setThemeLoaded(true);
 
-      // Skip start screen and go directly to game if there's saved progress
-      if (hasChapterInProgress()) {
         console.log('[LoadingScreen] Resuming saved progress, skipping start screen');
-        // Initialize GPU, core, and audio assets (normally done in StartScreen)
         unlockAudio();
+        setProgress(45);
         await initGpu();
-        await loadCore();
+        setProgress(55);
+        await loadCore(phaseProgress(55, 60));
         // Load audio with graceful degradation
         try {
-          await loadAudio();
+          await loadAudio(phaseProgress(60, 95));
         } catch (error) {
           console.warn('Audio loading failed (assets may not exist yet):', error);
         }
+        setProgress(100);
+        await new Promise((r) => setTimeout(r, 300));
         await goto('game');
       } else {
+        await loadBoot(phaseProgress(0, 5));
+        await loadTheme(phaseProgress(5, 90));
+        setProgress(100);
+        setThemeLoaded(true);
+
+        // Brief pause to show completion
+        await new Promise((r) => setTimeout(r, 500));
         await goto('start');
       }
     } catch (error) {

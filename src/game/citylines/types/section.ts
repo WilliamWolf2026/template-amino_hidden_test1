@@ -8,6 +8,8 @@ export const VALID_COUNTIES: County[] = ['atlantic', 'bergen', 'cape_may', 'esse
 export interface StoryData {
   headline: string;
   summary: string;
+  /** Celebratory text shown when the chapter is completed */
+  completion?: string;
   imageUrl: string;
   articleUrl: string;
   /** Array of clue strings (one per level, determines chapter length) */

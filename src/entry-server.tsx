@@ -10,7 +10,7 @@ export default createHandler(() => (
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
           <link rel="icon" href="/favicon.ico" />
           {/* Preload font to prevent FOUT on loading screen */}
-          <link rel="preload" href="/assets/Baloo-Regular.ttf" as="font" type="font/ttf" crossorigin="" />
+          <link rel="preload" href="/assets/fonts/Baloo-Regular.woff2" as="font" type="font/woff2" crossorigin="" />
           {assets}
           <script innerHTML={`
             (function() {

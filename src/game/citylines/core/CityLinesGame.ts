@@ -11,6 +11,7 @@ import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import type { NineSliceConfig, LevelTransitionConfig } from '~/game/tuning';
 import {
   createLevelCompletionController,
+  playLevelCompleteSound,
   type LevelCompletionController,
 } from '../controllers';
 import {
@@ -120,6 +121,7 @@ export class CityLinesGame extends Container {
       },
       celebrationDuration: 500,
       clueDuration: 3000,
+      onPlaySound: playLevelCompleteSound,
     });
 
     // Create layer containers
@@ -1029,6 +1031,19 @@ export class CityLinesGame extends Container {
 
     // Update connection visuals after applying rotations
     this.updateConnectionVisuals();
+  }
+
+  /** Get first road tile position (for tutorial hand targeting) */
+  getFirstTilePosition(): { x: number; y: number } | null {
+    if (this.roadTiles.length === 0) return null;
+    const tile = this.roadTiles[0];
+    return { x: tile.x, y: tile.y };
+  }
+
+  /** Programmatically rotate the first road tile (for tutorial demo) */
+  rotateFirstTile(): void {
+    if (this.roadTiles.length === 0) return;
+    this.handleTileRotate(this.roadTiles[0]);
   }
 
   /** Clean up resources */

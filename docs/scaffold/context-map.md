@@ -8,7 +8,7 @@ A relationship map for understanding the scaffold/game architecture. Optimized f
 
 ```
                     ┌─────────────────────────────────────────┐
-                    │              ENTRY POINTS               │
+                    │      ENTRY POINTS (entry-points.md)     │
                     └─────────────────────────────────────────┘
                                       │
            ┌──────────────────────────┼──────────────────────────┐
@@ -58,9 +58,15 @@ A relationship map for understanding the scaffold/game architecture. Optimized f
     │  └─────────────────────────────────────────────────────────┘    │
     │                                                                  │
     │  ┌─────────────┐                                                │
-    │  │ citylines/  │◄── Core game logic (Pixi.js containers)       │
+    │  │ shared/     │◄── Reusable components & controllers           │
+    │  │ components/ │    SpriteButton, ProgressBar, DialogueBox,     │
+    │  │ controllers/│    CharacterSprite, AvatarPopup,               │
+    │  └─────────────┘    LevelCompletionController                   │
+    │                                                                  │
+    │  ┌─────────────┐                                                │
+    │  │ citylines/  │◄── Game-specific logic (Pixi.js containers)   │
     │  │  core/      │    RoadTile, Landmark, Exit, ConnectionDetector│
-    │  │  types/     │                                                │
+    │  │  types/     │    (wraps shared/ with game config)            │
     │  │  services/  │                                                │
     │  └─────────────┘                                                │
     └─────────────────────────────────────────────────────────────────┘
@@ -90,6 +96,7 @@ A relationship map for understanding the scaffold/game architecture. Optimized f
 | Audio | Tuning (for musicEnabled) | `useAudio()`, BaseAudioManager |
 | Errors | Sentry | ErrorBoundary |
 | UI | - | Button, Spinner, MobileViewport |
+| Config | - | Viewport constraints (min width, touch targets) |
 
 ### Game → Scaffold
 
@@ -140,7 +147,10 @@ loading ──► start ──► game ──► results
 | Add a new sound | `src/game/audio/sounds.ts` + `manager.ts` |
 | Change game config | `src/game/tuning/types.ts` |
 | Add game assets | `src/game/manifest.ts` + `public/assets/` |
+| Reusable game components | `src/game/shared/components/` |
+| Reusable game controllers | `src/game/shared/controllers/` |
 | Core game logic | `src/game/citylines/core/` |
+| Viewport constraints | `src/scaffold/config/viewport.ts` |
 | UI components | `src/scaffold/ui/` |
 | Debug tools | `src/scaffold/dev/` |
 
@@ -154,6 +164,7 @@ loading ──► start ──► game ──► results
 | Scaffold UI | Cyan | Button, Spinner, MobileViewport |
 | Game Config | Orange | config.ts, manifest.ts, tuning/ |
 | Game Screen | Amber | LoadingScreen, GameScreen |
+| Game Shared | Lime | SpriteButton, ProgressBar, CharacterSprite |
 | Game Logic | Yellow | CityLinesGame, RoadTile |
 
 ---
@@ -162,6 +173,8 @@ loading ──► start ──► game ──► results
 
 **When editing game code:**
 - Import hooks from `~/scaffold` (useAssets, useScreen, etc.)
+- Import reusable components from `~/game/shared/` (SpriteButton, ProgressBar, etc.)
+- Create game-specific wrappers in `[gamename]/` that inject config into shared components
 - Extend `BaseAudioManager` for audio
 - Define sounds as `SoundDefinition` constants
 - Add assets to `manifest.ts`

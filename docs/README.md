@@ -48,9 +48,11 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 | Section                                    | Description                    |
 | ------------------------------------------ | ------------------------------ |
 | [Scaffold Architecture](scaffold/architecture.md) | Reusable framework systems |
+| [Entry Points](scaffold/entry-points.md)   | How the app boots (server, client, root) |
 | [Context Map](scaffold/context-map.md)     | Node-edge relationship map for AI |
 | [Game Design Document](game/gdd.md)        | CityLines game design          |
 | [Creating a New Game](guides/getting-started/new-game.md) | Step-by-step setup guide |
+| [Shared Components](guides/development/shared-components.md) | Reusable component catalog & guidelines |
 | [Debugging](guides/development/debugging.md) | Daily debugging reference    |
 | [Animation Cookbook](guides/development/animation-cookbook.md) | GSAP patterns |
 | [Asset Pipeline](guides/assets/asset-pipeline.md) | Sprites, fonts, and atlases |

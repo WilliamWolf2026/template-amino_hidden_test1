@@ -8,7 +8,8 @@ import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { CityLinesGame, CompanionCharacter, DialogueBox, CluePopup, LevelGenerationService, ChapterGenerationService, type GeneratedChapter } from '~/game/citylines';
-import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
+import { TutorialHand } from '~/game/citylines/core/TutorialHand';
+import { getTileBundleName, type GameTuning } from '~/game/tuning';
 import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/citylines/types/section';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { GameAudioManager } from '~/game/audio/manager';
@@ -17,6 +18,7 @@ import { getCountyConfig } from '~/game/citylines/data/counties';
 import { gameState } from '~/game/state';
 import { advanceLevel, saveTileState, getTileState, clearTileState, getCurrentChapter, startChapter, completeChapter } from '~/game/services/progress';
 import { getDebugParams } from '~/game/utils/debugParams';
+import { IS_DEV_ENV } from '~/scaffold/dev/env';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 import { useGameData } from '~/game/hooks/useGameData';
 import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
@@ -28,9 +30,9 @@ import type { LevelConfig } from '~/game/citylines/types/level';
 /** Modal phase for the chapter start experience */
 type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing';
 
-export function GameScreen() {
+export default function GameScreen() {
   const { coordinator } = useAssets();
-  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const audio = useAudio();
   const { gameData } = useGameData();
   const {
@@ -51,6 +53,7 @@ export function GameScreen() {
   const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
   const [generatedChapter, setGeneratedChapter] = createSignal<GeneratedChapter | null>(null);
   let resizeHandler: (() => void) | null = null;
+  let skipKeyHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Modal phase for the chapter start flow
   const [modalPhase, setModalPhase] = createSignal<ModalPhase>('introduction');
@@ -65,6 +68,8 @@ export function GameScreen() {
   let darkOverlay: Graphics | null = null;
   let isCompanionAnimating = false;
   let isShowingCompletionClue = false; // Track if currently showing level completion (chapter end overlay)
+  let tutorialHand: TutorialHand | null = null;
+  const TUTORIAL_DONE_KEY = 'game-tutorial-done';
 
   // Pixi-based CluePopup for levels 1-9
   let cluePopup: CluePopup | null = null;
@@ -313,11 +318,10 @@ export function GameScreen() {
       chapterLabel.anchor.set(0.5);
       app.stage.addChild(chapterLabel);
       const barWidth = Math.min(320, app.screen.width - 48);
-      const bar = new ProgressBar(gpuLoader, tileBundleName, {
+      const bar = new ProgressBar({
         width: barWidth,
         height: 36,
-        themeColor: countyConfig?.themeColor,
-        tileTheme: tileTheme,
+        fontFamily: GAME_FONT_FAMILY,
         showLabel: false, // Label is shown above the bar instead
       });
       app.stage.addChild(bar);
@@ -436,6 +440,13 @@ export function GameScreen() {
       game.onGameEvent('tileRotated', () => {
         manager.playTileRotate();
 
+        // Dismiss tutorial hand on first player tap
+        if (tutorialHand) {
+          tutorialHand.hide();
+          tutorialHand = null;
+          localStorage.setItem(TUTORIAL_DONE_KEY, '1');
+        }
+
         // Start music on first tile tap if it isn't playing yet
         // (handles resume case where audio context was suspended)
         if (audio.musicEnabled() && !manager.isMusicPlaying()) {
@@ -509,10 +520,8 @@ export function GameScreen() {
         manager.playNewsReveal();
 
         if (isChapterEnd) {
-          // Chapter end (level 10, 20, etc.) - show full companion overlay with story reveal
-          const displayText = config
-            ? `${config.story.headline}\n\n${config.story.summary}`
-            : clueText;
+          // Chapter end — show full companion overlay with completion text
+          const displayText = config?.story.completion ?? clueText ?? 'Great work!';
           isShowingCompletionClue = true;
           showCompanion(displayText, gameTuning.companion.overlayAlpha);
         } else {
@@ -697,9 +706,7 @@ export function GameScreen() {
           setModalPhase('loading-puzzle');
 
           const currentConfig = sectionConfig();
-          const chapterStartText = currentConfig
-            ? `${currentConfig.story.headline}\n\n${currentConfig.story.summary}`
-            : "Let's begin!";
+          const chapterStartText = currentConfig?.story.summary ?? "Let's begin!";
 
           // --- Timing delays (seconds) — adjust these to taste ---
           const TEXT_FADE_OUT = 0.2;   // text fades out
@@ -784,6 +791,18 @@ export function GameScreen() {
           // Chapter start dismissed — level is already loaded, slide out and begin gameplay
           await hideCompanion();
           setModalPhase('playing');
+
+          // Show tutorial hand on first play ever
+          if (
+            currentLevel().levelNumber === 1 &&
+            !localStorage.getItem(TUTORIAL_DONE_KEY) &&
+            game.getFirstTilePosition()
+          ) {
+            const pos = game.getFirstTilePosition()!;
+            tutorialHand = new TutorialHand(gpuLoader, gameTuning.tutorialHand);
+            game.addChild(tutorialHand);
+            tutorialHand.show(pos.x, pos.y);
+          }
 
         } else if (isShowingCompletionClue) {
           // Chapter-end completion clue dismissed — advance to next chapter
@@ -883,7 +902,7 @@ export function GameScreen() {
               });
 
               // Show chapter-start modal (overlay still dark, one tap to dismiss)
-              const chapterStartText = `${nextConfig.story.headline}\n\n${nextConfig.story.summary}`;
+              const chapterStartText = nextConfig.story.summary || "Let's begin!";
               setModalPhase('chapter-start');
               showCompanion(chapterStartText, companionConfig.overlayAlpha);
 
@@ -972,6 +991,34 @@ export function GameScreen() {
       };
 
       window.addEventListener('resize', resizeHandler);
+
+      // Dev only: 'S' key skips the current level (simulates full completion)
+      if (IS_DEV_ENV) {
+        const devSkipLevel = () => {
+          const controller = game.getCompletionController();
+          // If already in completion flow, force through it
+          if (controller.state !== 'playing') {
+            controller.reset();
+          }
+          // Do what levelComplete handler does
+          clearTileState();
+          advanceLevel();
+          gameState.incrementLevel();
+          // Update progress bar
+          bar.setProgress(gameState.currentLevel(), gameState.totalLevels());
+          // Load next level
+          loadNextLevelWithTransition();
+        };
+        (window as any).skipLevel = devSkipLevel;
+        skipKeyHandler = (e: KeyboardEvent) => {
+          if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            console.log('[Dev] Skipping to next level');
+            devSkipLevel();
+          }
+        };
+        window.addEventListener('keydown', skipKeyHandler);
+      }
 
       console.log('[Game] Started');
     }
@@ -1138,7 +1185,7 @@ export function GameScreen() {
     // Get current county from level config (future: track active county)
     // For now, default to atlantic if not set
     const countyConfig = getCountyConfig('atlantic');
-    bar.setTheme(countyConfig?.themeColor, tileTheme);
+    bar.setTheme(0x007eff);
   });
 
   // Reactive: Audio volume changes
@@ -1205,6 +1252,11 @@ export function GameScreen() {
     // Clean up resize listener
     if (resizeHandler) {
       window.removeEventListener('resize', resizeHandler);
+    }
+
+    // Clean up dev skip-key listener
+    if (skipKeyHandler) {
+      window.removeEventListener('keydown', skipKeyHandler);
     }
   });
 

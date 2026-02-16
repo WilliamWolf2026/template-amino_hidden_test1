@@ -2,7 +2,7 @@ import type { GameTuningBase } from '~/scaffold/systems/tuning/types';
 import type { GridSize } from '~/game/citylines/types/grid';
 
 // ============================================
-// CITYLINES TUNING TYPES
+// GAME TUNING TYPES
 // ============================================
 
 export type TileTheme = 'regular' | 'fall' | 'winter';
@@ -174,7 +174,36 @@ export interface GeneratorConfig {
   wrigglePasses: number;
 }
 
-export interface CityLinesTuning extends GameTuningBase {
+export interface TutorialHandTuning {
+  /** Vertical offset below tile where hand starts (px) @min 0 @max 200 @step 5 */
+  startOffsetY: number;
+  /** Duration of initial fade-in + slide up (s) @min 0 @max 3 @step 0.01 */
+  fadeInDuration: number;
+  /** Wait before first tap in loop (s) @min 0 @max 5 @step 0.01 */
+  waitBeforeTap: number;
+  /** Duration of tap press animation (s) @min 0 @max 1 @step 0.005 */
+  tapPressDuration: number;
+  /** Scale during tap press @min 0 @max 1 @step 0.01 */
+  tapPressScale: number;
+  /** Hold duration at pressed scale (s) @min 0 @max 1 @step 0.005 */
+  tapHoldDuration: number;
+  /** Duration of tap release animation (s) @min 0 @max 1 @step 0.005 */
+  tapReleaseDuration: number;
+  /** Rest scale (normal hand size) @min 0 @max 2 @step 0.01 */
+  restScale: number;
+  /** How far hand backs off after tap (px) @min 0 @max 100 @step 1 */
+  backOffDistance: number;
+  /** Duration of back-off animation (s) @min 0 @max 2 @step 0.01 */
+  backOffDuration: number;
+  /** Wait between tap cycles (s) @min 0 @max 10 @step 0.01 */
+  waitBetweenTaps: number;
+  /** Duration of slide back up to tile (s) @min 0 @max 2 @step 0.01 */
+  slideUpDuration: number;
+  /** Duration of fade out when dismissed (s) @min 0 @max 2 @step 0.01 */
+  fadeOutDuration: number;
+}
+
+export interface GameTuning extends GameTuningBase {
   theme: ThemeConfig;
   grid: GridConfig;
   difficulty: {
@@ -192,13 +221,14 @@ export interface CityLinesTuning extends GameTuningBase {
   screens: GameScreensConfig;
   generator: GeneratorConfig;
   levelTransition: LevelTransitionConfig;
+  tutorialHand: TutorialHandTuning;
 }
 
 // ============================================
 // DEFAULT VALUES
 // ============================================
 
-export const CITYLINES_DEFAULTS: CityLinesTuning = {
+export const GAME_DEFAULTS: GameTuning = {
   version: '1.0.0',
   theme: {
     tileTheme: 'regular',
@@ -306,5 +336,20 @@ export const CITYLINES_DEFAULTS: CityLinesTuning = {
     elementEasing: 'back.out(1.2)',
     backgroundEasing: 'power2.out',
     animateBackground: true,
+  },
+  tutorialHand: {
+    startOffsetY: 60,
+    fadeInDuration: 1.0,
+    waitBeforeTap: 0.1,
+    tapPressDuration: 0.1,
+    tapPressScale: 0.5,
+    tapHoldDuration: 0.15,
+    tapReleaseDuration: 0.1,
+    restScale: 0.6,
+    backOffDistance: 20,
+    backOffDuration: 0.3,
+    waitBetweenTaps: 1.5,
+    slideUpDuration: 0.4,
+    fadeOutDuration: 0.3,
   },
 };

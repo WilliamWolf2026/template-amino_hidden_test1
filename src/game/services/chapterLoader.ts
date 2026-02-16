@@ -43,10 +43,11 @@ export function chapterRefToLevelManifest(chapter: ChapterRef): LevelManifest {
   // Extract seeds from levels
   const levelSeeds: number[] = chapter.levels.map((level) => level.seed);
 
-  // Build story data
+  // Build story data (prefer new field names, fall back to legacy)
   const story: StoryData = {
     headline: chapter.story.headline,
-    summary: chapter.story.summary,
+    summary: chapter.story.chapterStart ?? chapter.story.summary ?? '',
+    completion: chapter.story.completion ?? '',
     imageUrl: chapter.story.imageUrl,
     articleUrl: chapter.story.articleUrl,
     clues,
@@ -61,11 +62,11 @@ export function chapterRefToLevelManifest(chapter: ChapterRef): LevelManifest {
 }
 
 /**
- * Get the introduction text for a chapter (Good Boy's intro dialogue).
- * This is the `story.info` field in the new schema.
+ * Get the introduction text for a chapter (Goodboi's intro dialogue).
+ * Prefers `story.intro`, falls back to legacy `story.info`.
  */
 export function getChapterIntroduction(chapter: ChapterRef): string {
-  return chapter.story.info;
+  return chapter.story.intro ?? chapter.story.info ?? '';
 }
 
 /**

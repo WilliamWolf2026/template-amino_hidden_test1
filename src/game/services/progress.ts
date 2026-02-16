@@ -1,5 +1,5 @@
 /**
- * CityLines Progress Persistence Service
+ * Game Progress Persistence Service
  *
  * Handles saving and loading player progress to localStorage.
  * Uses the scaffold's versioned store pattern for safe persistence.
@@ -68,7 +68,7 @@ const DEFAULT_PROGRESS: ProgressData = {
 
 /** Progress store - current chapter and completed chapters */
 export const progressStore = createVersionedStore<ProgressData>({
-  key: 'citylines_progress',
+  key: 'game_progress',
   version: 1,
   defaults: DEFAULT_PROGRESS,
   validate: (data) => {

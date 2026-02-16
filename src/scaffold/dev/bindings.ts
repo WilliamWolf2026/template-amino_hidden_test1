@@ -426,6 +426,18 @@ function createBinding(
       return;
     }
 
+    // Viewport mode dropdown
+    if (key === 'mode' && (value === 'small' || value === 'large' || value === 'none')) {
+      const binding = parent.addBinding(obj, key, {
+        label,
+        options: { 'Small (430px)': 'small', 'Large (768px)': 'large', 'None (full)': 'none' },
+      });
+      binding.on('change', (ev: { value: string }) => onUpdate(ev.value));
+      applyUnwiredStyle(binding);
+      addResetButton(binding.element, defaultValue, obj, key, onUpdate);
+      return;
+    }
+
     // Tile theme dropdown (requires restart)
     if (key === 'tileTheme') {
       const binding = parent.addBinding(obj, key, {

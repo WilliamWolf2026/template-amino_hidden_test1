@@ -18,9 +18,10 @@
       },
       "story": {
         "uid": "story-patrol-1",
-        "info": "Woof! I'm Goodboi. Part of my daily patrol isn't connecting today. A few of my usual routes are blocked. Let's fix that!",
+        "intro": "Woof! I'm Goodboi. Part of my daily patrol isn't connecting today. A few of my usual routes are blocked. Let's fix that!",
         "headline": "Patrol Route 1",
-        "summary": "Sniff\u2026 something's off. A few paths in my loop aren't lining up. Let's get this place back in order.",
+        "chapterStart": "Sniff\u2026 something's off. A few paths in my loop aren't lining up. Let's get this place back in order.",
+        "completion": "All set! Every path's connected, and all is right in the world!",
         "imageUrl": "",
         "articleUrl": ""
       },
@@ -37,7 +38,7 @@
         { "uid": "p1-level-4", "levelNumber": 4, "config": {}, "seed": 42004, "clues": [{ "uid": "p1-clue-4", "text": "Alright. This one's a little tucked away. Easy to miss if the roads don't connect." }] },
         { "uid": "p1-level-5", "levelNumber": 5, "config": {}, "seed": 42005, "clues": [{ "uid": "p1-clue-5", "text": "Good. Open space again. Feels better when I can move freely." }] },
         { "uid": "p1-level-6", "levelNumber": 6, "config": {}, "seed": 42006, "clues": [{ "uid": "p1-clue-6", "text": "That's better. This stretch always comes after the long bend." }] },
-        { "uid": "p1-level-7", "levelNumber": 7, "config": {}, "seed": 42007, "clues": [{ "uid": "p1-clue-7", "text": "All set! Every path's connected, and all is right in the world!" }] }
+        { "uid": "p1-level-7", "levelNumber": 7, "config": {}, "seed": 42007, "clues": [{ "uid": "p1-clue-7", "text": "Almost there. Just one more piece of the loop to reopen." }] }
       ]
     }
   ]
