@@ -2,6 +2,7 @@ import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '~/scaffold/systems/tuning/types';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { getServerStorageUrl } from './config/environment';
 
 // Re-export environment config from config directory
 export {
@@ -13,6 +14,8 @@ export {
   getCdnUrl,
   getLevelsUrl,
   resolveLevelUrl,
+  getServerStorageUrl,
+  getGamesIndexUrl,
 } from './config/environment';
 
 export interface GameConfig {
@@ -38,7 +41,7 @@ export const gameConfig: GameConfig = {
   },
   initialScreen: 'loading',
   defaultViewportMode: 'small',
-  // Set to null for local development (uses static manifest)
-  // Set to server URL for remote manifest fetching
-  serverStorageUrl: null,
+  // Old: serverStorageUrl: null, // no server storage, uses static manifest only
+  // Now resolved per environment (local emulator, QA GCS bucket, etc.)
+  serverStorageUrl: getServerStorageUrl(),
 };

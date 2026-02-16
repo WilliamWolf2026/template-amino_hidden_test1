@@ -7,7 +7,7 @@
  */
 
 import type { GameData, GamesIndex, GameIndexEntry } from '~/game/citylines/types/gameData';
-import { getChaptersUrl } from '~/game/config/environment';
+import { getChaptersUrl, getGamesIndexUrl } from '~/game/config/environment';
 import { fetchGamesIndex, fetchGameData } from './chapterLoader';
 
 // ============================================================================
@@ -48,7 +48,9 @@ export function resolveChapterUrl(url: string): string {
  */
 export async function initCatalog(): Promise<CatalogState> {
   try {
-    const url = `${getChaptersUrl()}/index.json`;
+    // Prefer server storage URL, fall back to CDN chapters path
+    // Old: const url = `${getChaptersUrl()}/index.json`;
+    const url = getGamesIndexUrl() ?? `${getChaptersUrl()}/index.json`;
     console.log('[Catalog] Fetching index:', url);
     const index = await fetchGamesIndex(url);
     catalog = { index, currentIndex: 0 };

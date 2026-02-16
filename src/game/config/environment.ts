@@ -8,22 +8,42 @@ import {
   getCdnBaseUrl,
   isLocal,
   type Environment,
-} from '~/scaffold/config';
+} from "~/scaffold/config";
 
 // Re-export scaffold utilities
-export { getEnvironment, isLocal, isProduction } from '~/scaffold/config';
-export type { Environment } from '~/scaffold/config';
+export { getEnvironment, isLocal, isProduction } from "~/scaffold/config";
+export type { Environment } from "~/scaffold/config";
 
 /** Game-specific path configuration */
 const GAME_PATHS = {
   /** Path segment for this game on CDN */
-  gamePath: 'games/citylines/data',
+  gamePath: "games/citylines/data",
   /** Local asset path (flat structure) */
-  localAssetPath: '/assets',
+  localAssetPath: "/assets",
   /** Local chapters path */
-  localChaptersPath: '/chapters',
+  localChaptersPath: "/chapters",
   /** @deprecated Local levels path (legacy, use localChaptersPath) */
-  localLevelsPath: '/levels',
+  localLevelsPath: "/levels",
+  /** Games index path on server storage */
+  gamesIndexPath: "city-lines/games/index.json",
+};
+
+/**
+ * Server storage base URLs per environment (backend GCS / Firebase emulator).
+ * These point to the raw storage buckets, not the CDN.
+ */
+const SERVER_STORAGE_URLS: Record<Environment, string | null> = {
+  // Local: Firebase Storage emulator
+  local:
+    "http://localhost:4443/download/storage/v1/b/advance-game-manager-bucket/o",
+  development:
+    "http://localhost:4443/download/storage/v1/b/advance-game-manager-bucket/o", // TBD
+  // QA: Direct GCS bucket
+  qa: "https://storage.googleapis.com/city-lines-server-qa-storage",
+  staging:
+    "http://localhost:4443/download/storage/v1/b/advance-game-manager-bucket/o", // TBD
+  production:
+    "http://localhost:4443/download/storage/v1/b/advance-game-manager-bucket/o", // TBD
 };
 
 /**
@@ -89,10 +109,36 @@ export const getLevelsUrl = (): string => {
  * - Short names resolve to environment's levelsUrl
  */
 export const resolveLevelUrl = (levelParam: string): string => {
-  if (levelParam.startsWith('http') || levelParam.startsWith('/')) {
+  if (levelParam.startsWith("http") || levelParam.startsWith("/")) {
     return levelParam;
   }
   // Short name like "wonder-nj-2026" -> full URL
   const base = getLevelsUrl();
   return `${base}/${levelParam}.json`;
+};
+
+/**
+ * Get the server storage base URL for the current environment.
+ * Returns null when no server storage is configured (uses local defaults).
+ */
+export const getServerStorageUrl = (): string | null => {
+  return SERVER_STORAGE_URLS[getEnvironment()];
+};
+
+/**
+ * Get the full games index URL for fetching the chapter catalog.
+ * Handles URL encoding for the local Firebase emulator vs direct GCS.
+ * Returns null when no server storage is configured.
+ */
+export const getGamesIndexUrl = (): string | null => {
+  const storageUrl = getServerStorageUrl();
+  if (!storageUrl) return null;
+
+  // GCS emulator uses encoded slashes + alt=media query param
+  // Direct GCS bucket uses regular path slashes
+  if (storageUrl.includes("localhost")) {
+    const encoded = GAME_PATHS.gamesIndexPath.replace(/\//g, "%2F");
+    return `${storageUrl}/${encoded}?alt=media`;
+  }
+  return `${storageUrl}/${GAME_PATHS.gamesIndexPath}`;
 };
