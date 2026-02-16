@@ -16,7 +16,7 @@ import {
   type PostHog,
 } from "~/scaffold/lib/analytics";
 import { baseParamsSet } from "~/scaffold/analytics/events";
-import { getUserData } from "~/contexts/helper";
+import { getUserData } from "~/scaffold/systems/telemetry/helper";
 
 // ============================================================================
 // GAME-SPECIFIC CONTEXT TYPE

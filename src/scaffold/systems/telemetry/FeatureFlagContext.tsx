@@ -8,9 +8,9 @@ import {
   Show,
 } from "solid-js";
 import { createStore } from "solid-js/store";
-import { getUserData } from "./helper"; 
+import { getUserData } from "./helper";
 import { useAnalytics } from "./AnalyticsContext";
-import { PostHog } from "~/game/analytics";
+import { type PostHog } from "~/scaffold/lib/analytics";
 
 // ============================================================================
 // STRICT TYPE DEFINITIONS & CONSTANTS

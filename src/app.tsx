@@ -23,8 +23,8 @@ import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
-import { AnalyticsProvider } from '~/contexts/AnalyticsContext';
-import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
+import { AnalyticsProvider } from '~/scaffold/systems/telemetry/AnalyticsContext';
+import { FeatureFlagProvider } from '~/scaffold/systems/telemetry/FeatureFlagContext';
 import { ViewportToggle } from '~/game/shared/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)

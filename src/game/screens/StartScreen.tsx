@@ -13,7 +13,7 @@ import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
 import { getStartScreenMode, hasPlayedBefore, markAsPlayed, type StartScreenConfig } from '~/game/citylines/utils/startScreenHelper';
 import { startChapter, getCurrentChapter } from '~/game/services/progress';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
-import { useAnalytics } from '~/contexts/AnalyticsContext';
+import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 
 // Text styles cached at module level to avoid per-frame allocations
 const COUNTY_TEXT_STYLE: Partial<TextStyle> = {

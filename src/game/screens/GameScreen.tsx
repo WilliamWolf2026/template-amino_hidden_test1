@@ -24,7 +24,7 @@ import { useGameData } from '~/game/hooks/useGameData';
 import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
 import { initCatalog, getCatalog, setCatalogIndex, hasNextChapter, fetchNextChapter, fetchChapterAtIndex, findIndexByUid } from '~/game/services/chapterCatalog';
 import type { ChapterRef } from '~/game/citylines/types/gameData';
-import { useAnalytics } from '~/contexts/AnalyticsContext';
+import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 import type { LevelConfig } from '~/game/citylines/types/level';
 
 /** Modal phase for the chapter start experience */

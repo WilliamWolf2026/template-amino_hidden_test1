@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { useAudio } from '~/scaffold/systems/audio';
 import { setIsPanelOpen, isPanelOpen } from '~/scaffold/dev/TuningPanel';
 import { IS_DEV_ENV } from '~/scaffold/dev/env';
-import { useAnalytics } from '~/contexts/AnalyticsContext';
+import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';

@@ -19,7 +19,7 @@ import {
 } from "solid-js";
 import { type } from "arktype";
 import { getUserData } from "./helper";
-import { getEnvironment } from "~/scaffold";
+import { getEnvironment } from "~/scaffold/config";
 import {
   getSessionElapsed,
   resetSessionTimer,
