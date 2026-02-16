@@ -82,10 +82,12 @@ export class AudioLoader {
 
     const json: AudioSpriteData = await response.json();
 
-    // Resolve src paths relative to JSON location
-    const dir = jsonPath.substring(0, jsonPath.lastIndexOf('/'));
+    // Resolve src paths relative to JSON location (avoid double slash when jsonPath has no directory)
+    const dir = jsonPath.includes('/') ? jsonPath.substring(0, jsonPath.lastIndexOf('/')) : '';
     const currentBase = this.getBaseUrl();
-    const resolvedSrc = json.src.map((s) => `${currentBase}/${dir}/${s}`);
+    const resolvedSrc = dir
+      ? json.src.map((s) => `${currentBase}/${dir}/${s}`)
+      : json.src.map((s) => `${currentBase}/${s}`);
 
     const howl = new Howl({
       src: resolvedSrc,
