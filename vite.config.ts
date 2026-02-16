@@ -49,6 +49,8 @@ export default defineConfig({
     host: true,
   },
   build: {
+    // Top-level await (e.g. game analytics init) requires ES2022+
+    target: "es2022",
     rollupOptions: {
       output: {
         manualChunks(id) {
