@@ -44,7 +44,7 @@ export async function initSentry(environment: Environment): Promise<boolean> {
 
   if (!config.enabled || !config.dsn) {
     console.log(
-      `[Sentry] Skipped -- environment: ${environment}, enabled: ${config.enabled}`
+      `[Sentry] Skipped -- environment: ${environment}, enabled: ${config.enabled}`,
     );
     return false;
   }
@@ -71,7 +71,7 @@ export async function initSentry(environment: Environment): Promise<boolean> {
               session_id: sessionId,
             });
             console.log(
-              `[Sentry] Auto-tracked error in PostHog: ${errorType}`
+              `[Sentry] Auto-tracked error in PostHog: ${errorType}`,
             );
           } catch (trackingError) {
             console.warn("[Sentry] PostHog tracking failed:", trackingError);
@@ -98,7 +98,7 @@ export function isSentryEnabled(): boolean {
 
 export function captureException(
   error: Error,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
 ) {
   if (!Sentry || !isSentryEnabled()) {
     console.warn("[Sentry not initialized]", error, context);
@@ -126,6 +126,33 @@ export function addBreadcrumb(message: string, data?: Record<string, unknown>) {
     data,
     level: "info",
   });
+}
+
+/**
+ * Connect PostHog tracker to Sentry
+ *
+ * Called from AnalyticsContext after PostHog is initialized.
+ */
+export function connectSentryToPostHog(
+  tracker: ErrorTracker,
+  userContext: SentryUserContext,
+): void {
+  errorTracker = tracker;
+  userId = userContext.userId;
+  sessionId = userContext.sessionId;
+
+  Sentry.setUser({
+    id: userContext.userId,
+    email: userContext.email || undefined,
+  });
+
+  Sentry.setContext("session", {
+    session_id: userContext.sessionId,
+  });
+
+  console.log(
+    `[Sentry] Connected to PostHog - automatic tracking enabled for userId: ${userContext.userId}`,
+  );
 }
 
 export { Sentry };
