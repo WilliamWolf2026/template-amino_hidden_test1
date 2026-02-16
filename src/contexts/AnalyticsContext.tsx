@@ -13,6 +13,7 @@ import {
   useContext,
   JSX,
   onMount,
+  onCleanup,
   createSignal,
   Accessor,
 } from "solid-js";
@@ -49,7 +50,6 @@ import {
   trackCutsceneComplete,
   trackCutsceneInteract,
   trackStoryLinkClick,
-  trackTileRotated,
   trackLandmarkConnected,
 } from "~/game/analytics/trackers";
 import { setPostHogInstance } from "~/scaffold/lib/posthog";
@@ -93,20 +93,22 @@ const trackSessionEnd = analyticsService.createTracker(
   "session_end",
   type({
     session_end_reason: "'user_close' | 'timeout' | 'navigation_away'",
-    levels_completed_in_session: "number",
-    chapters_completed_in_session: "number",
-    story_links_clicked_in_session: "number",
-    last_chapter_id: "string",
-    last_chapter_count: "number",
-    last_level_order: "number",
-    last_chapter_progress: "string",
-    last_county_theme: "string",
   }),
-  ["base"],
+  ["base", "level_ctx"],
   {
     base: (ctx: CityLinesContext) => ({
       game_name: "city_lines" as const,
       session_elapsed: getSessionElapsed(),
+      levels_completed_in_session: ctx.levelsCompleted,
+      chapters_completed_in_session: ctx.chaptersCompleted,
+      story_links_clicked_in_session: ctx.storyLinksClicked,
+    }),
+    level_ctx: (ctx: CityLinesContext) => ({
+      chapter_id: ctx.lastChapterId,
+      chapter_count: ctx.lastChapterCount,
+      county_theme: ctx.lastCountyTheme,
+      level_order: ctx.lastLevelOrder,
+      chapter_progress: ctx.lastChapterProgress,
     }),
   }
 );
@@ -210,7 +212,6 @@ type AnalyticsContextValue = {
   trackCutsceneComplete: typeof trackCutsceneComplete;
   trackCutsceneInteract: typeof trackCutsceneInteract;
   trackStoryLinkClick: typeof trackStoryLinkClick;
-  trackTileRotated: typeof trackTileRotated;
   trackLandmarkConnected: typeof trackLandmarkConnected;
   trackAudioSettingChanged: typeof trackAudioSettingChanged;
 };
@@ -244,54 +245,39 @@ export function AnalyticsProvider(props: { children: JSX.Element }) {
     }
 
     // Session pause/resume handlers
-    document.addEventListener("visibilitychange", () => {
+    const handleVisibilityChange = () => {
       if (document.hidden) {
         _pauseStartTime = Date.now();
-        // Use console.debug to separate from game logs
-        console.debug("[Analytics] Session Paused", _pauseStartTime);
         trackSessionPause({ pause_reason: "tab_hidden" });
       } else {
-        // Safety: Ensure we don't calculate duration if pause never started
-        // (This happens if the tab was loaded in the background initially)
         const now = Date.now();
         const duration = (_pauseStartTime > 0)
           ? parseFloat(((now - _pauseStartTime) / 1000).toFixed(2))
           : 0;
-
-        // Reset pause start time so we don't re-use old data
         _pauseStartTime = 0;
-
-        console.debug("[Analytics] Session Resumed. Duration:", duration);
         trackSessionResume({ resume_reason: "tab_visible", pause_duration: duration });
       }
-    });
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // Session end handler
     // NOTE: 'pagehide' is more reliable than 'beforeunload' on mobile browsers
-    window.addEventListener("pagehide", () => {
-      const ctx = analyticsService["context"] as CityLinesContext;
-      localStorage.setItem("LAST_SESSION_END", "Fired at " + new Date().toISOString());
+    const handlePageHide = () => {
       if (!_hasCompletedChapter) {
-
         triggerSurvey("session_end_fallback");
       }
+      // Rollup counters and last-position data come from CityLinesContext via param set defaults
+      trackSessionEnd({ session_end_reason: "user_close" });
+    };
+    window.addEventListener("pagehide", handlePageHide);
 
-      // Ensure this call uses sendBeacon under the hood if possible
-      trackSessionEnd({
-        session_end_reason: "user_close",
-        levels_completed_in_session: ctx.levelsCompleted,
-        chapters_completed_in_session: ctx.chaptersCompleted,
-        story_links_clicked_in_session: ctx.storyLinksClicked,
-        last_chapter_id: ctx.lastChapterId,
-        last_chapter_count: ctx.lastChapterCount,
-        last_level_order: ctx.lastLevelOrder,
-        last_chapter_progress: ctx.lastChapterProgress,
-        last_county_theme: ctx.lastCountyTheme,
-      });
+    // Cleanup event listeners on unmount
+    onCleanup(() => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
     });
 
-    trackSessionStart({ entry_screen: "loading_gate" });
-    console.log("[Analytics] City Lines initialized.");
+    trackSessionStart({ entry_screen: "start" });
   });
 
   // Wrap trackChapterComplete to trigger survey
@@ -322,7 +308,6 @@ export function AnalyticsProvider(props: { children: JSX.Element }) {
         trackCutsceneComplete,
         trackCutsceneInteract,
         trackStoryLinkClick,
-        trackTileRotated,
         trackLandmarkConnected,
         trackAudioSettingChanged,
       }}

@@ -93,7 +93,8 @@ export const trackLevelComplete = analyticsService.createTracker(
     moves_used: "number",
     optimal_moves: "number",
     time_spent: "number",
-    "eraser_used?": "boolean",  // Optional per spec
+    total_rotations: "number",
+    "eraser_used?": "boolean",
     "level_config?": "unknown",
   }),
   ["base", "level_ctx", "level_config"],
@@ -178,8 +179,6 @@ const _trackChapterComplete = analyticsService.createTracker(
   "chapter_complete",
   type({
     chapter_id: "string",
-    score: "number",
-    erasers_used: "number",
     time_spent: "number",
     is_tutorial: "boolean",
   }),
@@ -269,17 +268,6 @@ export const trackStoryLinkClick = analyticsService.createTracker(
 // ============================================================================
 // GAME MECHANIC TRACKERS
 // ============================================================================
-
-export const trackTileRotated = analyticsService.createTracker(
-  "tile_rotated",
-  type({
-    tile_position: type({ x: "number", y: "number" }),
-    rotation_direction: "'clockwise' | 'counter_clockwise'",
-    total_rotations_in_level: "number",
-  }),
-  ["base", "level_ctx"],
-  {}
-);
 
 export const trackLandmarkConnected = analyticsService.createTracker(
   "landmark_connected",

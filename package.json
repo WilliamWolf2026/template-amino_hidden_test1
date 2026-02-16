@@ -11,15 +11,15 @@
     "@sentry/solid": "^10.38.0",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
+    "@wolfgames/game-kit": "^0.0.41",
+    "arktype": "^2.1.27",
     "gsap": "^3.14.2",
     "howler": "^2.2.4",
     "pixi.js": "^8.15.0",
     "posthog-js": "^1.331.1",
     "solid-js": "^1.9.5",
     "tweakpane": "^4.0.5",
-    "vinxi": "^0.5.7",
-    "arktype": "^2.1.27",
-    "@wolfgames/game-kit": "^0.0.41"
+    "vinxi": "^0.5.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",

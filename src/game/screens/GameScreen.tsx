@@ -40,7 +40,6 @@ export default function GameScreen() {
     trackLevelComplete,
     trackChapterStart,
     trackChapterComplete,
-    trackTileRotated,
     trackLandmarkConnected,
   } = useAnalytics();
   let containerRef: HTMLDivElement | undefined;
@@ -87,6 +86,7 @@ export default function GameScreen() {
   let tileRotationCount = 0;
   let landmarkConnectionOrder = 0;
   let levelStartTimestamp = Date.now();
+  let chapterStartTimestamp = Date.now();
 
   /** Fire trackLevelStart with full context from current chapter and level */
   const fireTrackLevelStart = (level: LevelConfig, chapterRef: ChapterRef | null, chapterIndex: number) => {
@@ -458,24 +458,19 @@ export default function GameScreen() {
         const level = currentLevel();
         saveTileState(rotations, level.levelNumber);
 
-        // Track tile rotation
+        // Count rotations — rolled up into level_complete
         tileRotationCount++;
-        console.log('[GameScreen] Tracking tile rotation', tileRotationCount);
-        trackTileRotated({
-          tile_position: { x: 0, y: 0 }, // TODO: Pass actual tile position from CityLinesGame event payload
-          rotation_direction: 'clockwise',
-          total_rotations_in_level: tileRotationCount,
-        });
       });
 
       game.onGameEvent('levelComplete', (payload) => {
         manager.playLevelComplete();
 
-        // Track level complete
+        // Track level complete (includes tile rotation count as rollup)
         trackLevelComplete({
           moves_used: payload.moves,
-          optimal_moves: currentLevel().roadTiles.length, // Approximation: one move per tile
+          optimal_moves: currentLevel().roadTiles.length,
           time_spent: parseFloat((payload.durationMs / 1000).toFixed(2)),
+          total_rotations: tileRotationCount,
         });
 
         // Clear tile state (level is done, next level starts fresh)
@@ -737,7 +732,8 @@ export default function GameScreen() {
               game.loadLevel(currentLevel());
               fireTrackLevelStart(currentLevel(), activeChapterRef(), catalogIndex);
 
-              // Track chapter start
+              // Track chapter start and reset chapter timer
+              chapterStartTimestamp = Date.now();
               const chRef = activeChapterRef();
               if (chRef) {
                 trackChapterStart({
@@ -830,9 +826,7 @@ export default function GameScreen() {
           if (completingChapterRef) {
             trackChapterComplete({
               chapter_id: completingChapterRef.uid,
-              score: 0, // TODO: Implement scoring system
-              erasers_used: 0, // TODO: Track eraser usage
-              time_spent: parseFloat(((Date.now() - levelStartTimestamp) / 1000).toFixed(2)),
+              time_spent: parseFloat(((Date.now() - chapterStartTimestamp) / 1000).toFixed(2)),
               is_tutorial: catalogIndex === 0,
             });
           }
@@ -873,7 +867,8 @@ export default function GameScreen() {
               // Update catalog index for analytics
               catalogIndex = cat?.currentIndex ?? 0;
 
-              // Track new chapter start
+              // Track new chapter start and reset chapter timer
+              chapterStartTimestamp = Date.now();
               trackChapterStart({
                 chapter_id: nextChapterRef.uid,
                 chapter_count: catalogIndex + 1,
