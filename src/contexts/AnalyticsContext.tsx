@@ -221,7 +221,12 @@ export function AnalyticsProvider(props: { children: JSX.Element }) {
   const [ph, setPh] = createSignal<PostHog | null>(null);
 
   onMount(async () => {
-    analyticsService.init();
+    // Only init if PostHog hasn't been loaded yet (prevents double-init warning)
+    if (!analyticsService.getPosthog()) {
+      analyticsService.init();
+    }
+
+    // Always hydrate local state from the (possibly pre-existing) service
     const instance = analyticsService.getPosthog();
     setPh(instance);
     if (instance) {
@@ -242,23 +247,36 @@ export function AnalyticsProvider(props: { children: JSX.Element }) {
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         _pauseStartTime = Date.now();
+        // Use console.debug to separate from game logs
+        console.debug("[Analytics] Session Paused", _pauseStartTime);
         trackSessionPause({ pause_reason: "tab_hidden" });
       } else {
-        const duration = _pauseStartTime > 0
-          ? parseFloat(((Date.now() - _pauseStartTime) / 1000).toFixed(2))
+        // Safety: Ensure we don't calculate duration if pause never started
+        // (This happens if the tab was loaded in the background initially)
+        const now = Date.now();
+        const duration = (_pauseStartTime > 0)
+          ? parseFloat(((now - _pauseStartTime) / 1000).toFixed(2))
           : 0;
+
+        // Reset pause start time so we don't re-use old data
+        _pauseStartTime = 0;
+
+        console.debug("[Analytics] Session Resumed. Duration:", duration);
         trackSessionResume({ resume_reason: "tab_visible", pause_duration: duration });
       }
     });
 
     // Session end handler
-    window.addEventListener("beforeunload", () => {
+    // NOTE: 'pagehide' is more reliable than 'beforeunload' on mobile browsers
+    window.addEventListener("pagehide", () => {
       const ctx = analyticsService["context"] as CityLinesContext;
-
+      localStorage.setItem("LAST_SESSION_END", "Fired at " + new Date().toISOString());
       if (!_hasCompletedChapter) {
+
         triggerSurvey("session_end_fallback");
       }
 
+      // Ensure this call uses sendBeacon under the hood if possible
       trackSessionEnd({
         session_end_reason: "user_close",
         levels_completed_in_session: ctx.levelsCompleted,

@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { useAudio } from '~/scaffold/systems/audio';
 import { setIsPanelOpen, isPanelOpen } from '~/scaffold/dev/TuningPanel';
 import { IS_DEV_ENV } from '~/scaffold/dev/env';
+import { useAnalytics } from '~/contexts/AnalyticsContext';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';
@@ -71,6 +72,7 @@ function StatusNotification(props: StatusNotificationProps) {
 
 export default function SettingsMenu(props: SettingsMenuProps = {}) {
   const audio = useAudio();
+  const { trackAudioSettingChanged } = useAnalytics();
 
   const [isOpen, setIsOpen] = createSignal(false);
   const [statusMessage, setStatusMessage] = createSignal('');
@@ -188,15 +190,38 @@ export default function SettingsMenu(props: SettingsMenuProps = {}) {
   };
 
   const handleMusicToggle = () => {
+    const oldValue = audio.musicEnabled();
     audio.toggleMusic();
-    const status = !audio.musicEnabled() ? 'MUSIC ON' : 'MUSIC OFF';
+    const newValue = !oldValue;
+    const status = newValue ? 'MUSIC ON' : 'MUSIC OFF';
     showStatusNotification(status);
+    trackAudioSettingChanged({
+      setting_type: 'mute',
+      old_value: oldValue,
+      new_value: newValue,
+      screen_name: 'settings_menu',
+    });
   };
+
+  // Debounce volume tracking to avoid spamming during slider drag
+  let volumeTrackTimer: ReturnType<typeof setTimeout> | null = null;
+  let volumeBeforeDrag = audio.volume();
 
   const handleVolumeChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     const newVolume = parseFloat(target.value);
     audio.setVolume(newVolume);
+
+    if (volumeTrackTimer) clearTimeout(volumeTrackTimer);
+    volumeTrackTimer = setTimeout(() => {
+      trackAudioSettingChanged({
+        setting_type: 'volume',
+        old_value: volumeBeforeDrag,
+        new_value: newVolume,
+        screen_name: 'settings_menu',
+      });
+      volumeBeforeDrag = newVolume;
+    }, 300);
   };
 
   const handleResetProgress = () => {

@@ -53,25 +53,25 @@ export default function App() {
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>
-        <MobileViewport>
-          {/* Settings Menu - Top Right Corner */}
-          <div class="fixed top-2 right-2 z-[9999]">
-            <SettingsMenu onResetProgress={handleResetProgress} />
-          </div>
-          <AnalyticsProvider>
-            <FeatureFlagProvider>
-            <PauseProvider>
-              <ManifestProvider>
-                <AssetProvider config={{ engine: scaffoldConfig.engine }}>
-                  <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
-                    <ScreenRenderer screens={gameConfig.screens} />
-                  </ScreenProvider>
-                </AssetProvider>
-              </ManifestProvider>
-            </PauseProvider>
-            </FeatureFlagProvider>
+        <AnalyticsProvider>
+          <FeatureFlagProvider>
+            <MobileViewport>
+              {/* Settings Menu - Top Right Corner */}
+              <div class="fixed top-2 right-2 z-[9999]">
+                <SettingsMenu onResetProgress={handleResetProgress} />
+              </div>
+                <PauseProvider>
+                  <ManifestProvider>
+                    <AssetProvider config={{ engine: scaffoldConfig.engine }}>
+                      <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+                        <ScreenRenderer screens={gameConfig.screens} />
+                      </ScreenProvider>
+                    </AssetProvider>
+                  </ManifestProvider>
+                </PauseProvider>
+              </MobileViewport>
+           </FeatureFlagProvider>
           </AnalyticsProvider>
-        </MobileViewport>
       </TuningProvider>
     </GlobalBoundary>
   );

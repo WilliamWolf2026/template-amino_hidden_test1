@@ -10,9 +10,10 @@ import { Character } from '~/game/citylines/core/Character';
 import { SpriteButton } from '~/game/citylines/core/SpriteButton';
 import { getTileBundleName, type CityLinesTuning } from '~/game/tuning';
 import { setAtlasName } from '~/game/citylines/utils/atlasHelper';
-import { getStartScreenMode, markAsPlayed, type StartScreenConfig } from '~/game/citylines/utils/startScreenHelper';
-import { startChapter } from '~/game/services/progress';
+import { getStartScreenMode, hasPlayedBefore, markAsPlayed, type StartScreenConfig } from '~/game/citylines/utils/startScreenHelper';
+import { startChapter, getCurrentChapter } from '~/game/services/progress';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
+import { useAnalytics } from '~/contexts/AnalyticsContext';
 
 // Text styles cached at module level to avoid per-frame allocations
 const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
@@ -86,6 +87,7 @@ export function StartScreen() {
   const { goto } = useScreen();
   const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const { trackGameStart } = useAnalytics();
   const [loading, setLoading] = createSignal(false);
   const [screenConfig, setScreenConfig] = createSignal<StartScreenConfig | null>(null);
   let containerRef: HTMLDivElement | undefined;
@@ -114,6 +116,7 @@ export function StartScreen() {
 
     try {
       // Mark that player has played (for future sessions)
+      const isReturning = hasPlayedBefore();
       markAsPlayed();
 
       // Start a new chapter if this is a new game (not continuing)
@@ -128,6 +131,16 @@ export function StartScreen() {
           chapterLength: config.totalLevels,
         });
       }
+
+      // Track game start event
+      const savedChapter = getCurrentChapter();
+      trackGameStart({
+        start_source: config?.mode === 'new' ? 'new_game' : 'continue',
+        is_returning_player: isReturning,
+        chapter_id: savedChapter?.chapterId ?? 'default',
+        chapter_count: savedChapter?.catalogIndex != null ? savedChapter.catalogIndex + 1 : 1,
+        county_theme: config?.countyName ?? 'unknown',
+      });
 
       unlockAudio();
       await initGpu();
