@@ -18,9 +18,10 @@
       },
       "story": {
         "uid": "story-patrol-2",
-        "info": "Hey. I'm Goodboi. My patrol loop isn't fully connected today. Let's open up the paths so I can get moving.",
+        "intro": "Hey. I'm Goodboi. My patrol loop isn't fully connected today. Let's open up the paths so I can get moving.",
         "headline": "Patrol Route 2",
-        "summary": "Sniff\u2026 something's off. A few parts of my route don't feel right. Let's straighten it out.",
+        "chapterStart": "Sniff\u2026 something's off. A few parts of my route don't feel right. Let's straighten it out.",
+        "completion": "Now we're moving! The whole loop's wide open.",
         "imageUrl": "",
         "articleUrl": ""
       },
@@ -37,7 +38,7 @@
         { "uid": "p2-level-4", "levelNumber": 4, "config": {}, "seed": 52004, "clues": [{ "uid": "p2-clue-4", "text": "Good. I don't have to double back anymore." }] },
         { "uid": "p2-level-5", "levelNumber": 5, "config": {}, "seed": 52005, "clues": [{ "uid": "p2-clue-5", "text": "Almost there. Just a little more to fix." }] },
         { "uid": "p2-level-6", "levelNumber": 6, "config": {}, "seed": 52006, "clues": [{ "uid": "p2-clue-6", "text": "That's it. The long stretch is open again." }] },
-        { "uid": "p2-level-7", "levelNumber": 7, "config": {}, "seed": 52007, "clues": [{ "uid": "p2-clue-7", "text": "Now we're moving! The whole loop's wide open." }] }
+        { "uid": "p2-level-7", "levelNumber": 7, "config": {}, "seed": 52007, "clues": [{ "uid": "p2-clue-7", "text": "Perfect. Everything lines up the way it should." }] }
       ]
     }
   ]

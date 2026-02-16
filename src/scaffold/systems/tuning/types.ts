@@ -48,6 +48,12 @@ export interface TuningPanelConfig {
   position: 'left' | 'center' | 'right';
 }
 
+export type ViewportMode = 'small' | 'large' | 'none';
+
+export interface ViewportConfig {
+  mode: ViewportMode;
+}
+
 export interface ScaffoldTuning {
   version: string;
   engine: EngineConfig;
@@ -57,6 +63,7 @@ export interface ScaffoldTuning {
   performance: PerformanceConfig;
   screens: ScreensConfig;
   tuningPanel: TuningPanelConfig;
+  viewport: ViewportConfig;
 }
 
 // ============================================
@@ -165,5 +172,8 @@ export const SCAFFOLD_DEFAULTS: ScaffoldTuning = {
   },
   tuningPanel: {
     position: 'left',
+  },
+  viewport: {
+    mode: 'small',
   },
 };

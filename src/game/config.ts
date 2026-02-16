@@ -1,7 +1,6 @@
-import type { Component } from 'solid-js';
+import { lazy, type Component } from 'solid-js';
+import type { ViewportMode } from '~/scaffold/systems/tuning/types';
 import { LoadingScreen } from './screens/LoadingScreen';
-import { StartScreen } from './screens/StartScreen';
-import { GameScreen } from './screens/GameScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 
 // Re-export environment config from config directory
@@ -26,16 +25,19 @@ export interface GameConfig {
   initialScreen: 'loading' | 'start' | 'game' | 'results';
   /** URL to fetch manifest from server (null for local static manifest) */
   serverStorageUrl: string | null;
+  /** Default viewport mode for desktop preview. Overridden by tuning panel, URL param, or toggle. */
+  defaultViewportMode?: ViewportMode;
 }
 
 export const gameConfig: GameConfig = {
   screens: {
     loading: LoadingScreen,
-    start: StartScreen,
-    game: GameScreen,
+    start: lazy(() => import('./screens/StartScreen')),
+    game: lazy(() => import('./screens/GameScreen')),
     results: ResultsScreen,
   },
   initialScreen: 'loading',
+  defaultViewportMode: 'small',
   // Set to null for local development (uses static manifest)
   // Set to server URL for remote manifest fetching
   serverStorageUrl: null,

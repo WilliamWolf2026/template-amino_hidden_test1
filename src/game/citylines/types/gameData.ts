@@ -18,15 +18,22 @@ export interface CountyRef {
   texturePack: TexturePackRef;
 }
 
-/** Story/info data for a chapter */
+/** Story/narrative data for a chapter */
 export interface StoryRef {
   uid: string;
-  /** Introduction text (Good Boy's intro dialogue) */
-  info: string;
+  /** Introduction text — first modal (Goodboi's intro dialogue) */
+  intro?: string;
+  /** Chapter start text — second modal (shown before level 1) */
+  chapterStart?: string;
+  /** Celebratory text shown when the chapter is completed */
+  completion?: string;
   headline: string;
-  summary: string;
   imageUrl: string;
   articleUrl: string;
+  /** @deprecated Use `intro` */
+  info?: string;
+  /** @deprecated Use `chapterStart` */
+  summary?: string;
 }
 
 /** Individual clue within a level */

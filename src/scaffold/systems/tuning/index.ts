@@ -12,6 +12,8 @@ export type {
   PerformanceConfig,
   ScreensConfig,
   BindingMeta,
+  ViewportMode,
+  ViewportConfig,
 } from './types';
 
 // Constants

@@ -1,5 +1,7 @@
 # Scaffold Extraction Candidates Report
 
+> **Status (2026-02-11):** Partially completed. Key components moved to `src/game/shared/` instead of scaffold. See [extraction-file-analysis.md](extraction-file-analysis.md) for the updated status of all 17 files. Viewport moved to `src/scaffold/config/viewport.ts`.
+
 Analysis of components in `src/game/` that could be moved to `src/scaffold/` for reuse across games.
 
 ## Summary

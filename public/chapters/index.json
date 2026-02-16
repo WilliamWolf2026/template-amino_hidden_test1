@@ -1,11 +1,6 @@
 {
   "games": [
     {
-      "uid": "patrol-tutorial",
-      "url": "patrol-tutorial.json",
-      "publishDate": "2026-02-10T00:00:00.000Z"
-    },
-    {
       "uid": "patrol-chapter-1",
       "url": "patrol-1.json",
       "publishDate": "2026-02-10T00:00:00.000Z"
@@ -38,6 +33,21 @@
     {
       "uid": "patrol-chapter-7",
       "url": "patrol-7.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-8",
+      "url": "patrol-8.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-9",
+      "url": "patrol-9.json",
+      "publishDate": "2026-02-10T00:00:00.000Z"
+    },
+    {
+      "uid": "patrol-chapter-10",
+      "url": "patrol-10.json",
       "publishDate": "2026-02-10T00:00:00.000Z"
     }
   ]

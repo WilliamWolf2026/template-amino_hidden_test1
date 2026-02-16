@@ -26,7 +26,6 @@ coverage
 # IDEs and editors
 .idea
 .vscode/*
-!.vscode/settings.json
 !.vscode/extensions.json
 
 # Editor backups

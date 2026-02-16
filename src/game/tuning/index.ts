@@ -1,6 +1,6 @@
 // Types
 export type {
-  CityLinesTuning,
+  GameTuning,
   TileTheme,
   ThemeConfig,
   GridConfig,
@@ -19,7 +19,7 @@ export type {
 } from './types';
 
 // Constants
-export { CITYLINES_DEFAULTS } from './types';
+export { GAME_DEFAULTS } from './types';
 
 // Helpers
 export { getTileBundleName, getThemeFromUrl } from './types';

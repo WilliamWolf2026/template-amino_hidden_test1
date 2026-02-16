@@ -1,4 +1,4 @@
-import type { Manifest, AssetLoader } from './types';
+import type { Manifest, AssetLoader, ProgressCallback } from './types';
 import { getBundleTarget } from './types';
 import { DomLoader } from './loaders/dom';
 import { AudioLoader } from './loaders/audio';
@@ -58,7 +58,7 @@ export class AssetCoordinator {
   }
 
   // Load a bundle, routing to correct loader based on target
-  async loadBundle(name: string): Promise<void> {
+  async loadBundle(name: string, onProgress?: ProgressCallback): Promise<void> {
     const bundle = this.manifest.bundles.find((b) => b.name === name);
     if (!bundle) throw new Error(`Unknown bundle: ${name}`);
 
@@ -66,12 +66,12 @@ export class AssetCoordinator {
 
     switch (target) {
       case 'dom':
-        await this.dom.loadBundle(name);
+        await this.dom.loadBundle(name, onProgress);
         break;
 
       case 'gpu':
         if (this.gpuLoader) {
-          await this.gpuLoader.loadBundle(name);
+          await this.gpuLoader.loadBundle(name, onProgress);
         } else {
           // Queue for later
           if (!this.gpuQueue.includes(name)) {
@@ -83,39 +83,58 @@ export class AssetCoordinator {
       case 'agnostic':
         // Load with dom loader for raw access, audio handled separately
         if (name.startsWith('audio-') || bundle.assets.some((p) => p.includes('audio/'))) {
-          await this.audio.loadBundle(name);
+          await this.audio.loadBundle(name, onProgress);
         } else {
-          await this.dom.loadBundle(name);
+          await this.dom.loadBundle(name, onProgress);
         }
         break;
     }
   }
 
   // Load all bundles matching a prefix
-  async loadBundles(prefix: string): Promise<void> {
+  async loadBundles(prefix: string, onProgress?: ProgressCallback): Promise<void> {
     const bundles = this.manifest.bundles.filter((b) => b.name.startsWith(prefix));
-    await Promise.all(bundles.map((b) => this.loadBundle(b.name)));
+    if (bundles.length === 0) {
+      onProgress?.(1);
+      return;
+    }
+
+    if (bundles.length === 1) {
+      await this.loadBundle(bundles[0].name, onProgress);
+      return;
+    }
+
+    // Multi-bundle: combine per-bundle progress
+    const perBundle = new Array(bundles.length).fill(0);
+    await Promise.all(
+      bundles.map((b, i) =>
+        this.loadBundle(b.name, (p) => {
+          perBundle[i] = p;
+          onProgress?.(perBundle.reduce((a, v) => a + v, 0) / bundles.length);
+        })
+      )
+    );
   }
 
   // Convenience methods for common loading phases
-  async loadBoot(): Promise<void> {
-    await this.loadBundles('boot-');
+  async loadBoot(onProgress?: ProgressCallback): Promise<void> {
+    await this.loadBundles('boot-', onProgress);
   }
 
-  async loadCore(): Promise<void> {
-    await this.loadBundles('core-');
+  async loadCore(onProgress?: ProgressCallback): Promise<void> {
+    await this.loadBundles('core-', onProgress);
   }
 
-  async loadTheme(): Promise<void> {
-    await this.loadBundles('theme-');
+  async loadTheme(onProgress?: ProgressCallback): Promise<void> {
+    await this.loadBundles('theme-', onProgress);
   }
 
-  async loadAudio(): Promise<void> {
-    await this.loadBundles('audio-');
+  async loadAudio(onProgress?: ProgressCallback): Promise<void> {
+    await this.loadBundles('audio-', onProgress);
   }
 
-  async loadScene(name: string): Promise<void> {
-    await this.loadBundle(`scene-${name}`);
+  async loadScene(name: string, onProgress?: ProgressCallback): Promise<void> {
+    await this.loadBundle(`scene-${name}`, onProgress);
   }
 
   // Check if bundle is loaded

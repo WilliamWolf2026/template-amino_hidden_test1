@@ -1,5 +1,5 @@
 import { Howl, Howler } from 'howler';
-import type { Manifest, AudioSpriteData } from '../types';
+import type { Manifest, AudioSpriteData, ProgressCallback } from '../types';
 
 interface ChannelState {
   howl: Howl;
@@ -108,14 +108,20 @@ export class AudioLoader {
   }
 
   // Load all audio bundles from manifest
-  async loadBundle(name: string): Promise<void> {
+  async loadBundle(name: string, onProgress?: ProgressCallback): Promise<void> {
     const bundle = this.manifest.bundles.find((b) => b.name === name);
     if (!bundle) throw new Error(`Unknown bundle: ${name}`);
 
+    const jsonPaths = bundle.assets.filter((p) => p.endsWith('.json'));
+    const total = jsonPaths.length;
+    let completed = 0;
+
     await Promise.all(
-      bundle.assets
-        .filter((p) => p.endsWith('.json'))
-        .map((p) => this.register(p))
+      jsonPaths.map(async (p) => {
+        await this.register(p);
+        completed++;
+        onProgress?.(completed / total);
+      })
     );
   }
 
