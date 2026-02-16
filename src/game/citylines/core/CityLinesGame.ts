@@ -11,6 +11,7 @@ import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import type { NineSliceConfig, LevelTransitionConfig } from '~/game/tuning';
 import {
   createLevelCompletionController,
+  playLevelCompleteSound,
   type LevelCompletionController,
 } from '../controllers';
 import {
@@ -120,6 +121,7 @@ export class CityLinesGame extends Container {
       },
       celebrationDuration: 500,
       clueDuration: 3000,
+      onPlaySound: playLevelCompleteSound,
     });
 
     // Create layer containers

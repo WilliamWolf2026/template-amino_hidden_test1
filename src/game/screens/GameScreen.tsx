@@ -43,6 +43,7 @@ export default function GameScreen() {
   const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
   const [generatedChapter, setGeneratedChapter] = createSignal<GeneratedChapter | null>(null);
   let resizeHandler: (() => void) | null = null;
+  let skipKeyHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Modal phase for the chapter start flow
   const [modalPhase, setModalPhase] = createSignal<ModalPhase>('introduction');
@@ -275,11 +276,10 @@ export default function GameScreen() {
       chapterLabel.anchor.set(0.5);
       app.stage.addChild(chapterLabel);
       const barWidth = Math.min(320, app.screen.width - 48);
-      const bar = new ProgressBar(gpuLoader, tileBundleName, {
+      const bar = new ProgressBar({
         width: barWidth,
         height: 36,
         fontFamily: GAME_FONT_FAMILY,
-        themeColor: countyConfig?.themeColor,
         showLabel: false, // Label is shown above the bar instead
       });
       app.stage.addChild(bar);
@@ -899,14 +899,14 @@ export default function GameScreen() {
           loadNextLevelWithTransition();
         };
         (window as any).skipLevel = devSkipLevel;
-        const handleSkipKey = (e: KeyboardEvent) => {
+        skipKeyHandler = (e: KeyboardEvent) => {
           if (e.key === 's' || e.key === 'S') {
             e.preventDefault();
             console.log('[Dev] Skipping to next level');
             devSkipLevel();
           }
         };
-        window.addEventListener('keydown', handleSkipKey);
+        window.addEventListener('keydown', skipKeyHandler);
       }
 
       console.log('[Game] Started');
@@ -1074,7 +1074,7 @@ export default function GameScreen() {
     // Get current county from level config (future: track active county)
     // For now, default to atlantic if not set
     const countyConfig = getCountyConfig('atlantic');
-    bar.setTheme(countyConfig?.themeColor);
+    bar.setTheme(0x007eff);
   });
 
   // Reactive: Audio volume changes
@@ -1141,6 +1141,11 @@ export default function GameScreen() {
     // Clean up resize listener
     if (resizeHandler) {
       window.removeEventListener('resize', resizeHandler);
+    }
+
+    // Clean up dev skip-key listener
+    if (skipKeyHandler) {
+      window.removeEventListener('keydown', skipKeyHandler);
     }
   });
 

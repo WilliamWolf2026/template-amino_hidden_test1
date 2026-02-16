@@ -1,28 +1,28 @@
 import { Container, Graphics, Text } from 'pixi.js';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 
 export interface ProgressBarConfig {
   width: number;
   height: number;
   fontFamily?: string;
-  themeColor?: number;
+  /** Fill bar color (default: 0x007eff bright blue) */
+  fillColor?: number;
+  /** Completed milestone dot color (default: 0x6ffdf1 cyan) */
+  milestoneColor?: number;
   showLabel?: boolean;
 }
 
 const DEFAULT_CONFIG: ProgressBarConfig = {
   width: 280,
   height: 36,
-  themeColor: 0x27ae60,
+  fillColor: 0x007eff,
+  milestoneColor: 0x6ffdf1,
   showLabel: true,
 };
 
-// Colors matching the mock design
 const COLORS = {
-  background: 0x9a9a9a,      // Light grey background
-  fill: 0x007eff,            // Bright blue fill
-  milestone: 0x6ffdf1,       // Cyan/turquoise dots
-  milestoneDim: 0xaaaaaa,    // Dimmed dots (incomplete)
-  border: 0x000000,          // Black border
+  background: 0x9a9a9a,
+  milestoneDim: 0xaaaaaa,
+  border: 0x000000,
 };
 
 /**
@@ -30,8 +30,6 @@ const COLORS = {
  */
 export class ProgressBar extends Container {
   private config: ProgressBarConfig;
-  private gpuLoader: PixiLoader;
-  private atlasName: string;
 
   // Visual components
   private backgroundGraphics: Graphics;
@@ -50,12 +48,10 @@ export class ProgressBar extends Container {
   private animationTime = 0;
   private animationDuration = 0.5;
 
-  constructor(gpuLoader: PixiLoader, atlasName: string, config: Partial<ProgressBarConfig> = {}) {
+  constructor(config: Partial<ProgressBarConfig> = {}) {
     super();
 
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.gpuLoader = gpuLoader;
-    this.atlasName = atlasName;
 
     // Layers (back to front)
     this.backgroundGraphics = new Graphics();
@@ -118,9 +114,9 @@ export class ProgressBar extends Container {
     this.updateMilestones();
   }
 
-  setTheme(countyColor?: number): void {
-    if (countyColor !== undefined) {
-      this.config.themeColor = countyColor;
+  setTheme(fillColor?: number): void {
+    if (fillColor !== undefined) {
+      this.config.fillColor = fillColor;
     }
     this.updateVisuals();
     this.updateMilestones();
@@ -170,7 +166,7 @@ export class ProgressBar extends Container {
       const fillHeight = height - borderWidth;
       const fillWidth = Math.max(1, this.currentFillWidth);
       this.fillGraphics.rect(fillX, fillY, fillWidth, fillHeight);
-      this.fillGraphics.fill(COLORS.fill);
+      this.fillGraphics.fill(this.config.fillColor!);
     }
 
     // Border - thick black stroke
@@ -201,7 +197,7 @@ export class ProgressBar extends Container {
 
       // Draw dot
       this.milestoneGraphics.circle(xPos, yPos, dotRadius);
-      this.milestoneGraphics.fill(isCompleted ? COLORS.milestone : COLORS.milestoneDim);
+      this.milestoneGraphics.fill(isCompleted ? this.config.milestoneColor! : COLORS.milestoneDim);
     }
   }
 
