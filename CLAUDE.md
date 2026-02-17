@@ -35,6 +35,7 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 | `/review` | Code quality review |
 | `/naming` | Asset naming convention |
 | `/commit` | Git commit |
+| `/newgame` | Setup checklist for forking to a new game |
 
 ## File Permissions
 
