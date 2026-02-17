@@ -16,6 +16,7 @@ export type {
   LandmarkCountRange,
   GeneratorConfig,
   LevelTransitionConfig,
+  DevModeConfig,
 } from './types';
 
 // Constants

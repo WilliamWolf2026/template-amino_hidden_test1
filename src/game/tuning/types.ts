@@ -203,7 +203,13 @@ export interface TutorialHandTuning {
   fadeOutDuration: number;
 }
 
+export interface DevModeConfig {
+  /** Skip the start screen and go directly into gameplay */
+  skipStartScreen: boolean;
+}
+
 export interface GameTuning extends GameTuningBase {
+  devMode: DevModeConfig;
   theme: ThemeConfig;
   grid: GridConfig;
   difficulty: {
@@ -230,6 +236,9 @@ export interface GameTuning extends GameTuningBase {
 
 export const GAME_DEFAULTS: GameTuning = {
   version: '1.0.0',
+  devMode: {
+    skipStartScreen: false,
+  },
   theme: {
     tileTheme: 'regular',
   },
