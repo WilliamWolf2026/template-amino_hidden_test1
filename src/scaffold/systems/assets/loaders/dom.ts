@@ -169,8 +169,9 @@ export class DomLoader implements AssetLoader {
     const json: SpriteSheetData = await response.json();
     onProgress?.(0.1); // JSON metadata loaded (~10%)
 
-    const dir = jsonPath.substring(0, jsonPath.lastIndexOf('/'));
-    const imageUrl = `${baseUrl}/${dir}/${json.meta.image}`;
+    // Avoid double slash when jsonPath has no directory (e.g. "atlas-branding-wolf.json")
+    const dir = jsonPath.includes('/') ? jsonPath.substring(0, jsonPath.lastIndexOf('/')) : '';
+    const imageUrl = dir ? `${baseUrl}/${dir}/${json.meta.image}` : `${baseUrl}/${json.meta.image}`;
 
     // Use XHR for image download to get byte-level progress
     const blob = await this.xhrBlob(imageUrl, onProgress ? (p) => {

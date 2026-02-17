@@ -233,7 +233,8 @@ export class SpriteButton extends Container {
     // Remove all event listeners
     this.removeAllListeners();
 
-    // Kill any active GSAP animations
+    // Kill any active GSAP animations (alpha from playExitAnimation + scale tweens)
+    gsap.killTweensOf(this);
     gsap.killTweensOf(this.scale);
 
     super.destroy(options);

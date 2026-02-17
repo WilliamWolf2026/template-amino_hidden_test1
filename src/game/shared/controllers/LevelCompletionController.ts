@@ -36,6 +36,8 @@ export interface LevelCompletionControllerConfig {
   events: CompletionEvents;
   celebrationDuration?: number;
   clueDuration?: number;
+  /** Optional sound callback — keeps audio concerns out of shared layer */
+  onPlaySound?: () => void;
 }
 
 /**
@@ -75,9 +77,10 @@ export interface LevelCompletionController {
 }
 
 /**
- * Play level completion sound effect with Web Audio API fallback.
+ * Play level completion sound effect with Web Audio API.
+ * Exported so game-specific layers can pass it as onPlaySound callback.
  */
-function playLevelCompleteSound(): void {
+export function playLevelCompleteSound(): void {
   try {
     const audioContext = new AudioContext();
     const oscillator = audioContext.createOscillator();
@@ -148,8 +151,8 @@ export function createLevelCompletionController(
       events.onLevelComplete({ levelId, moves, durationMs });
     }
 
-    // Trigger audio
-    playLevelCompleteSound();
+    // Trigger audio (delegated to caller via callback)
+    config.onPlaySound?.();
 
     // Delay before showing companion (let tile rotation finish)
     timerId = window.setTimeout(() => {

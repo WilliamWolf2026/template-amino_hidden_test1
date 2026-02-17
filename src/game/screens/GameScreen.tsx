@@ -24,6 +24,8 @@ import { useGameData } from '~/game/hooks/useGameData';
 import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
 import { initCatalog, getCatalog, setCatalogIndex, hasNextChapter, fetchNextChapter, fetchChapterAtIndex, findIndexByUid } from '~/game/services/chapterCatalog';
 import type { ChapterRef } from '~/game/citylines/types/gameData';
+import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
+import type { LevelConfig } from '~/game/citylines/types/level';
 
 /** Modal phase for the chapter start experience */
 type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing';
@@ -33,6 +35,13 @@ export default function GameScreen() {
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const audio = useAudio();
   const { gameData } = useGameData();
+  const {
+    trackLevelStart,
+    trackLevelComplete,
+    trackChapterStart,
+    trackChapterComplete,
+    trackLandmarkConnected,
+  } = useAnalytics();
   let containerRef: HTMLDivElement | undefined;
 
   // Store references for reactive updates
@@ -43,6 +52,7 @@ export default function GameScreen() {
   const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
   const [generatedChapter, setGeneratedChapter] = createSignal<GeneratedChapter | null>(null);
   let resizeHandler: (() => void) | null = null;
+  let skipKeyHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Modal phase for the chapter start flow
   const [modalPhase, setModalPhase] = createSignal<ModalPhase>('introduction');
@@ -72,6 +82,38 @@ export default function GameScreen() {
     LevelGenerationService.generateLevel(1, tuning.game.generator)
   );
 
+  // Analytics tracking state
+  let tileRotationCount = 0;
+  let landmarkConnectionOrder = 0;
+  let levelStartTimestamp = Date.now();
+  let chapterStartTimestamp = Date.now();
+
+  /** Fire trackLevelStart with full context from current chapter and level */
+  const fireTrackLevelStart = (level: LevelConfig, chapterRef: ChapterRef | null, chapterIndex: number) => {
+    // Reset per-level counters
+    tileRotationCount = 0;
+    landmarkConnectionOrder = 0;
+    levelStartTimestamp = Date.now();
+
+    trackLevelStart({
+      // Level config context (sets context for subsequent level events)
+      chapter_id: chapterRef?.uid ?? 'default',
+      chapter_count: chapterIndex + 1,
+      county_theme: level.county,
+      level_order: level.levelNumber,
+      chapter_progress: `${gameState.currentLevel()}/${gameState.totalLevels()}`,
+      level_id: `${chapterRef?.uid ?? 'default'}_L${level.levelNumber}`,
+      level_difficulty: level.gridSize <= 4 ? 'easy' : level.gridSize <= 5 ? 'medium' : 'hard',
+      is_tutorial: level.levelNumber === 1 && chapterIndex === 0,
+      level_seed: level.seed ?? 0,
+      // Level-specific payload
+      grid_size: level.gridSize,
+      landmarks_count: level.landmarks.length,
+      road_tiles_count: level.roadTiles.length,
+      min_path_length: level.roadTiles.length,
+    });
+  };
+
   // Accessibility: aria-live announcements
   let ariaLiveRef: HTMLDivElement | undefined;
 
@@ -82,15 +124,15 @@ export default function GameScreen() {
     const savedProgress = getCurrentChapter();
     const savedTileState = getTileState();
 
+    // Track which catalog index we're on (used for analytics context)
+    let catalogIndex = 0;
+
     // Load chapter from catalog (index.json), fall back to baked-in game data
     try {
       let config: SectionConfig;
 
       // Initialize chapter catalog from index.json
       await initCatalog();
-
-      // Determine which catalog index to load
-      let catalogIndex = 0;
       if (savedProgress) {
         if (savedProgress.catalogIndex != null) {
           catalogIndex = savedProgress.catalogIndex;
@@ -223,6 +265,7 @@ export default function GameScreen() {
 
       if (isResuming) {
         game.loadLevel(currentLevel());
+        fireTrackLevelStart(currentLevel(), activeChapterRef(), catalogIndex);
 
         // Apply saved tile rotations if resuming mid-level
         if (savedTileState?.rotations) {
@@ -275,11 +318,10 @@ export default function GameScreen() {
       chapterLabel.anchor.set(0.5);
       app.stage.addChild(chapterLabel);
       const barWidth = Math.min(320, app.screen.width - 48);
-      const bar = new ProgressBar(gpuLoader, tileBundleName, {
+      const bar = new ProgressBar({
         width: barWidth,
         height: 36,
         fontFamily: GAME_FONT_FAMILY,
-        themeColor: countyConfig?.themeColor,
         showLabel: false, // Label is shown above the bar instead
       });
       app.stage.addChild(bar);
@@ -333,6 +375,7 @@ export default function GameScreen() {
 
         setCurrentLevel(newLevel);
         game.loadLevel(newLevel);
+        fireTrackLevelStart(newLevel, activeChapterRef(), catalogIndex);
 
         game.autoSizeToViewport(
           app.screen.width,
@@ -414,10 +457,21 @@ export default function GameScreen() {
         const rotations = game.getTileRotations();
         const level = currentLevel();
         saveTileState(rotations, level.levelNumber);
+
+        // Count rotations — rolled up into level_complete
+        tileRotationCount++;
       });
 
-      game.onGameEvent('levelComplete', () => {
+      game.onGameEvent('levelComplete', (payload) => {
         manager.playLevelComplete();
+
+        // Track level complete (includes tile rotation count as rollup)
+        trackLevelComplete({
+          moves_used: payload.moves,
+          optimal_moves: currentLevel().roadTiles.length,
+          time_spent: parseFloat((payload.durationMs / 1000).toFixed(2)),
+          total_rotations: tileRotationCount,
+        });
 
         // Clear tile state (level is done, next level starts fresh)
         clearTileState();
@@ -431,8 +485,19 @@ export default function GameScreen() {
       });
 
       // Landmark connected event (no sound - too noisy during gameplay)
-      game.onGameEvent('landmarkConnected', () => {
-        // Silent - landmark connections are visual only
+      game.onGameEvent('landmarkConnected', (landmark) => {
+        landmarkConnectionOrder++;
+        const totalLandmarks = game.getTotalLandmarkCount();
+        const connectedCount = game.getConnectedCount();
+        const elapsedSeconds = parseFloat(((Date.now() - levelStartTimestamp) / 1000).toFixed(2));
+
+        trackLandmarkConnected({
+          landmark_id: landmark.type,
+          landmark_type: landmark.type === 'house' || landmark.type === 'gas_station' || landmark.type === 'diner' || landmark.type === 'market' || landmark.type === 'school' ? 'common' : 'county_specific',
+          connection_order: landmarkConnectionOrder,
+          time_to_connect_seconds: elapsedSeconds,
+          landmarks_remaining: totalLandmarks - connectedCount,
+        });
       });
 
       // Wire completion events - show CluePopup for mid-chapter levels, full overlay for chapter end
@@ -639,13 +704,13 @@ export default function GameScreen() {
           const chapterStartText = currentConfig?.story.summary ?? "Let's begin!";
 
           // --- Timing delays (seconds) — adjust these to taste ---
-          const TEXT_FADE_OUT      = 0.2;   // text fades out
-          const BOX_FADE_OUT       = 0.2;   // box fades out after text
+          const TEXT_FADE_OUT = 0.2;   // text fades out
+          const BOX_FADE_OUT = 0.2;   // box fades out after text
           const DELAY_BEFORE_LEVEL = 0.4;   // pause before level loads
           const DELAY_BEFORE_BOX_IN = 0.6;  // pause after level starts before box fades back
-          const BOX_FADE_IN        = 0.3;   // box fades back in
-          const TEXT_FADE_IN       = 0.3;   // text fades in after box
-          const DELAY_CHAR_SWAP    = 0.3;   // delay after level pop-in before character swap
+          const BOX_FADE_IN = 0.3;   // box fades back in
+          const TEXT_FADE_IN = 0.3;   // text fades in after box
+          const DELAY_CHAR_SWAP = 0.3;   // delay after level pop-in before character swap
           // ---
 
           // DialogueBox children: [0] = boxSprite, [1] = textField
@@ -665,6 +730,23 @@ export default function GameScreen() {
             // 3. Delay, then load level behind overlay
             tl.call(() => {
               game.loadLevel(currentLevel());
+              fireTrackLevelStart(currentLevel(), activeChapterRef(), catalogIndex);
+
+              // Track chapter start and reset chapter timer
+              chapterStartTimestamp = Date.now();
+              const chRef = activeChapterRef();
+              if (chRef) {
+                trackChapterStart({
+                  chapter_id: chRef.uid,
+                  chapter_count: catalogIndex + 1,
+                  county_theme: currentLevel().county,
+                  is_tutorial: catalogIndex === 0,
+                  chapter_size: generatedChapter()?.chapterLength ?? 10,
+                  story_id: chRef.story.uid,
+                  story_headline: chRef.story.headline,
+                });
+              }
+
               game.autoSizeToViewport(
                 app.screen.width,
                 app.screen.height,
@@ -739,7 +821,15 @@ export default function GameScreen() {
 
           isShowingCompletionClue = false;
 
-          // Mark current chapter as complete
+          // Mark current chapter as complete and track
+          const completingChapterRef = activeChapterRef();
+          if (completingChapterRef) {
+            trackChapterComplete({
+              chapter_id: completingChapterRef.uid,
+              time_spent: parseFloat(((Date.now() - chapterStartTimestamp) / 1000).toFixed(2)),
+              is_tutorial: catalogIndex === 0,
+            });
+          }
           completeChapter();
 
           if (hasNextChapter()) {
@@ -774,8 +864,24 @@ export default function GameScreen() {
               bar.setProgress(1, nextChapter.chapterLength, false);
               if (chapterLabel) chapterLabel.text = `1 / ${nextChapter.chapterLength}`;
 
+              // Update catalog index for analytics
+              catalogIndex = cat?.currentIndex ?? 0;
+
+              // Track new chapter start and reset chapter timer
+              chapterStartTimestamp = Date.now();
+              trackChapterStart({
+                chapter_id: nextChapterRef.uid,
+                chapter_count: catalogIndex + 1,
+                county_theme: nextChapterRef.county.name,
+                is_tutorial: false,
+                chapter_size: nextChapter.chapterLength,
+                story_id: nextChapterRef.story.uid,
+                story_headline: nextChapterRef.story.headline,
+              });
+
               // Load the first level behind the still-dark overlay (invisible to player)
               game.loadLevel(nextChapter.levels[0]);
+              fireTrackLevelStart(nextChapter.levels[0], nextChapterRef, catalogIndex);
               game.autoSizeToViewport(
                 app.screen.width,
                 app.screen.height,
@@ -899,14 +1005,14 @@ export default function GameScreen() {
           loadNextLevelWithTransition();
         };
         (window as any).skipLevel = devSkipLevel;
-        const handleSkipKey = (e: KeyboardEvent) => {
+        skipKeyHandler = (e: KeyboardEvent) => {
           if (e.key === 's' || e.key === 'S') {
             e.preventDefault();
             console.log('[Dev] Skipping to next level');
             devSkipLevel();
           }
         };
-        window.addEventListener('keydown', handleSkipKey);
+        window.addEventListener('keydown', skipKeyHandler);
       }
 
       console.log('[Game] Started');
@@ -1074,7 +1180,7 @@ export default function GameScreen() {
     // Get current county from level config (future: track active county)
     // For now, default to atlantic if not set
     const countyConfig = getCountyConfig('atlantic');
-    bar.setTheme(countyConfig?.themeColor);
+    bar.setTheme(0x007eff);
   });
 
   // Reactive: Audio volume changes
@@ -1141,6 +1247,11 @@ export default function GameScreen() {
     // Clean up resize listener
     if (resizeHandler) {
       window.removeEventListener('resize', resizeHandler);
+    }
+
+    // Clean up dev skip-key listener
+    if (skipKeyHandler) {
+      window.removeEventListener('keydown', skipKeyHandler);
     }
   });
 

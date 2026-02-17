@@ -6,20 +6,31 @@
  * Game-specific paths are configured separately.
  */
 
-export type Environment = 'local' | 'development' | 'staging' | 'qa' | 'production';
+export type Environment =
+  | "local"
+  | "development"
+  | "staging"
+  | "qa"
+  | "production";
 
 export const getEnvironment = (): Environment => {
   const env = import.meta.env.VITE_APP_ENV;
 
   // Default to local if not set
   if (!env) {
-    return 'local';
+    return "local";
   }
 
   const normalized = env.toLowerCase();
-  if (!['local', 'development', 'staging', 'qa', 'production'].includes(normalized)) {
-    console.warn(`[Environment] Invalid VITE_APP_ENV: ${env}, defaulting to local`);
-    return 'local';
+  if (
+    !["local", "development", "staging", "qa", "production"].includes(
+      normalized,
+    )
+  ) {
+    console.warn(
+      `[Environment] Invalid VITE_APP_ENV: ${env}, defaulting to local`,
+    );
+    return "local";
   }
 
   return normalized as Environment;
@@ -44,9 +55,9 @@ export interface EnvConfig {
 const SHARED_CONFIG = {
   posthog: {
     enabled: true,
-    key: 'phc_sE5RsBu1ZvaySC3m7cw9rJjtBYgluW9c82Bf6BFcSyX',
-    host: 'https://us.i.posthog.com',
-    platform: 'advance',
+    key: "phc_RFhmtnQWjam4fNHYyn89lf0WVW6qF5bVYMwoXO8dSpR",
+    host: "https://us.i.posthog.com",
+    platform: "advance",
   },
 };
 
@@ -56,25 +67,25 @@ const SHARED_CONFIG = {
  */
 export const ENV_CONFIG: Record<Environment, EnvConfig> = {
   local: {
-    url: '',  // Empty = relative paths, games provide their own
+    url: "", // Empty = relative paths, games provide their own
     ...SHARED_CONFIG,
     posthog: { ...SHARED_CONFIG.posthog, enabled: false },
   },
   development: {
-    url: 'https://media.dev.wolf.games',
+    url: "https://media.dev.wolf.games",
     ...SHARED_CONFIG,
     posthog: { ...SHARED_CONFIG.posthog, enabled: false },
   },
   qa: {
-    url: 'https://media.qa.wolf.games',
+    url: "https://media.qa.wolf.games",
     ...SHARED_CONFIG,
   },
   staging: {
-    url: 'https://media.staging.wolf.games',
+    url: "https://media.staging.wolf.games",
     ...SHARED_CONFIG,
   },
   production: {
-    url: 'https://media.wolf.games',
+    url: "https://media.wolf.games",
     ...SHARED_CONFIG,
   },
 };
@@ -102,12 +113,12 @@ export const getPosthogConfig = (): PosthogConfig => {
  * Check if running in local development mode.
  */
 export const isLocal = (): boolean => {
-  return getEnvironment() === 'local';
+  return getEnvironment() === "local";
 };
 
 /**
  * Check if running in production.
  */
 export const isProduction = (): boolean => {
-  return getEnvironment() === 'production';
+  return getEnvironment() === "production";
 };
