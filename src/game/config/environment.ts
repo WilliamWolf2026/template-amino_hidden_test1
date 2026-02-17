@@ -9,6 +9,7 @@ import {
   isLocal,
   type Environment,
 } from "~/scaffold/config";
+import { GAME_CDN_PATH, GAME_SLUG } from "./identity";
 
 // Re-export scaffold utilities
 export { getEnvironment, isLocal, isProduction } from "~/scaffold/config";
@@ -17,7 +18,7 @@ export type { Environment } from "~/scaffold/config";
 /** Game-specific path configuration */
 const GAME_PATHS = {
   /** Path segment for this game on CDN */
-  gamePath: "games/citylines/data",
+  gamePath: GAME_CDN_PATH,
   /** Local asset path (flat structure) */
   localAssetPath: "/assets",
   /** Local chapters path */
@@ -25,7 +26,7 @@ const GAME_PATHS = {
   /** @deprecated Local levels path (legacy, use localChaptersPath) */
   localLevelsPath: "/levels",
   /** Games index path on server storage */
-  gamesIndexPath: "city-lines/games/index.json",
+  gamesIndexPath: `${GAME_SLUG}/games/index.json`,
 };
 
 /**

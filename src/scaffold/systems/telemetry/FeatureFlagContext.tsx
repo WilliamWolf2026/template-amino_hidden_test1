@@ -11,6 +11,7 @@ import { createStore } from "solid-js/store";
 import { getUserData } from "./helper";
 import { useAnalytics } from "./AnalyticsContext";
 import { type PostHog } from "~/scaffold/lib/analytics";
+import { GAME_STORAGE_PREFIX } from "~/game/config/identity";
 
 // ============================================================================
 // STRICT TYPE DEFINITIONS & CONSTANTS
@@ -34,7 +35,7 @@ const DEFAULT_FLAGS: FeatureFlags = {
 };
 
 const FETCH_TIMEOUT_MS = 2000;
-const STORAGE_PREFIX = "citylines_ff_";
+const STORAGE_PREFIX = `${GAME_STORAGE_PREFIX}ff_`;
 
 
 function isDifficultyVariant(value: unknown): value is DifficultyVariant {

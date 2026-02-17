@@ -1,4 +1,5 @@
 {
+  "$comment": "projectId must match GAME_ID in src/game/config/identity.ts",
   "projectId": "city_lines",
   "environment": "QA"
 }

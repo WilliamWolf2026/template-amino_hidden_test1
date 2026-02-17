@@ -20,6 +20,7 @@ import {
   cutsceneSchema,
 } from "./index";
 import { getSessionElapsed } from "~/scaffold/lib/analytics";
+import { GAME_ID } from "~/game/config/identity";
 
 // ============================================================================
 // TYPING HELPER
@@ -102,7 +103,7 @@ export const trackLevelComplete = analyticsService.createTracker(
     base: (ctx: CityLinesContext) => {
       ctx.levelsCompleted++;
       return {
-        game_name: "city_lines" as const,
+        game_name: GAME_ID as const,
         session_elapsed: getSessionElapsed(),
       };
     },
@@ -187,7 +188,7 @@ const _trackChapterComplete = analyticsService.createTracker(
     base: (ctx: CityLinesContext) => {
       ctx.chaptersCompleted++;
       return {
-        game_name: "city_lines" as const,
+        game_name: GAME_ID as const,
         session_elapsed: getSessionElapsed(),
       };
     },
@@ -258,7 +259,7 @@ export const trackStoryLinkClick = analyticsService.createTracker(
     base: (ctx: CityLinesContext) => {
       ctx.storyLinksClicked++;
       return {
-        game_name: "city_lines" as const,
+        game_name: GAME_ID as const,
         session_elapsed: getSessionElapsed(),
       };
     },

@@ -20,6 +20,7 @@ import {
 import { type } from "arktype";
 import { getUserData } from "./helper";
 import { getEnvironment } from "~/scaffold/config";
+import { GAME_ID, GAME_STORAGE_PREFIX } from "~/game/config/identity";
 import {
   getSessionElapsed,
   resetSessionTimer,
@@ -70,7 +71,7 @@ const trackSessionStart = analyticsService.createTracker(
     base: (ctx: CityLinesContext) => {
       ctx.sessionStartTime = Date.now();
       resetSessionTimer();
-      return { game_name: "city_lines" as const, session_elapsed: 0 };
+      return { game_name: GAME_ID as const, session_elapsed: 0 };
     },
   }
 );
@@ -97,7 +98,7 @@ const trackSessionEnd = analyticsService.createTracker(
   ["base", "level_ctx"],
   {
     base: (ctx: CityLinesContext) => ({
-      game_name: "city_lines" as const,
+      game_name: GAME_ID as const,
       session_elapsed: getSessionElapsed(),
       levels_completed_in_session: ctx.levelsCompleted,
       chapters_completed_in_session: ctx.chaptersCompleted,
@@ -159,7 +160,7 @@ const trackErrorCaptured = analyticsService.createTracker(
 // ============================================================================
 
 const { uid, email } = getUserData();
-const SURVEY_COOLDOWN_KEY = `citylines_survey_cd_${uid ?? "anon"}`;
+const SURVEY_COOLDOWN_KEY = `${GAME_STORAGE_PREFIX}survey_cd_${uid ?? "anon"}`;
 const SURVEY_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
 let _phRef: PostHog | null = null;
@@ -183,7 +184,7 @@ function markSurveyShown() {
 function triggerSurvey(trigger: string) {
   if (!_phRef || !canShowSurvey()) return;
   _phRef.capture("survey_eligible", {
-    game_name: "city_lines",
+    game_name: GAME_ID,
     trigger,
   });
   markSurveyShown();

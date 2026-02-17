@@ -1,4 +1,4 @@
-import { onMount, createSignal } from 'solid-js';
+import { onMount, createSignal, Show } from 'solid-js';
 import { useScreen } from '~/scaffold/systems/screens';
 import { useAssets } from '~/scaffold/systems/assets';
 import { Spinner } from '~/scaffold/ui/Spinner';
@@ -11,6 +11,7 @@ export function LoadingScreen() {
   const { loadBoot, loadTheme, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const [progress, setProgress] = createSignal(0);
   const [themeLoaded, setThemeLoaded] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
 
   // Map a phase's 0→1 progress into a weighted range of the overall bar
   const phaseProgress = (phaseStart: number, phaseEnd: number) => {
@@ -54,17 +55,33 @@ export function LoadingScreen() {
         await new Promise((r) => setTimeout(r, 500));
         await goto('start');
       }
-    } catch (error) {
-      console.error('Failed to load initial assets:', error);
+    } catch (err) {
+      console.error('Failed to load initial assets:', err);
+      setError('Failed to load game assets. Please check your connection and try again.');
     }
   });
 
   return (
     <div class="fixed inset-0 flex flex-col items-center justify-center bg-[#BCE083]">
-      <Spinner size="xl" />
-      <div class="mt-8 w-64">
-        <ProgressBar progress={progress()} />
-      </div>
+      <Show when={error()} fallback={
+        <>
+          <Spinner size="xl" />
+          <div class="mt-8 w-64">
+            <ProgressBar progress={progress()} />
+          </div>
+        </>
+      }>
+        <div class="text-center max-w-sm px-6">
+          <p class="text-lg font-semibold text-gray-800 mb-2">Unable to load</p>
+          <p class="text-sm text-gray-600 mb-6">{error()}</p>
+          <button
+            onClick={() => window.location.reload()}
+            class="px-6 py-3 bg-white text-gray-800 rounded-xl font-medium shadow-md hover:shadow-lg active:scale-95 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      </Show>
 
       {/* Logo at bottom center */}
       {themeLoaded() && (

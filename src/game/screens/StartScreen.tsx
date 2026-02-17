@@ -342,7 +342,13 @@ export default function StartScreen() {
     const tileTheme = tuning.game.theme.tileTheme;
     setAtlasName(tileTheme); // Set global atlas name for all game entities
     const tileBundleName = getTileBundleName(tileTheme);
-    await coordinator.loadBundle(tileBundleName);
+    try {
+      await coordinator.loadBundle(tileBundleName);
+    } catch (error) {
+      console.error(`[StartScreen] Failed to load tiles (${tileBundleName}):`, error);
+      // Skip Pixi rendering — the Solid.js UI shell still renders
+      return;
+    }
     const gpuLoader = coordinator.getGpuLoader() as PixiLoader;
 
     if (gpuLoader?.hasSheet(tileBundleName)) {

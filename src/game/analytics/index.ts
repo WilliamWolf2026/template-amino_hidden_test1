@@ -17,6 +17,7 @@ import {
 } from "~/scaffold/lib/analytics";
 import { baseParamsSet } from "~/scaffold/analytics/events";
 import { getUserData } from "~/scaffold/systems/telemetry/helper";
+import { GAME_ID } from "~/game/config/identity";
 
 // ============================================================================
 // GAME-SPECIFIC CONTEXT TYPE
@@ -140,7 +141,7 @@ export const analyticsService = (await analyticsServicePromise)
   })
   .addParamsDefault({
     base: (ctx: CityLinesContext) => ({
-      game_name: "city_lines" as const,
+      game_name: GAME_ID as const,
       session_elapsed: getSessionElapsed(),
     }),
     level_ctx: (ctx) => ({

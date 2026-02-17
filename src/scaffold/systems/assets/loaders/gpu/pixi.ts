@@ -77,6 +77,12 @@ export class PixiLoader implements AssetLoader {
       if (!this.usingFallback && this.manifest.localBase) {
         console.warn(`[Assets] CDN failed for ${name}, falling back to local`);
         this.usingFallback = true;
+        // Clear Pixi's resolver cache — it caches resolved URLs internally
+        // and won't pick up re-registered local URLs without this
+        const resolver = Assets.resolver as any;
+        if (resolver._resolverHash) {
+          resolver._resolverHash = {};
+        }
         // Re-register bundles with local URLs
         this.registerBundles(this.manifest.localBase);
         // Retry the load

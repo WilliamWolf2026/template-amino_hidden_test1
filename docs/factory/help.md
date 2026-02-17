@@ -30,4 +30,5 @@ Commands {
   /user-test   🧪  Generate human + agent test scripts
   /run-test    🤖  Execute agent test in real browser
   /update-docs 📚  Sync doc indexes with actual files
+  /newgame     🎮  Setup checklist for forking to a new game
 }
