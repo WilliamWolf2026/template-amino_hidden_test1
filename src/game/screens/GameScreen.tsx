@@ -151,6 +151,8 @@ export default function GameScreen() {
         setActiveChapterRef(chapterRef);
         config = chapterRefToLevelManifest(chapterRef);
         console.log('[GameScreen] Loaded chapter from catalog:', chapterRef.name);
+        console.log(`[GameScreen] County: "${getCountyConfig(currentLevel().county)?.name}"`);
+
       } else {
         // Fallback: try baked-in game data
         const gd = gameData();
@@ -159,6 +161,7 @@ export default function GameScreen() {
           setActiveChapterRef(chapterRef);
           config = chapterRefToLevelManifest(chapterRef);
           console.log('[GameScreen] Loaded chapter from fallback game data:', chapterRef.name);
+          console.log(`[GameScreen] County: "${getCountyConfig(currentLevel().county)?.name}"`);
         } else {
           config = await loadSectionConfig();
         }

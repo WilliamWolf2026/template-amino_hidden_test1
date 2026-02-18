@@ -15,94 +15,31 @@ import { startChapter, getCurrentChapter } from '~/game/services/progress';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 
-// Text styles cached at module level to avoid per-frame allocations
-const COUNTY_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: GAME_FONT_FAMILY,
-  fontSize: 24,
-  fontWeight: 'bold',
-  fill: '#FFFFFF',
-  stroke: { color: '#2C3E50', width: 3 },
-  dropShadow: {
-    alpha: 0.25,
-    angle: Math.PI / 4,
-    blur: 3,
-    distance: 2,
-    color: '#000000',
-  },
-  align: 'center',
-  padding: 6, // Prevent stroke clipping
-};
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const GOAL_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: GAME_FONT_FAMILY,
-  fontSize: 18,
-  fontWeight: '500',
-  fill: '#2C3E50',
-  align: 'center',
-  wordWrap: true,
-  wordWrapWidth: 380,
-  lineHeight: 28,
-  letterSpacing: 0.3,
-  padding: 4,
-};
-
-const PROGRESS_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: GAME_FONT_FAMILY,
-  fontSize: 28,
-  fontWeight: 'bold',
-  fill: '#27AE60',
-  stroke: { color: '#FFFFFF', width: 3 },
-  dropShadow: {
-    alpha: 0.2,
-    angle: Math.PI / 4,
-    blur: 2,
-    distance: 2,
-    color: '#000000',
-  },
-  align: 'center',
-  letterSpacing: 1,
-  padding: 6,
-};
-
-const FLAVOR_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: GAME_FONT_FAMILY,
-  fontSize: 18,
-  fontStyle: 'italic',
-  fontWeight: '600',
-  fill: '#E67E22',
-  stroke: { color: '#FFFFFF', width: 3 },
-  dropShadow: {
-    alpha: 0.15,
-    angle: Math.PI / 4,
-    blur: 2,
-    distance: 1,
-    color: '#000000',
-  },
-  align: 'center',
-  letterSpacing: 0.5,
-  padding: 6,
-};
+/** Minimum font size per spec (16pt). Button label is intentionally larger. */
+const MIN_FONT_SIZE = 16;
+/** Font size sized to sit comfortably inside the button with visible padding on all sides. */
+const BUTTON_FONT_SIZE = 46;
 
 export default function StartScreen() {
   const { goto } = useScreen();
   const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const { trackGameStart } = useAnalytics();
+
   const [loading, setLoading] = createSignal(false);
   const [screenConfig, setScreenConfig] = createSignal<StartScreenConfig | null>(null);
+
   let containerRef: HTMLDivElement | undefined;
   let app: Application | null = null;
   let background: Sprite | null = null;
   let uiContainer: Container | null = null;
   let titleSprite: Sprite | null = null;
   let character: Character | null = null;
-  let characterShadow: Graphics | null = null;
   let startButton: SpriteButton | null = null;
-  let countyText: Text | null = null;
-  let countyBadge: Graphics | null = null;
-  let goalText: Text | null = null;
-  let goalPanel: Graphics | null = null;
-  let flavorText: Text | null = null;
+
+  // ─── Handlers ───────────────────────────────────────────────────────────────
 
   const handleStart = async () => {
     if (loading()) return;
@@ -110,8 +47,6 @@ export default function StartScreen() {
 
     // Disable button during loading
     startButton?.setEnabled(false);
-
-    // Play button exit animation
     startButton?.playExitAnimation();
 
     try {
@@ -151,7 +86,6 @@ export default function StartScreen() {
         await loadAudio();
       } catch (error) {
         console.warn('Audio loading failed (assets may not exist yet):', error);
-        // Continue without audio - game is still playable
       }
 
       gameState.reset();
@@ -165,171 +99,88 @@ export default function StartScreen() {
     }
   };
 
+  // ─── Layout ─────────────────────────────────────────────────────────────────
+
   const handleResize = () => {
     if (!app || !background || !uiContainer) return;
 
     const screenWidth = app.screen.width;
     const screenHeight = app.screen.height;
     const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
 
     // Background - fit height, maintain aspect ratio, center horizontally
     const bgScale = screenHeight / background.texture.height;
     background.scale.set(bgScale);
     background.x = centerX;
-    background.y = centerY;
+    background.y = screenHeight / 2;
 
-    // Safe margins
-    const topMargin = 40;
-    const bottomMargin = 60;
-    const availableHeight = screenHeight - topMargin - bottomMargin;
-
-    // Calculate element heights
-    const titleHeight = titleSprite?.height ?? 0;
-    const countyHeight = (countyText?.height ?? 0) + 20; // badge padding
-    const goalHeight = (goalText?.height ?? 0) + 36;
-    const characterHeight = character?.height ?? 0;
-    const flavorHeight = flavorText?.height ?? 30;
-    const buttonHeight = startButton?.height ?? 80;
-
-    // Ideal gaps
-    const idealGaps = {
-      titleBottom: 20,
-      countyBottom: 24,
-      goalBottom: 32,
-      characterBottom: 24,
-      flavorBottom: 32,
-    };
-
-    // Minimum gaps
-    const minGaps = {
-      titleBottom: 12,
-      countyBottom: 20,
-      goalBottom: 24,
-      characterBottom: 28,
-      flavorBottom: 24,
-    };
-
-    // Calculate total content height with ideal gaps
-    const totalIdealHeight =
-      titleHeight +
-      idealGaps.titleBottom +
-      countyHeight +
-      idealGaps.countyBottom +
-      goalHeight +
-      idealGaps.goalBottom +
-      characterHeight +
-      idealGaps.characterBottom +
-      flavorHeight +
-      idealGaps.flavorBottom +
-      buttonHeight;
-
-    // Adaptive gap calculation
-    let gaps = { ...idealGaps };
-    let contentScale = 1;
-
-    if (totalIdealHeight > availableHeight) {
-      // Calculate total min height
-      const totalMinHeight =
-        titleHeight +
-        minGaps.titleBottom +
-        countyHeight +
-        minGaps.countyBottom +
-        goalHeight +
-        minGaps.goalBottom +
-        characterHeight +
-        minGaps.characterBottom +
-        flavorHeight +
-        minGaps.flavorBottom +
-        buttonHeight;
-
-      if (totalMinHeight > availableHeight) {
-        // Need to scale everything down
-        contentScale = availableHeight / totalMinHeight;
-        gaps = { ...minGaps };
-      } else {
-        // Interpolate between min and ideal gaps
-        const ratio = (availableHeight - totalMinHeight) / (totalIdealHeight - totalMinHeight);
-        gaps = {
-          titleBottom: minGaps.titleBottom + (idealGaps.titleBottom - minGaps.titleBottom) * ratio,
-          countyBottom: minGaps.countyBottom + (idealGaps.countyBottom - minGaps.countyBottom) * ratio,
-          goalBottom: minGaps.goalBottom + (idealGaps.goalBottom - minGaps.goalBottom) * ratio,
-          characterBottom: minGaps.characterBottom + (idealGaps.characterBottom - minGaps.characterBottom) * ratio,
-          flavorBottom: minGaps.flavorBottom + (idealGaps.flavorBottom - minGaps.flavorBottom) * ratio,
-        };
-      }
+    // Scale title sprite to ~88% of screen width (dominant, like the mock)
+    if (titleSprite && titleSprite.texture.width > 0) {
+      const titleTargetW = screenWidth * 0.88;
+      const titleScale = titleTargetW / titleSprite.texture.width;
+      titleSprite.scale.set(titleScale);
     }
 
-    // Apply content scale to UI container only (not background)
+    // Layout zones (relative to screen, in uiContainer local space)
+    const topPad = Math.max(screenHeight * 0.04, 24);
+    // Reserve bottom space: Logo height (~40px) + safe gap (48px) + bottom inset
+    const bottomPad = Math.max(screenHeight * 0.14, 100);
+    const availableH = screenHeight - topPad - bottomPad;
+
+    const titleH = titleSprite?.height ?? 0;
+    const charH = character?.height ?? 0;
+    const btnH = startButton?.height ?? 80;
+
+    // Gaps between elements
+    const gapTitleChar = availableH * 0.04;
+    const gapCharBtn = availableH * 0.05;
+
+    const totalContentH = titleH + gapTitleChar + charH + gapCharBtn + btnH;
+
+    let contentScale = 1;
+    if (totalContentH > availableH) {
+      contentScale = availableH / totalContentH;
+    }
+
     uiContainer.scale.set(contentScale);
 
-    // Calculate positions from top
-    const startY = topMargin / contentScale;
-    const titleY = startY + titleHeight / 2;
-    const countyY = titleY + titleHeight / 2 + gaps.titleBottom + countyHeight / 2;
-    const goalY = countyY + countyHeight / 2 + gaps.countyBottom + goalHeight / 2;
-    const characterY = goalY + goalHeight / 2 + gaps.goalBottom + characterHeight / 2;
-    const flavorY = characterY + characterHeight / 2 + gaps.characterBottom + flavorHeight / 2;
-    const buttonY = flavorY + flavorHeight / 2 + gaps.flavorBottom + buttonHeight / 2;
+    const localCenterX = centerX / contentScale;
+    const startY = topPad / contentScale;
 
-    // Position elements
+    const titleY = startY + titleH / 2;
+    const charY = titleY + titleH / 2 + gapTitleChar / contentScale + charH / 2;
+    const btnY = charY + charH / 2 + gapCharBtn / contentScale + btnH / 2;
+
     if (titleSprite) {
-      titleSprite.x = centerX / contentScale;
+      titleSprite.x = localCenterX;
       titleSprite.y = titleY;
     }
 
-    if (countyBadge) {
-      countyBadge.x = centerX / contentScale;
-      countyBadge.y = countyY;
-    }
-
-    if (countyText) {
-      countyText.x = centerX / contentScale;
-      countyText.y = countyY;
-    }
-
-    if (goalPanel) {
-      goalPanel.x = centerX / contentScale;
-      goalPanel.y = goalY;
-    }
-
-    if (goalText) {
-      goalText.x = centerX / contentScale;
-      goalText.y = goalY;
-    }
-
-    if (characterShadow && character) {
-      // Position shadow at character's feet (character anchor is at center)
-      characterShadow.x = centerX / contentScale;
-      characterShadow.y = characterY + (character.height / 2) - 10; // slightly up from bottom
-    }
-
     if (character) {
-      character.x = centerX / contentScale;
-      character.y = characterY;
-    }
-
-    if (flavorText) {
-      flavorText.x = centerX / contentScale;
-      flavorText.y = flavorY;
+      character.x = localCenterX;
+      character.y = charY;
     }
 
     if (startButton) {
-      startButton.x = centerX / contentScale;
-      startButton.y = buttonY;
+      startButton.x = localCenterX;
+      startButton.y = btnY;
     }
   };
+
+  // ─── Lifecycle ──────────────────────────────────────────────────────────────
 
   onMount(async () => {
     if (!containerRef) return;
 
     await initGpu();
 
-    // Detect debug mode from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const debugProgress = urlParams.get('debugProgress') === '1';
     const config = getStartScreenMode(debugProgress);
     setScreenConfig(config);
+
+    // ── Debug: county name goes to console only ──
+    console.log(`[StartScreen] County: "${config.countyName}" | Mode: ${config.mode}`);
 
     app = new Application();
     await app.init({
@@ -360,84 +211,34 @@ export default function StartScreen() {
       titleSprite.anchor.set(0.5);
       uiContainer.addChild(titleSprite);
 
-      // County text (create first to measure)
-      countyText = new Text({
-        text: config.countyName,
-        style: COUNTY_TEXT_STYLE,
-      });
-      countyText.anchor.set(0.5);
-
-      // County badge (responsive to text width with padding)
-      countyBadge = new Graphics();
-      const countyPaddingX = 20;
-      const countyPaddingY = 10;
-      const badgeWidth = countyText.width + countyPaddingX * 2;
-      const badgeHeight = countyText.height + countyPaddingY * 2;
-      const badgeRadius = Math.min(badgeHeight / 2, 24);
-
-      countyBadge.roundRect(-badgeWidth / 2, -badgeHeight / 2, badgeWidth, badgeHeight, badgeRadius);
-      countyBadge.fill({ color: 0xe67e22, alpha: 0.95 });
-      countyBadge.stroke({ color: 0xd35400, width: 3, alpha: 0.9 });
-      uiContainer.addChild(countyBadge);
-      uiContainer.addChild(countyText);
-
-      // Goal/progress text (differs for new vs returning)
-      const goalContent =
-        config.mode === 'new'
-          ? 'Connect landmarks to highways by rotating road tiles.\nTake your time and explore!'
-          : `Level ${config.levelNumber} of ${config.totalLevels}`;
-
-      const goalStyle = config.mode === 'new' ? GOAL_TEXT_STYLE : PROGRESS_TEXT_STYLE;
-
-      goalText = new Text({
-        text: goalContent,
-        style: goalStyle,
-      });
-      goalText.anchor.set(0.5);
-
-      // Goal panel (responsive to text size with cozy padding)
-      goalPanel = new Graphics();
-      const goalPaddingX = config.mode === 'new' ? 28 : 34;
-      const goalPaddingY = config.mode === 'new' ? 20 : 18;
-      const panelWidth = Math.min(goalText.width + goalPaddingX * 2, 460);
-      const panelHeight = goalText.height + goalPaddingY * 2;
-      const panelRadius = 18;
-
-      goalPanel.roundRect(-panelWidth / 2, -panelHeight / 2, panelWidth, panelHeight, panelRadius);
-      goalPanel.fill({ color: 0xffffff, alpha: 0.88 });
-      goalPanel.stroke({ color: 0xbdc3c7, width: 2, alpha: 0.6 });
-      uiContainer.addChild(goalPanel);
-      uiContainer.addChild(goalText);
-
-      // Character shadow (oval, behind character)
-      characterShadow = new Graphics();
-      characterShadow.ellipse(0, 0, 70, 20); // wider than tall
-      characterShadow.fill({ color: 0x000000, alpha: 0.25 });
-      uiContainer.addChild(characterShadow);
-
       // Character (News Hound)
       character = new Character('news_hound', gpuLoader, 0.92);
       uiContainer.addChild(character);
 
-      // Character flavor text
-      const flavorContent = config.mode === 'new' ? "Let's connect some roads!" : 'Ready for more?';
-
-      flavorText = new Text({
-        text: flavorContent,
-        style: FLAVOR_TEXT_STYLE,
-      });
-      flavorText.anchor.set(0.5);
-      uiContainer.addChild(flavorText);
-
-      // Start/Continue button with 9-slice
+      // Start / Continue button
       const buttonLabel = config.mode === 'new' ? 'START' : 'CONTINUE';
+
+      // Measure text first so button width hugs the label with consistent H padding
+      const BUTTON_H_PAD = 24; // tight padding matching the mock
+      const BUTTON_HEIGHT = 96;
+      const tempText = new (await import('pixi.js')).Text({
+        text: buttonLabel,
+        style: {
+          fontFamily: GAME_FONT_FAMILY,
+          fontSize: BUTTON_FONT_SIZE,
+          fontWeight: 'bold',
+          padding: 8,
+        } as Partial<TextStyle>,
+      });
+      const buttonWidth = Math.ceil(tempText.width) + BUTTON_H_PAD * 2;
+      tempText.destroy();
 
       startButton = new SpriteButton(gpuLoader, {
         atlasName: tileBundleName,
         spriteName: 'button.png',
         label: buttonLabel,
-        width: 200,
-        height: 80,
+        width: buttonWidth,
+        height: BUTTON_HEIGHT,
         use9Slice: true,
         nineSliceBorders: {
           leftWidth: 32,
@@ -447,11 +248,20 @@ export default function StartScreen() {
         },
         labelStyle: {
           fontFamily: GAME_FONT_FAMILY,
-          fontSize: 28,
+          fontSize: BUTTON_FONT_SIZE, // large, fills button
           fontWeight: 'bold',
           fill: '#ffffff',
-          stroke: { color: '#000000', width: 4 },
-        },
+          stroke: { color: '#1a3a00', width: 8 },
+          dropShadow: {
+            alpha: 0.35,
+            angle: Math.PI / 2,
+            blur: 0,
+            distance: 3,
+            color: '#000000',
+          },
+          letterSpacing: 1,
+          padding: 8, // prevents stroke clipping at edges
+        } as Partial<TextStyle>,
         onClick: handleStart,
       });
       uiContainer.addChild(startButton);
@@ -472,13 +282,15 @@ export default function StartScreen() {
     }
   });
 
+  // ─── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div class="fixed inset-0 bg-[#B2DD53]">
       {/* Pixi canvas container */}
       <div ref={containerRef} class="absolute inset-0" />
 
-      {/* Logo at bottom center */}
-      <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
+      {/* Logo pinned to bottom — canvas reserves space above so it's always visible */}
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2">
         <Logo />
       </div>
     </div>
