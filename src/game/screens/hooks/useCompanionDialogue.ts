@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import type { DialogueMessage } from '~/game/citylines';
+import type { DialogueMessage } from '~/game/types/dialogue';
 
 /**
  * Dialogue state management hook

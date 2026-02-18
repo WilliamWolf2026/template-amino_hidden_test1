@@ -4,7 +4,7 @@
  * and converts the new backend schema into the existing LevelManifest format.
  */
 
-import type { GameData, GamesIndex, ChapterRef } from '~/game/citylines/types/gameData';
+import type { GameData, GamesIndex, ChapterRef } from '~/game/types/gameData';
 import type { County } from '~/game/citylines/types/level';
 import type { LevelManifest, StoryData } from '~/game/citylines/types/section';
 import { VALID_COUNTIES } from '~/game/citylines/types/section';

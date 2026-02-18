@@ -6,7 +6,7 @@
  * against the current environment's chapters base URL.
  */
 
-import type { GameData, GamesIndex, GameIndexEntry } from '~/game/citylines/types/gameData';
+import type { GameData, GamesIndex, GameIndexEntry } from '~/game/types/gameData';
 import { getChaptersUrl, getGamesIndexUrl } from '~/game/config/environment';
 import { fetchGamesIndex, fetchGameData } from './chapterLoader';
 
@@ -58,7 +58,7 @@ export async function initCatalog(): Promise<CatalogState> {
   } catch (err) {
     console.warn('[Catalog] Failed to fetch index, using fallback:', err);
     catalog = {
-      index: { games: [{ uid: 'fallback', url: 'default.json', publishDate: '' }] },
+      index: { games: [{ uid: 'fallback', url: 'patrol-1.json', publishDate: '' }] },
       currentIndex: 0,
     };
   }

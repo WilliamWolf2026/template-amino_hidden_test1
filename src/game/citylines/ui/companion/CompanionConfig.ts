@@ -6,12 +6,8 @@ export type CharacterType = 'news_hound' | 'paper_kid';
 /** Display modes for companion character */
 export type CompanionDisplayMode = 'full' | 'head';
 
-/** Dialogue message structure */
-export interface DialogueMessage {
-  id: string;
-  speaker?: string;
-  text: string;
-}
+/** Dialogue message structure (re-exported from template types) */
+export type { DialogueMessage } from '~/game/types/dialogue';
 
 /** Companion character configuration */
 export interface CompanionConfig {
