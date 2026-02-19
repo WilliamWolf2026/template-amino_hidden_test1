@@ -116,6 +116,7 @@ Flat routing table for fast navigation. One file read, zero hops.
 | `/run-test` | Run test suite | factory/run-test.md |
 | `/user-test` | User testing workflow | factory/user-test.md |
 | `/log` | Log analysis | factory/log.md |
+| `/deploy` | Deploy to QA/staging/production | factory/deploy.md |
 | `/help` | Command reference | factory/help.md |
 
 ## Reports (Historical)

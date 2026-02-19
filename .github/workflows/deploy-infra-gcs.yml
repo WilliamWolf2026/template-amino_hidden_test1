@@ -34,10 +34,16 @@ jobs:
   trigger-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Set game name
+      - name: Checkout (for identity.ts)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: src/game/config/identity.ts
+          sparse-checkout-cone-mode: false
+
+      - name: Read game identity from identity.ts
         id: game_info
         run: |
-          GAME_NAME="dailydispatch"
+          GAME_NAME=$(grep 'GAME_SLUG' src/game/config/identity.ts | grep -o '"[^"]*"' | tr -d '"')
           echo "GAME_NAME=$GAME_NAME" >> $GITHUB_ENV
           echo "Game name: $GAME_NAME"
 

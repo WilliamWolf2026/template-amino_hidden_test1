@@ -1,6 +1,7 @@
 /**
  * Game identity constants — single source of truth for game naming.
  * When forking for a new game, update these values and all references follow.
+ * CI reads GAME_SLUG from this file via grep (see deploy-infra-gcs.yml).
  */
 
 /** Analytics event tag and GameKit project ID (e.g. "daily_dispatch") */
