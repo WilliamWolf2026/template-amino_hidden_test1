@@ -38,10 +38,9 @@ export class CompanionCharacter extends Container {
     this.sprite = gpuLoader.createSprite(getAtlasName(), spriteName);
     this.sprite.anchor.set(0.5);
 
-    // Apply scale based on display mode
+    // Apply uniform scale based on display mode (no squish)
     const scale = CHARACTER_SCALES[mode];
-    this.sprite.width = CHARACTER_BASE_SIZE.width * scale;
-    this.sprite.height = CHARACTER_BASE_SIZE.height * scale;
+    this.sprite.scale.set(scale);
 
     this.addChild(this.sprite);
 
@@ -91,8 +90,7 @@ export class CompanionCharacter extends Container {
 
     this.displayMode = mode;
     const scale = CHARACTER_SCALES[mode];
-    this.sprite.width = CHARACTER_BASE_SIZE.width * scale;
-    this.sprite.height = CHARACTER_BASE_SIZE.height * scale;
+    this.sprite.scale.set(scale);
   }
 
   /**
@@ -108,8 +106,7 @@ export class CompanionCharacter extends Container {
 
     // Re-apply current scale
     const scale = CHARACTER_SCALES[this.displayMode];
-    this.sprite.width = CHARACTER_BASE_SIZE.width * scale;
-    this.sprite.height = CHARACTER_BASE_SIZE.height * scale;
+    this.sprite.scale.set(scale);
 
     this.label = `companion-${type}-${this.displayMode}`;
   }

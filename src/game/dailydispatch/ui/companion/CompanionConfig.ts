@@ -15,7 +15,7 @@ export interface CompanionConfig {
 
 /** Character sprite mapping (atlas frame names) */
 export const CHARACTER_SPRITES: Record<CharacterType, string> = {
-  marty: 'character-marty_idle.png',
+  marty: 'character-marty_talking.png',
 };
 
 /** Character base dimensions (from atlas trimmed sizes) */

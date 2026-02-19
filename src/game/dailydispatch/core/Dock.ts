@@ -95,7 +95,10 @@ export class Dock extends Container {
   }
 
   /** Animate dock closing then driving away */
-  close(duration: number = 0.3): Promise<void> {
+  close(
+    duration: number = 0.3,
+    callbacks?: { onDoorClose?: () => void; onDriveAway?: () => void },
+  ): Promise<void> {
     return new Promise((resolve) => {
       let completed = 0;
       const total = this.trucks.length;
@@ -119,6 +122,8 @@ export class Dock extends Container {
           truck.open.visible = false;
           truck.closed.visible = true;
           truck.closed.alpha = 1;
+          // Fire door close sound on the first truck only
+          if (i === 0) callbacks?.onDoorClose?.();
         });
 
         // Scale punch on the closed sprite
@@ -130,6 +135,10 @@ export class Dock extends Container {
         );
 
         // Brief pause then drive away
+        tl.call(() => {
+          // Fire drive away sound on the first truck only
+          if (i === 0) callbacks?.onDriveAway?.();
+        });
         tl.to(truck.closed, {
           x: truck.closed.x + driveVec.x * driveDistance,
           y: truck.closed.y + driveVec.y * driveDistance,

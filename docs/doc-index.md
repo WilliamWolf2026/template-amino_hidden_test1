@@ -42,6 +42,7 @@ Flat routing table for fast navigation. One file read, zero hops.
 | Chapter generation system | game/chapter-generation.md |
 | Fallback chapter data | game/fallback-patrol-chapters.md |
 | CDN chapter loading | game/cdn-chapter-loading-plan.md |
+| Sound effects style guide | game/sound-effects-style-guide.md |
 
 ## Getting Started
 

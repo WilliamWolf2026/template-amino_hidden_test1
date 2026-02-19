@@ -20,6 +20,9 @@ import { DailyDispatchGame } from '~/game/dailydispatch/core/DailyDispatchGame';
 import { CompanionCharacter } from '~/game/dailydispatch/ui/companion/CompanionCharacter';
 import { DialogueBox } from '~/game/dailydispatch/ui/companion/DialogueBox';
 import { CluePopup } from '~/game/dailydispatch/ui/CluePopup';
+import { LevelCompleteOverlay } from '~/game/dailydispatch/ui/LevelCompleteOverlay';
+import { TruckCloseOverlay } from '~/game/dailydispatch/ui/TruckCloseOverlay';
+import { LevelPointsOverlay } from '~/game/dailydispatch/ui/LevelPointsOverlay';
 import { SpriteButton } from '~/game/dailydispatch/core/SpriteButton';
 import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/dailydispatch/types/section';
 import { setAtlasName, getAtlasName } from '~/game/dailydispatch/utils/atlasHelper';
@@ -46,7 +49,7 @@ export interface GameScreenController {
 }
 
 /** Modal phase for the chapter start experience */
-type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing';
+type ModalPhase = 'introduction' | 'loading-puzzle' | 'chapter-start' | 'playing' | 'chapter-end';
 
 /** Dependencies injected from the screen component */
 export interface GameScreenDeps {
@@ -93,6 +96,9 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
   let isShowingCompletionClue = false;
 
   let cluePopup: CluePopup | null = null;
+  let levelCompleteOverlay: LevelCompleteOverlay | null = null;
+  let truckCloseOverlay: TruckCloseOverlay | null = null;
+  let levelPointsOverlay: LevelPointsOverlay | null = null;
   let chapterLabel: Text | null = null;
   let moveText: Text | null = null;
   let audioButton: SpriteButton | null = null;
@@ -319,6 +325,7 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         width: btnSize,
         height: btnSize,
         onClick: () => {
+          audioManager()?.playButtonClick();
           // Toggle eraser mode on the game
           const gi = gameInstance();
           if (gi) {
@@ -336,6 +343,7 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         width: btnSize,
         height: btnSize,
         onClick: () => {
+          audioManager()?.playButtonClick();
           const gi = gameInstance();
           if (gi) {
             gi.loadLevel(getCurrentLevel());
@@ -354,6 +362,7 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         width: btnSize,
         height: btnSize,
         onClick: () => {
+          audioManager()?.playButtonClick();
           const vol = audio.volume();
           coordinator.audio.setMasterVolume(vol > 0 ? 0 : 1);
           console.log('[HUD] Audio button pressed');
@@ -419,6 +428,72 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         if (moveText) moveText.text = 'Moves: 00';
       };
 
+      // ── Load next chapter or show "all done" ──
+
+      const loadNextChapterOrEnd = async () => {
+        if (hasNextChapter()) {
+          const nextData = await fetchNextChapter();
+          if (nextData && nextData.chapters?.length > 0) {
+            const nextChapterRef = nextData.chapters[0];
+            const nextConfig = chapterRefToLevelManifest(nextChapterRef);
+            const nextLen = getChapterLength(nextConfig);
+
+            setActiveChapterRef(nextChapterRef);
+            setSectionConfig(nextConfig);
+            setCurrentLevelIndex(0);
+            gameState.setCurrentLevel(1);
+            gameState.setTotalLevels(nextLen);
+
+            const cat = getCatalog();
+            startChapter({
+              manifestUrl: '',
+              chapterId: nextChapterRef.uid,
+              countyName: nextChapterRef.county?.name ?? 'warehouse',
+              chapterLength: nextLen,
+              catalogIndex: cat?.currentIndex ?? 0,
+            });
+
+            if (chapterLabel) chapterLabel.text = 'Level: 1';
+            if (moveText) moveText.text = 'Moves: 00';
+            catalogIndex = cat?.currentIndex ?? 0;
+
+            chapterStartTimestamp = Date.now();
+            trackChapterStart({
+              chapter_id: nextChapterRef.uid,
+              chapter_count: catalogIndex + 1,
+              county_theme: nextChapterRef.county?.name ?? 'warehouse',
+              is_tutorial: false,
+              chapter_size: nextLen,
+              story_id: nextChapterRef.story.uid,
+              story_headline: nextChapterRef.story.headline,
+            });
+
+            game.loadLevel(getCurrentLevel());
+            fireTrackLevelStart(1, nextChapterRef);
+            positionGame();
+            positionHUD();
+
+            const chapterStartText = nextConfig.story.summary || "Let's sort more packages!";
+            setModalPhase('chapter-start');
+            showCompanion(chapterStartText, companionConfig.overlayAlpha);
+          } else {
+            loadNextLevelWithTransition();
+          }
+        } else {
+          showCompanion(
+            "Amazing work! You've delivered all the packages. Check back soon for more!",
+            companionConfig.overlayAlpha,
+          );
+        }
+      };
+
+      // ── Sound events (fire at precise animation moments) ──
+
+      game.onSoundEvent('blockSlide', () => audioManager()?.playBlockSlide());
+      game.onSoundEvent('blockExit', () => audioManager()?.playBlockExit());
+      game.onSoundEvent('truckClose', () => audioManager()?.playTruckClose());
+      game.onSoundEvent('truckDriveAway', () => audioManager()?.playTruckDriveAway());
+
       // ── Game events ──
 
       game.onGameEvent('blockMoved', () => {
@@ -445,10 +520,12 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         gameState.incrementLevel();
 
         if (isChapterEnd) {
+          audioManager()?.playChapterComplete();
           const displayText = config?.story.completion ?? clueText ?? 'Great work!';
           isShowingCompletionClue = true;
           showCompanion(displayText, gameTuning.companion.overlayAlpha);
         } else if (cluePopup) {
+          audioManager()?.playLevelComplete();
           fadeOutHUD();
           const gridTop = game.y;
           cluePopup.show(
@@ -488,14 +565,12 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
 
       companionCharacter = new CompanionCharacter('marty', gpuLoader, 'full');
       companionCharacter.alpha = 1;
-      const dle = -(companionDialogueBox.getWidth() / 2);
-      companionCharacter.x = dle + (charWidth / 2);
-      companionCharacter.y = -(charHeight * 0.25);
-      companionGroup.addChildAt(companionCharacter, 0);
+      companionCharacter.x = 0;
+      companionCharacter.y = companionDialogueBox.getHeight() + (charHeight / 2);
+      companionGroup.addChild(companionCharacter);
 
-      const groupTop = companionCharacter.y - (charHeight / 2);
-      const groupBottom = companionDialogueBox.getHeight();
-      const groupVerticalCenter = (groupTop + groupBottom) / 2;
+      const groupBottom = companionCharacter.y + (charHeight / 2);
+      const groupVerticalCenter = groupBottom / 2;
 
       companionGroup.x = app.screen.width / 2;
       companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
@@ -515,9 +590,8 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
             ease: 'power2.out',
           });
 
-          const gt = companionCharacter!.y - (charHeight / 2);
-          const gb = companionDialogueBox!.getHeight();
-          const gvc = (gt + gb) / 2;
+          const gb = companionCharacter!.y + (charHeight / 2);
+          const gvc = gb / 2;
 
           gsap.to(companionGroup!, {
             x: app.screen.width / 2,
@@ -626,6 +700,8 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         } else if (isShowingCompletionClue) {
           isCompanionAnimating = true;
           darkOverlay.eventMode = 'none';
+
+          // Slide out companion
           await new Promise<void>((resolve) => {
             gsap.to(companionGroup!, {
               x: -400, alpha: 0,
@@ -638,9 +714,11 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
               },
             });
           });
+          gsap.to(darkOverlay!, { alpha: 0, duration: 0.3, ease: 'power2.in' });
 
           isShowingCompletionClue = false;
 
+          // Track chapter completion
           const completingRef = activeChapterRef();
           if (completingRef) {
             trackChapterComplete({
@@ -650,61 +728,35 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
             });
           }
           completeChapter();
+          setModalPhase('chapter-end');
 
-          if (hasNextChapter()) {
-            const nextData = await fetchNextChapter();
-            if (nextData && nextData.chapters?.length > 0) {
-              const nextChapterRef = nextData.chapters[0];
-              const nextConfig = chapterRefToLevelManifest(nextChapterRef);
-              const nextLen = getChapterLength(nextConfig);
+          // Step 1: LevelCompleteOverlay
+          await new Promise<void>((resolve) => {
+            levelCompleteOverlay?.show(app.screen.width, app.screen.height, 0, null, resolve);
+          });
 
-              setActiveChapterRef(nextChapterRef);
-              setSectionConfig(nextConfig);
-              setCurrentLevelIndex(0);
-              gameState.setCurrentLevel(1);
-              gameState.setTotalLevels(nextLen);
+          // Step 2: TruckCloseOverlay
+          await new Promise<void>((resolve) => {
+            truckCloseOverlay?.show(app.screen.width, app.screen.height, resolve);
+          });
 
-              const cat = getCatalog();
-              startChapter({
-                manifestUrl: '',
-                chapterId: nextChapterRef.uid,
-                countyName: nextChapterRef.county?.name ?? 'warehouse',
-                chapterLength: nextLen,
-                catalogIndex: cat?.currentIndex ?? 0,
-              });
+          // Step 3: LevelPointsOverlay
+          const chRef = activeChapterRef();
+          const cfg = sectionConfig();
+          await new Promise<void>((resolve) => {
+            levelPointsOverlay?.show({
+              screenWidth: app.screen.width,
+              screenHeight: app.screen.height,
+              totalLevels: gameState.totalLevels(),
+              totalMoves: game.getMoveCount(),
+              headline: chRef?.story.headline ?? cfg?.story.headline ?? 'Great work!',
+              articleUrl: chRef?.story.articleUrl ?? cfg?.story.articleUrl ?? '',
+              onNext: resolve,
+            });
+          });
 
-              if (chapterLabel) chapterLabel.text = 'Level: 1';
-              if (moveText) moveText.text = 'Moves: 00';
-              catalogIndex = cat?.currentIndex ?? 0;
-
-              chapterStartTimestamp = Date.now();
-              trackChapterStart({
-                chapter_id: nextChapterRef.uid,
-                chapter_count: catalogIndex + 1,
-                county_theme: nextChapterRef.county?.name ?? 'warehouse',
-                is_tutorial: false,
-                chapter_size: nextLen,
-                story_id: nextChapterRef.story.uid,
-                story_headline: nextChapterRef.story.headline,
-              });
-
-              game.loadLevel(getCurrentLevel());
-              fireTrackLevelStart(1, nextChapterRef);
-              positionGame();
-              positionHUD();
-
-              const chapterStartText = nextConfig.story.summary || "Let's sort more packages!";
-              setModalPhase('chapter-start');
-              showCompanion(chapterStartText, companionConfig.overlayAlpha);
-            } else {
-              loadNextLevelWithTransition();
-            }
-          } else {
-            showCompanion(
-              "Amazing work! You've delivered all the packages. Check back soon for more!",
-              companionConfig.overlayAlpha,
-            );
-          }
+          // Load next chapter or show end
+          await loadNextChapterOrEnd();
         } else {
           await hideCompanion();
         }
@@ -716,6 +768,14 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
       companionGroup.y = app.screen.height / 2 - groupVerticalCenter;
       companionGroup.alpha = 1;
       app.stage.addChild(companionGroup);
+
+      // Chapter-end overlays (on top of everything)
+      levelCompleteOverlay = new LevelCompleteOverlay(gpuLoader);
+      app.stage.addChild(levelCompleteOverlay);
+      truckCloseOverlay = new TruckCloseOverlay(gpuLoader);
+      app.stage.addChild(truckCloseOverlay);
+      levelPointsOverlay = new LevelPointsOverlay(gpuLoader);
+      app.stage.addChild(levelPointsOverlay);
 
       if (modalPhase() === 'introduction') {
         showCompanion(introText, companionConfig.overlayAlpha);
@@ -749,12 +809,11 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
 
         if (companionDialogueBox && companionCharacter) {
           companionDialogueBox.resize(app.screen.width, app.screen.height);
-          const dle2 = -(companionDialogueBox.getWidth() / 2);
-          companionCharacter.x = dle2 + (charWidth / 2);
-          companionCharacter.y = -companionDialogueBox.getHeight() - (charHeight * 0.25);
+          companionCharacter.x = 0;
+          companionCharacter.y = companionDialogueBox.getHeight() + (charHeight / 2);
 
-          const gt2 = companionCharacter.y - (charHeight / 2);
-          const gvc2 = (gt2 + 0) / 2;
+          const gb2 = companionCharacter.y + (charHeight / 2);
+          const gvc2 = gb2 / 2;
 
           if (companionGroup && companionGroup.visible) {
             companionGroup.x = app.screen.width / 2;
@@ -787,6 +846,13 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
       if (app) app.ticker.stop();
       if (resizeHandler) window.removeEventListener('resize', resizeHandler);
       if (skipKeyHandler) window.removeEventListener('keydown', skipKeyHandler);
+
+      levelCompleteOverlay?.destroy();
+      levelCompleteOverlay = null;
+      truckCloseOverlay?.destroy();
+      truckCloseOverlay = null;
+      levelPointsOverlay?.destroy();
+      levelPointsOverlay = null;
     },
   };
 }

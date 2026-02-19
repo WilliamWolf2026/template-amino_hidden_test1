@@ -31,6 +31,14 @@ export interface DailyDispatchGameEvents {
   blockExited: (blockId: string, dockId: string) => void;
 }
 
+/** Sound events fired at precise animation moments */
+export interface DailyDispatchSoundEvents {
+  blockSlide: () => void;
+  blockExit: () => void;
+  truckClose: () => void;
+  truckDriveAway: () => void;
+}
+
 /** Animation configuration for slides */
 export interface SlideAnimationConfig {
   durationPerCell: number;
@@ -82,6 +90,7 @@ export class DailyDispatchGame extends Container {
   private moveCount = 0;
   private isAnimating = false;
   private eventHandlers: Partial<DailyDispatchGameEvents> = {};
+  private soundHandlers: Partial<DailyDispatchSoundEvents> = {};
   private slideAnimConfig: SlideAnimationConfig = DEFAULT_SLIDE_ANIM;
 
   constructor(gpuLoader: PixiLoader, cellSize: number = 72) {
@@ -119,6 +128,14 @@ export class DailyDispatchGame extends Container {
     handler: DailyDispatchGameEvents[K],
   ): void {
     this.eventHandlers[event] = handler;
+  }
+
+  /** Register a sound event handler (fires at precise animation moments) */
+  onSoundEvent<K extends keyof DailyDispatchSoundEvents>(
+    event: K,
+    handler: DailyDispatchSoundEvents[K],
+  ): void {
+    this.soundHandlers[event] = handler;
   }
 
   /** Set slide animation config (from tuning) */
@@ -289,6 +306,9 @@ export class DailyDispatchGame extends Container {
 
     const blockView = this.blockViews.get(event.blockId);
 
+    // Sound: play slide at the START of movement
+    this.emitSoundEvent('blockSlide');
+
     // Flash VFX on every successful swipe (fire-and-forget, don't await)
     if (blockView) {
       this.playSwipeFlash(blockView, event.direction);
@@ -302,6 +322,9 @@ export class DailyDispatchGame extends Container {
           easing: this.slideAnimConfig.slideEasing,
         });
 
+        // Sound: block exits through dock
+        this.emitSoundEvent('blockExit');
+
         const vec = DIR_VECTORS[event.direction];
         await blockView.playExitAnimation(vec, {
           duration: this.slideAnimConfig.exitDuration,
@@ -314,8 +337,11 @@ export class DailyDispatchGame extends Container {
           this.playDockGlow(dockView, result.exitedDock.wall);
         }
 
-        // Close the dock (truck drives away)
-        await dockView?.close();
+        // Close the dock (truck drives away) — sound callbacks fire inside the GSAP timeline
+        await dockView?.close(0.3, {
+          onDoorClose: () => this.emitSoundEvent('truckClose'),
+          onDriveAway: () => this.emitSoundEvent('truckDriveAway'),
+        });
 
         // Remove block view
         blockView.destroy();
@@ -364,6 +390,10 @@ export class DailyDispatchGame extends Container {
     if (handler) {
       (handler as (...a: unknown[]) => void)(...args);
     }
+  }
+
+  private emitSoundEvent<K extends keyof DailyDispatchSoundEvents>(event: K): void {
+    this.soundHandlers[event]?.();
   }
 
   // ── VFX ──

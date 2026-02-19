@@ -1,44 +1,42 @@
-import { Container, Graphics, Text } from 'pixi.js';
+import { Container, Sprite, Text } from 'pixi.js';
 import gsap from 'gsap';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { SpriteButton } from '~/game/dailydispatch/core/SpriteButton';
 import { getAtlasName } from '~/game/dailydispatch/utils/atlasHelper';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
-const CONFETTI_COUNT = 30;
-const CONFETTI_COLORS = [0xFF6B6B, 0xFFE66D, 0x4ECDC4, 0xA8E6CF, 0xFF8C94, 0xC7CEEA];
-
 /**
- * Level completion overlay with confetti, move count, clue text, and NEXT button.
- * Shown briefly between levels for a satisfying completion moment.
+ * Level completion overlay — shown at chapter end.
+ * Full-screen bg-closing_truck background with Marty talking,
+ * "Chapter Complete!" title above, and a NEXT button.
  */
 export class LevelCompleteOverlay extends Container {
-  private darkOverlay: Graphics;
-  private confettiContainer: Container;
-  private nextButton: SpriteButton | null = null;
+  private background: Sprite;
+  private character: Sprite;
   private titleText: Text;
-  private moveText: Text;
-  private clueText: Text;
+  private nextButton: SpriteButton | null = null;
   private onNext: (() => void) | null = null;
-  private confettiPieces: Graphics[] = [];
 
   constructor(private gpuLoader: PixiLoader) {
     super();
     this.label = 'level-complete-overlay';
     this.visible = false;
 
-    // Dark semi-transparent background
-    this.darkOverlay = new Graphics();
-    this.darkOverlay.eventMode = 'static';
-    this.addChild(this.darkOverlay);
+    const atlasName = getAtlasName();
 
-    // Confetti container
-    this.confettiContainer = new Container();
-    this.addChild(this.confettiContainer);
+    // Full-screen truck background
+    this.background = gpuLoader.createSprite(atlasName, 'bg-closing_truck.png');
+    this.background.anchor.set(0.5);
+    this.addChild(this.background);
 
-    // "Level Complete!" title
+    // Marty talking character — natural sprite size
+    this.character = gpuLoader.createSprite(atlasName, 'character-marty_talking.png');
+    this.character.anchor.set(0.5, 1);
+    this.addChild(this.character);
+
+    // "Chapter Complete!" title — sits above character
     this.titleText = new Text({
-      text: 'Level Complete!',
+      text: 'Chapter Complete!',
       style: {
         fontFamily: GAME_FONT_FAMILY,
         fontSize: 36,
@@ -50,39 +48,10 @@ export class LevelCompleteOverlay extends Container {
     });
     this.titleText.anchor.set(0.5);
     this.addChild(this.titleText);
-
-    // Move count
-    this.moveText = new Text({
-      text: '',
-      style: {
-        fontFamily: GAME_FONT_FAMILY,
-        fontSize: 22,
-        fill: '#FFE66D',
-        stroke: { color: '#000000', width: 3 },
-      },
-    });
-    this.moveText.anchor.set(0.5);
-    this.addChild(this.moveText);
-
-    // Clue text
-    this.clueText = new Text({
-      text: '',
-      style: {
-        fontFamily: GAME_FONT_FAMILY,
-        fontSize: 18,
-        fill: '#ffffff',
-        wordWrap: true,
-        wordWrapWidth: 280,
-        align: 'center',
-        lineHeight: 24,
-      },
-    });
-    this.clueText.anchor.set(0.5);
-    this.addChild(this.clueText);
   }
 
   /**
-   * Show the level completion overlay.
+   * Show the chapter completion overlay.
    */
   show(
     screenWidth: number,
@@ -93,31 +62,22 @@ export class LevelCompleteOverlay extends Container {
   ): void {
     this.onNext = onNext;
 
-    // Size overlay
-    this.darkOverlay.clear();
-    this.darkOverlay.rect(0, 0, screenWidth, screenHeight);
-    this.darkOverlay.fill({ color: 0x000000, alpha: 0.7 });
-
-    // Position elements
     const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
 
+    // Scale background to fill height, centered
+    const bgScale = screenHeight / this.background.texture.height;
+    this.background.scale.set(bgScale);
+    this.background.x = centerX;
+    this.background.y = screenHeight / 2;
+
+    // Character at lower-center — no scale change, natural size
+    this.character.x = centerX;
+    this.character.y = screenHeight * 0.78;
+
+    // Title above character
+    const charTop = this.character.y - this.character.height;
     this.titleText.x = centerX;
-    this.titleText.y = centerY - 80;
-
-    this.moveText.text = `Moves: ${moves}`;
-    this.moveText.x = centerX;
-    this.moveText.y = centerY - 35;
-
-    if (clue) {
-      this.clueText.text = clue;
-      this.clueText.style.wordWrapWidth = Math.min(280, screenWidth - 60);
-      this.clueText.x = centerX;
-      this.clueText.y = centerY + 10;
-      this.clueText.visible = true;
-    } else {
-      this.clueText.visible = false;
-    }
+    this.titleText.y = charTop - 20;
 
     // Create NEXT button
     if (this.nextButton) {
@@ -147,80 +107,60 @@ export class LevelCompleteOverlay extends Container {
       },
     });
     this.nextButton.x = centerX;
-    this.nextButton.y = clue ? centerY + 80 : centerY + 40;
+    this.nextButton.y = screenHeight * 0.88;
     this.addChild(this.nextButton);
 
-    // Spawn confetti
-    this.spawnConfetti(screenWidth, screenHeight);
-
-    // Animate in
+    // Animate in: background fades, then character slides up, then title bounces
     this.visible = true;
     this.alpha = 0;
-    gsap.to(this, { alpha: 1, duration: 0.3, ease: 'power2.out' });
+    this.character.alpha = 0;
+    this.character.y += 40;
+    this.titleText.alpha = 0;
+    this.titleText.scale.set(0);
+    if (this.nextButton) this.nextButton.alpha = 0;
+
+    const tl = gsap.timeline();
+
+    // Fade in background
+    tl.to(this, { alpha: 1, duration: 0.3, ease: 'power2.out' });
+
+    // Slide character up + fade in
+    tl.to(this.character, {
+      alpha: 1,
+      y: this.character.y - 40,
+      duration: 0.4,
+      ease: 'power2.out',
+    }, '-=0.1');
 
     // Title bounce in
-    this.titleText.scale.set(0);
-    gsap.to(this.titleText.scale, { x: 1, y: 1, duration: 0.4, ease: 'back.out(1.7)', delay: 0.1 });
+    tl.to(this.titleText, { alpha: 1, duration: 0.1 }, '-=0.1');
+    tl.to(this.titleText.scale, {
+      x: 1, y: 1,
+      duration: 0.4,
+      ease: 'back.out(1.7)',
+    }, '<');
+
+    // Fade in NEXT button
+    tl.to(this.nextButton, { alpha: 1, duration: 0.3, ease: 'power2.out' }, '-=0.2');
   }
 
   /** Hide the overlay */
   hide(): void {
     gsap.killTweensOf(this);
-    this.clearConfetti();
+    gsap.killTweensOf(this.character);
+    gsap.killTweensOf(this.titleText);
+    gsap.killTweensOf(this.titleText.scale);
+    if (this.nextButton) gsap.killTweensOf(this.nextButton);
     this.visible = false;
     this.alpha = 0;
   }
 
-  private spawnConfetti(screenWidth: number, screenHeight: number): void {
-    this.clearConfetti();
-
-    for (let i = 0; i < CONFETTI_COUNT; i++) {
-      const piece = new Graphics();
-      const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-      const w = 6 + Math.random() * 6;
-      const h = 4 + Math.random() * 4;
-      piece.rect(-w / 2, -h / 2, w, h);
-      piece.fill({ color });
-
-      piece.x = Math.random() * screenWidth;
-      piece.y = -20 - Math.random() * 100;
-      piece.rotation = Math.random() * Math.PI * 2;
-
-      this.confettiContainer.addChild(piece);
-      this.confettiPieces.push(piece);
-
-      // Animate falling
-      const duration = 1.5 + Math.random() * 1.5;
-      const targetY = screenHeight + 20;
-      gsap.to(piece, {
-        y: targetY,
-        rotation: piece.rotation + (Math.random() - 0.5) * 10,
-        x: piece.x + (Math.random() - 0.5) * 120,
-        duration,
-        ease: 'power1.in',
-        delay: Math.random() * 0.5,
-      });
-      gsap.to(piece, {
-        alpha: 0,
-        duration: 0.5,
-        delay: duration - 0.3,
-      });
-    }
-  }
-
-  private clearConfetti(): void {
-    for (const piece of this.confettiPieces) {
-      gsap.killTweensOf(piece);
-      piece.destroy();
-    }
-    this.confettiPieces = [];
-    this.confettiContainer.removeChildren();
-  }
-
   destroy(): void {
-    this.clearConfetti();
     gsap.killTweensOf(this);
-    if (this.titleText) gsap.killTweensOf(this.titleText.scale);
+    gsap.killTweensOf(this.character);
+    gsap.killTweensOf(this.titleText);
+    gsap.killTweensOf(this.titleText.scale);
+    if (this.nextButton) gsap.killTweensOf(this.nextButton);
     super.destroy({ children: true });
   }
 }

@@ -3,7 +3,7 @@ import type { Container } from 'pixi.js';
 import type { Direction, GridPosition } from '../types/grid';
 
 /** Minimum drag distance (pixels) to register as a swipe */
-const MIN_SWIPE_DISTANCE = 8;
+const MIN_SWIPE_DISTANCE = 4;
 
 /** Result of a detected swipe gesture */
 export interface SwipeEvent {

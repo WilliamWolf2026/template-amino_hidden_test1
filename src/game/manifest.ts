@@ -22,7 +22,8 @@ export const manifest: Manifest = {
     { name: 'vfx-mg_noglow_01', assets: ['vfx-mg_noglow_01.json'] },
 
     // AUDIO
-    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] },
+    { name: 'audio-sfx-daily-dispatch', assets: ['sfx-daily-dispatch.json'] },
+    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] }, // scaffold Button.tsx hardcodes this channel
     { name: 'audio-music-citylines-1', assets: ['music-citylines-1.json'] },
     { name: 'audio-music-warehouse-puzzle', assets: ['music-warehouse-puzzle.json'] },
   ],
