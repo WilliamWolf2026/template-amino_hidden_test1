@@ -1,2 +1,2 @@
-export { setupCityLinesGame, type GameScreenController, type GameScreenDeps } from './gameController';
-export { setupCityLinesStartScreen, type StartScreenController, type StartScreenDeps } from './startView';
+export { setupDailyDispatchGame, type GameScreenController, type GameScreenDeps } from './gameController';
+export { setupDailyDispatchStartScreen, type StartScreenController, type StartScreenDeps } from './startView';

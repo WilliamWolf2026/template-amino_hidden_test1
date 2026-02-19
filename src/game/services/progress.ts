@@ -238,3 +238,53 @@ export function clearTileState(): void {
     current: rest as CurrentChapter,
   });
 }
+
+// ============================================================================
+// Block State Persistence (Daily Dispatch sliding puzzle)
+// ============================================================================
+
+const BLOCK_STATE_KEY = 'game_block_state';
+
+interface SavedBlockState {
+  /** Block positions keyed by block ID */
+  positions: Record<string, { col: number; row: number }>;
+  /** Which blocks have exited */
+  exitedIds: string[];
+  /** Current move count */
+  moveCount: number;
+}
+
+/**
+ * Save block positions for the current level (mid-level resume).
+ */
+export function saveBlockState(state: SavedBlockState): void {
+  try {
+    localStorage.setItem(BLOCK_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/**
+ * Get saved block state for the current level.
+ */
+export function getBlockState(): SavedBlockState | null {
+  try {
+    const raw = localStorage.getItem(BLOCK_STATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SavedBlockState;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Clear block state (called when level completes or resets).
+ */
+export function clearBlockState(): void {
+  try {
+    localStorage.removeItem(BLOCK_STATE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+}

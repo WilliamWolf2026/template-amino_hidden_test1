@@ -11,7 +11,7 @@ import { useGameData } from '~/game/hooks/useGameData';
 import { gameState } from '~/game/state';
 
 // Game-specific controller — swap this import for a different game
-import { setupCityLinesGame } from '~/game/citylines/screens/gameController';
+import { setupDailyDispatchGame } from '~/game/dailydispatch/screens/gameController';
 
 export default function GameScreen() {
   const { coordinator } = useAssets();
@@ -22,7 +22,7 @@ export default function GameScreen() {
   let containerRef: HTMLDivElement | undefined;
 
   // Setup game-specific controller (creates signals & effects in reactive context)
-  const controller = setupCityLinesGame({
+  const controller = setupDailyDispatchGame({
     coordinator,
     tuning,
     audio,

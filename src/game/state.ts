@@ -21,6 +21,14 @@ export interface GameState {
   setTotalLevels: (total: number) => void;
   incrementLevel: () => void;
 
+  // Story data (set by controller for results screen)
+  storyHeadline: () => string;
+  setStoryHeadline: (headline: string) => void;
+  storyImageUrl: () => string;
+  setStoryImageUrl: (url: string) => void;
+  storyArticleUrl: () => string;
+  setStoryArticleUrl: (url: string) => void;
+
   reset: () => void;
 }
 
@@ -29,6 +37,9 @@ function createGameState(): GameState {
   const [health, setHealth] = createSignal(100);
   const [currentLevel, setCurrentLevel] = createSignal(1); // Start at 1 (1-based levels)
   const [totalLevels, setTotalLevels] = createSignal(10);
+  const [storyHeadline, setStoryHeadline] = createSignal('');
+  const [storyImageUrl, setStoryImageUrl] = createSignal('');
+  const [storyArticleUrl, setStoryArticleUrl] = createSignal('');
 
   return {
     score,
@@ -46,11 +57,21 @@ function createGameState(): GameState {
     setTotalLevels,
     incrementLevel: () => setCurrentLevel((l) => l + 1),
 
+    storyHeadline,
+    setStoryHeadline,
+    storyImageUrl,
+    setStoryImageUrl,
+    storyArticleUrl,
+    setStoryArticleUrl,
+
     reset: () => {
       setScore(0);
       setHealth(100);
-      setCurrentLevel(1); // Reset to 1 (1-based levels)
+      setCurrentLevel(1);
       setTotalLevels(10);
+      setStoryHeadline('');
+      setStoryImageUrl('');
+      setStoryArticleUrl('');
     },
   };
 }

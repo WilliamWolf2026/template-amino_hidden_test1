@@ -17,7 +17,7 @@ export class DialogueBox extends SharedDialogueBox {
   ) {
     super(gpuLoader, {
       atlasName: getAtlasName(),
-      spriteName: 'dialogue.png',
+      spriteName: 'ui-dialogue.png',
       fontFamily: GAME_FONT_FAMILY,
       positioning: {
         dialogueBottomPadding: POSITIONING.dialogueBottomPadding,

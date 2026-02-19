@@ -1,4 +1,5 @@
 export * from './grid';
-export * from './landmark';
+export * from './block';
+export * from './dock';
 export * from './level';
 export * from './gameData';

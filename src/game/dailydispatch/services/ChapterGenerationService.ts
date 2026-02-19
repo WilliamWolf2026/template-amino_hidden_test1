@@ -1,9 +1,8 @@
 import { LevelGenerationService } from './LevelGenerationService';
-import { getDifficultyForLevel, difficultyToGeneratorConfig } from '../types/level';
+import { getDifficultyForLevel, DIFFICULTY_PRESETS } from '../types/level';
 import { getChapterLength } from '../types/section';
 import type { LevelConfig } from '../types';
 import type { SectionConfig } from '../types/section';
-import type { GeneratorConfig } from '~/game/tuning';
 
 /** Result of generating a full chapter */
 export interface GeneratedChapter {
@@ -17,20 +16,16 @@ export interface GeneratedChapter {
 
 /**
  * Service for generating complete chapters with all levels upfront.
- * This enables reproducible chapters via seeds and variable chapter lengths.
+ * Uses the sliding puzzle generator with difficulty progression.
  */
 export class ChapterGenerationService {
   /**
-   * Generate all levels for a chapter upfront
+   * Generate all levels for a chapter upfront.
    *
    * @param config - Section config with seeds and story clues
-   * @param baseGeneratorConfig - Base tuning parameters for generation
    * @returns Generated chapter with all levels
    */
-  static generateChapter(
-    config: SectionConfig,
-    baseGeneratorConfig: Partial<GeneratorConfig>
-  ): GeneratedChapter {
+  static generateChapter(config: SectionConfig): GeneratedChapter {
     const chapterLength = getChapterLength(config);
     const levels: LevelConfig[] = [];
     const seeds: number[] = [];
@@ -42,36 +37,46 @@ export class ChapterGenerationService {
       const seed = config.levelSeeds?.[i] ?? this.generateRandomSeed();
       seeds.push(seed);
 
-      // Get difficulty scaled to chapter length
-      const difficulty = getDifficultyForLevel(levelNumber, chapterLength);
+      // Get difficulty tier scaled to chapter length
+      const tier = getDifficultyForLevel(i, chapterLength);
+      const difficulty = DIFFICULTY_PRESETS[tier];
 
-      // Convert to generator config
-      const generatorConfig = difficultyToGeneratorConfig(difficulty, {
-        sidePushRadius: baseGeneratorConfig.sidePushRadius ?? 2,
-        sidePushFactor: baseGeneratorConfig.sidePushFactor ?? 1,
-        wriggleDistanceMagnifier: baseGeneratorConfig.wriggleDistanceMagnifier ?? 4,
-        wriggleExtentChaosFactor: baseGeneratorConfig.wriggleExtentChaosFactor ?? 0.8,
-        wrigglePasses: baseGeneratorConfig.wrigglePasses ?? 2,
-      });
+      // Generate level
+      const level = LevelGenerationService.generateLevel(levelNumber, difficulty, seed);
 
-      // Generate level with seed
-      const level = LevelGenerationService.generateLevel(levelNumber, generatorConfig, seed);
+      if (level) {
+        // Apply clue from section config if available
+        const clue = config.story.clues?.[i];
+        if (clue) level.clue = clue;
 
-      // Apply county from section config
-      level.county = config.county;
-
-      levels.push(level);
+        levels.push(level);
+      } else {
+        console.warn(`[Chapter] Failed to generate level ${levelNumber}, using fallback`);
+        levels.push(this.createFallbackLevel(levelNumber));
+      }
     }
 
-    console.log(`[Chapter] Loaded ${chapterLength} levels`);
+    console.log(`[Chapter] Generated ${levels.length}/${chapterLength} levels`);
 
     return { levels, seeds, chapterLength };
   }
 
-  /**
-   * Generate a random seed for level generation
-   */
   private static generateRandomSeed(): number {
     return Date.now() ^ (Math.random() * 0x100000000);
+  }
+
+  /** Minimal 1-block level as a fallback */
+  private static createFallbackLevel(levelNumber: number): LevelConfig {
+    return {
+      id: `fallback_${levelNumber}`,
+      blocks: [
+        { id: 'block_blue', color: 'blue', shape: 'I2_H', position: { col: 2, row: 2 } },
+      ],
+      docks: [
+        { id: 'dock_blue', color: 'blue', wall: 'right', wallIndices: [2] },
+      ],
+      gridSize: 6,
+      optimalMoves: 1,
+    };
   }
 }
