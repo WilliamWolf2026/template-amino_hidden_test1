@@ -3,7 +3,7 @@ import type { Container } from 'pixi.js';
 import type { Direction, GridPosition } from '../types/grid';
 
 /** Minimum drag distance (pixels) to register as a swipe */
-const MIN_SWIPE_DISTANCE = 15;
+const MIN_SWIPE_DISTANCE = 8;
 
 /** Result of a detected swipe gesture */
 export interface SwipeEvent {
@@ -81,10 +81,31 @@ export class SwipeDetector {
     this.pointerDown = true;
 
     // Hit-test: which block cell was tapped?
+    // Check exact cell first, then check neighboring cells for a forgiving touch
     const gridPos = this.pixelToGrid(local.x, local.y);
     if (gridPos) {
       const key = `${gridPos.col},${gridPos.row}`;
       this.startBlockId = this.occupancyLookup.get(key) ?? null;
+
+      // If no exact hit, check adjacent cells (forgiving tap radius)
+      if (!this.startBlockId) {
+        const neighbors = [
+          { col: gridPos.col - 1, row: gridPos.row },
+          { col: gridPos.col + 1, row: gridPos.row },
+          { col: gridPos.col, row: gridPos.row - 1 },
+          { col: gridPos.col, row: gridPos.row + 1 },
+        ];
+        for (const n of neighbors) {
+          if (n.col >= 0 && n.col < this.gridSize && n.row >= 0 && n.row < this.gridSize) {
+            const nKey = `${n.col},${n.row}`;
+            const blockId = this.occupancyLookup.get(nKey);
+            if (blockId) {
+              this.startBlockId = blockId;
+              break;
+            }
+          }
+        }
+      }
     } else {
       this.startBlockId = null;
     }

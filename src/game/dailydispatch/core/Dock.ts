@@ -102,38 +102,41 @@ export class Dock extends Container {
       const driveVec = getDriveVector(this.wall);
       const driveDistance = this.cellSize * 2.5;
 
-      for (const truck of this.trucks) {
-        // Snap-switch: hide open, show closed with a scale pop
+      for (let i = 0; i < this.trucks.length; i++) {
+        const truck = this.trucks[i];
+        const stagger = i * 0.08;
+
         const tl = gsap.timeline({
+          delay: stagger,
           onComplete: () => {
             completed++;
             if (completed >= total) resolve();
           },
         });
 
-        // Frame switch with scale punch
-        tl.to(truck.open, {
-          alpha: 0,
-          duration: duration * 0.3,
-          ease: 'power2.in',
-          onComplete: () => {
-            truck.open.visible = false;
-          },
+        // Instant frame swap — no fade, no flash
+        tl.call(() => {
+          truck.open.visible = false;
+          truck.closed.visible = true;
+          truck.closed.alpha = 1;
         });
-        tl.set(truck.closed, { visible: true, alpha: 1 });
+
+        // Scale punch on the closed sprite
+        const baseScaleX = truck.closed.scale.x;
         tl.fromTo(
           truck.closed.scale,
-          { x: truck.closed.scale.x * 1.2, y: 1.2 },
-          { x: truck.closed.scale.x * 1, y: 1, duration: duration * 0.4, ease: 'back.out(2)' },
+          { x: baseScaleX * 1.15, y: 1.15 },
+          { x: baseScaleX, y: 1, duration: duration * 0.5, ease: 'back.out(2)' },
         );
 
-        // Drive away
+        // Brief pause then drive away
         tl.to(truck.closed, {
           x: truck.closed.x + driveVec.x * driveDistance,
           y: truck.closed.y + driveVec.y * driveDistance,
           alpha: 0,
           duration: 0.5,
           ease: 'power2.in',
+          delay: 0.1,
         });
       }
     });

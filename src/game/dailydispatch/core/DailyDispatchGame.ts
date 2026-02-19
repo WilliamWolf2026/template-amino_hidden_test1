@@ -1,4 +1,4 @@
-import { Container, NineSliceSprite } from 'pixi.js';
+import { AnimatedSprite, Container, NineSliceSprite } from 'pixi.js';
 import type { LevelConfig } from '../types/level';
 import type { BlockState } from '../types/block';
 import type { DockState } from '../types/dock';
@@ -11,6 +11,15 @@ import { Dock } from './Dock';
 import { SwipeDetector, type SwipeEvent } from './SwipeDetector';
 import { getAtlasName } from '../utils/atlasHelper';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+
+/** Rotation (radians) to point the flash VFX in the swipe direction.
+ *  The flash texture animates left→right, so 0 = right. */
+const DIRECTION_ROTATION: Record<Direction, number> = {
+  right: 0,
+  down: Math.PI / 2,
+  left: Math.PI,
+  up: -Math.PI / 2,
+};
 
 /** Events emitted by the game */
 export interface DailyDispatchGameEvents {
@@ -280,6 +289,11 @@ export class DailyDispatchGame extends Container {
 
     const blockView = this.blockViews.get(event.blockId);
 
+    // Flash VFX on every successful swipe (fire-and-forget, don't await)
+    if (blockView) {
+      this.playSwipeFlash(blockView.x, blockView.y, event.direction);
+    }
+
     if (blockView && result.newPosition) {
       if (result.exitedDock) {
         // Slide to wall, then play exit animation
@@ -294,8 +308,13 @@ export class DailyDispatchGame extends Container {
           easing: this.slideAnimConfig.exitEasing,
         });
 
-        // Close the dock
+        // Glow VFX at the dock (fire-and-forget)
         const dockView = this.dockViews.get(result.exitedDock.id);
+        if (dockView) {
+          this.playDockGlow(dockView, result.exitedDock.wall);
+        }
+
+        // Close the dock (truck drives away)
         await dockView?.close();
 
         // Remove block view
@@ -345,6 +364,56 @@ export class DailyDispatchGame extends Container {
     if (handler) {
       (handler as (...a: unknown[]) => void)(...args);
     }
+  }
+
+  // ── VFX ──
+
+  /** Play flash VFX at block position, rotated to face swipe direction */
+  private playSwipeFlash(x: number, y: number, direction: Direction): void {
+    if (!this.gpuLoader.hasSheet('vfx-flash_fx_shape_04')) return;
+
+    const vfx = this.gpuLoader.createAnimatedSprite('vfx-flash_fx_shape_04', 'flash');
+    vfx.anchor.set(0.5);
+    vfx.x = x;
+    vfx.y = y;
+    vfx.rotation = DIRECTION_ROTATION[direction];
+    vfx.scale.set(this.cellSize / 128); // Scale to match cell size
+    vfx.alpha = 0.85;
+    vfx.animationSpeed = 0.6;
+    vfx.loop = false;
+    vfx.onComplete = () => {
+      this.vfxContainer.removeChild(vfx);
+      vfx.destroy();
+    };
+    this.vfxContainer.addChild(vfx);
+    vfx.play();
+  }
+
+  /** Play glow VFX at dock position when a block exits, rotated 45 degrees */
+  private playDockGlow(dockView: Dock, wall: string): void {
+    if (!this.gpuLoader.hasSheet('vfx-mg_glow_09')) return;
+
+    const vfx = this.gpuLoader.createAnimatedSprite('vfx-mg_glow_09', 'glow');
+    vfx.anchor.set(0.5);
+
+    // Position at the dock's center (in game-local coordinates)
+    const dockBounds = dockView.getBounds();
+    const localPos = this.toLocal({ x: dockBounds.x + dockBounds.width / 2, y: dockBounds.y + dockBounds.height / 2 });
+    vfx.x = localPos.x;
+    vfx.y = localPos.y;
+
+    // Rotate 45 degrees as requested
+    vfx.rotation = Math.PI / 4;
+    vfx.scale.set(this.cellSize / 100);
+    vfx.alpha = 0.9;
+    vfx.animationSpeed = 0.5;
+    vfx.loop = false;
+    vfx.onComplete = () => {
+      this.vfxContainer.removeChild(vfx);
+      vfx.destroy();
+    };
+    this.vfxContainer.addChild(vfx);
+    vfx.play();
   }
 
   override destroy(): void {

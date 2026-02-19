@@ -17,9 +17,13 @@ export const manifest: Manifest = {
     // VFX
     { name: 'vfx-rotate', assets: ['vfx-rotate.json'] },
     { name: 'vfx-blast', assets: ['vfx-blast.json'] },
+    { name: 'vfx-flash_fx_shape_04', assets: ['vfx-flash_fx_shape_04.json'] },
+    { name: 'vfx-mg_glow_09', assets: ['vfx-mg_glow_09.json'] },
+    { name: 'vfx-mg_noglow_01', assets: ['vfx-mg_noglow_01.json'] },
 
     // AUDIO
     { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] },
     { name: 'audio-music-citylines-1', assets: ['music-citylines-1.json'] },
+    { name: 'audio-music-warehouse-puzzle', assets: ['music-warehouse-puzzle.json'] },
   ],
 };

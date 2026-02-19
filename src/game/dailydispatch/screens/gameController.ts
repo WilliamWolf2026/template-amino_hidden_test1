@@ -235,6 +235,13 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         return;
       }
 
+      // Load VFX bundles (local assets)
+      await Promise.all([
+        coordinator.loadBundle('vfx-flash_fx_shape_04'),
+        coordinator.loadBundle('vfx-mg_glow_09'),
+        coordinator.loadBundle('vfx-mg_noglow_01'),
+      ]);
+
       // Background
       const background = gpuLoader.createSprite(tileBundleName, 'bg-gameboard.png');
       const bgScale = app.screen.height / background.texture.height;

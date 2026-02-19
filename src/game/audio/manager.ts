@@ -1,23 +1,24 @@
 import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
 import { BaseAudioManager } from '~/scaffold/systems/audio';
 import {
-  SOUND_TILE_ROTATE,
+  SOUND_BLOCK_SLIDE,
+  SOUND_BLOCK_EXIT,
   SOUND_LEVEL_COMPLETE,
-  SOUND_LANDMARK_CONNECT,
-  SOUND_NEWS_REVEAL,
-  SOUND_DOG_BARK,
-  SOUND_DOG_PANT,
+  SOUND_CHAPTER_COMPLETE,
+  SOUND_ERASER,
+  SOUND_TRUCK_CLOSE,
+  SOUND_CLUE_REVEAL,
   MUSIC_TRACKS,
 } from './sounds';
 
 /**
- * Game Audio Manager
- * Extends BaseAudioManager with game-specific sound methods
+ * Game Audio Manager — Daily Dispatch
+ * Extends BaseAudioManager with game-specific sound methods.
  *
  * Inherited from BaseAudioManager:
- * - playSound() / playRandomSound() - Sound playback
- * - startMusic() / stopMusic() - Music with fade
- * - isMusicPlaying() - Music state check
+ * - playSound() / playRandomSound() — sound playback
+ * - startMusic() / stopMusic() — music with fade
+ * - isMusicPlaying() — music state check
  */
 export class GameAudioManager extends BaseAudioManager {
   private currentMusicIndex = 0;
@@ -27,67 +28,55 @@ export class GameAudioManager extends BaseAudioManager {
   }
 
   // ============================================================================
-  // GAME-SPECIFIC SOUND METHODS
+  // GAMEPLAY SOUNDS
   // ============================================================================
 
-  /**
-   * Play tile rotation sound
-   * Randomly selects from variations to prevent audio fatigue
-   */
-  playTileRotate(): void {
-    this.playRandomSound(SOUND_TILE_ROTATE);
+  /** Play block slide sound (random variation) */
+  playBlockSlide(): void {
+    this.playRandomSound(SOUND_BLOCK_SLIDE);
   }
 
-  /**
-   * Play level complete sound
-   */
+  /** Play block exit sound (block leaves through dock) */
+  playBlockExit(): void {
+    this.playSound(SOUND_BLOCK_EXIT);
+  }
+
+  /** Play level complete sound */
   playLevelComplete(): void {
     this.playSound(SOUND_LEVEL_COMPLETE);
   }
 
-  /**
-   * Play landmark connected sound
-   */
-  playLandmarkConnect(): void {
-    this.playSound(SOUND_LANDMARK_CONNECT);
+  /** Play chapter complete sound */
+  playChapterComplete(): void {
+    this.playSound(SOUND_CHAPTER_COMPLETE);
   }
 
-  /**
-   * Play news reveal sound
-   */
-  playNewsReveal(): void {
-    this.playSound(SOUND_NEWS_REVEAL);
+  /** Play eraser use sound */
+  playEraser(): void {
+    this.playSound(SOUND_ERASER);
   }
 
-  /**
-   * Play dog bark sound
-   */
-  playDogBark(): void {
-    this.playSound(SOUND_DOG_BARK);
+  /** Play truck door close sound */
+  playTruckClose(): void {
+    this.playSound(SOUND_TRUCK_CLOSE);
   }
 
-  /**
-   * Play dog pant sound
-   */
-  playDogPant(): void {
-    this.playSound(SOUND_DOG_PANT);
+  /** Play clue reveal sound */
+  playClueReveal(): void {
+    this.playSound(SOUND_CLUE_REVEAL);
   }
 
   // ============================================================================
-  // MUSIC CONTROL
+  // MUSIC
   // ============================================================================
 
-  /**
-   * Start background music from current track
-   */
+  /** Start background music from current track */
   startGameMusic(): void {
     const track = MUSIC_TRACKS[this.currentMusicIndex];
     this.startMusic(track);
   }
 
-  /**
-   * Switch to next music track
-   */
+  /** Switch to next music track */
   nextTrack(): void {
     this.stopMusic();
     this.currentMusicIndex = (this.currentMusicIndex + 1) % MUSIC_TRACKS.length;
