@@ -1,472 +1,474 @@
-# **City Lines: Design Document**
+## Daily Dispatch: Design Document
 
-**Title:** City Lines
+**Title:** Daily Dispatch
 
-**Tagline:** TBD
+**Tagline:** "Keep your town moving."
 
-**Genre:** Puzzle (Path Connection / Network Building)
+**Genre:** Puzzle (Sliding Block / Spatial Reasoning)
 
 **Platform:** Web (mobile-first, responsive)
 
-**Target Audience:** nj.com readers, adults 40+ in New Jersey
+**Target Audience:** Advance readers, adults 40+
 
-**Latest Prototype Link:** https://city-lines-news.vercel.app/
+**Latest Prototype Link:** https://daily-dispatch-us.vercel.app/
+
+**Asset List:** [Production Requirements](https://www.notion.so/Production-Requirements-2e84a337719980ecb2c4e1a87f31c160?pvs=21)
 
 **Screen Mocks:** TBD
 
 ---
 
-## **Game Overview**
+## Game Overview
 
-An endless puzzle game where players rotate road tiles to connect landmarks across New Jersey counties to highways. Players progress through chapters of 10 levels, each revealing a weekly local news story.
+A sliding block puzzle game where players guide colored polyomino pieces to matching exits on a grid. The game combines the sliding mechanics of sliding puzzles with spatial reasoning.
 
----
+### Setting
 
-## **Core Gameplay Flow**
-
-Below is a description of the gameplay flow, going through each key moment in the game.
-
-### **Start Screen**
-
-This is the screen players see when they start the game. Below is what they encounter:
-
-- Authority figure (in-game companion character)
-- Current chapter info
-  (e.g., "Atlantic County")
-- Some info on the task & goal
-- "Start" button
-
-### **Level Structure**
-
-Below is the breakdown of how levels are structures in the game - based on difficulty.
-
-- Grid of road tiles (4×4 to 6×6)
-- 2-4 landmarks placed on grid
-  - Landmarks can be common or county specific
-    - Commons: house, gas station, diner, market
-    - County Specific: TBD
-- Player taps tiles to rotate 90° clockwise
-- Goal: Connect all landmarks to turnpikes/highway exists with continuous roads
-- Roads light up when a landmark is connected to the turnpike
-  **Road Tile Types:**
-  - Straight
-  - Corner (L-shapes)
-  - T-junction
-
-### **Level Completion**
-
-When players complete a level, they encounter the following flow:
-
-- Roads light up when all landmarks connected
-- Story clue appears (3 seconds)
-  - Example: "Unlikely championship victory"
-- Progress advances (+1 level)
-- "Continue" to next level
-
-### **Chapters (5 to 10 Levels Each)**
-
-To enhance the feeling of progress, we'll have chapters in the game consisting of levels. Each chapter will feature one county and this will be based on the source of the news.
-
-- Each chapter = 1 NJ county + 1 news story
-- County selected based on top news of the week
-- County-specific visual elements:
-  - Option 1: County specific backgrounds **(easier)**
-  - Option 2: Unique landmarks (Atlantic → Casino, Bergen → Mall) **(harder)**
-  - Themed decorations
-  - Color variations
-- Each level reveals one story clue
-- After Last Level: Story Reveal Interstitial
-
-### **Chapter Completion: Story Interstitial**
-
-Once the players complete a chapter, they encounter the following screen:
-
-**Displays:**
-
-- Full headline
-  - Reveal style: [old school spinning newspaper headline animations](https://www.youtube.com/watch?v=wwhue4mkOyQ)
-- Story summary (2-3 sentences)
-- Featured image
-- County name
-- Bookmark story
-- Copy: _Story added to the news basket_
-- "Continue to Next Chapter" button
-
-**Then:**
-
-- New chapter loads
-- New county theme
-- New story begins
-- Progress resets to 0/10
-
-### **Interaction with the Character**
-
-For MVP, the interaction with the character will be limited. The following are the limits to character involvement during the gameplay:
-**Title Screen:**
-
-- The character is visible on title screen illustrated (different than in game assets)
-
-**Introduction Screen (after title screen, first time playing):**
-
-- The character slides in from right of the screen.
-- Character doesn’t animate
-- Character talks through dialogue boxes.
-
-**Chapter start**
-
-- ~~The character slides in from right of the screen.~~
-- Character doesn't animate
-- Character talks through dialogue boxes, explains what story they are after.
-
-**During Gameplay (level completion):**
-
-- The character talks through little pop up boxes - we only see character’s head in a circle revealing the clue.
-
-**Chapter end**
-
-- Character doesn't animate (static)
-- Character talks through dialogue boxes, reveals the story they found.
-  ![Mockups.png](attachment:f37d3eaf-efe0-499c-8fd3-7619defcffa6:Mockups.png)
+The game takes place in a warehouse distribution center. Players help Dale, the warehouse floor manager, sort and dispatch packages to the correct loading docks. Each section tells a real local news story through dialogue and package deliveries.
 
 ---
 
-## **Flow Chart**
+## Screens & Flow
 
-`Start Screen
-    ↓
-Chapter (0/10) - County Theme Loads
-    ↓
-Level 1 → Complete → Clue 1 → Continue
-Level 2 → Complete → Clue 2 → Continue
-Level 3-9 → (same pattern)
-Level 10 → Complete → Clue 10 → Continue
-    ↓
-Story Reveal Interstitial
-    ↓
-\[Headline + Summary + Link\]
-    ↓
-Continue to Next Chapter
-    ↓
-(cycle repeats infinitely)`
+Below is a description of each screen in the game flow.
 
----
+### Title Screen
 
-## **Progression**
+- Background: Warehouse setting
+- Title: "DAILY DISPATCH"
+- Tagline: "Keep your town moving." - TBD
+- Play button
 
-Each chapter will start with easier levels and will get harder towards the end of the chapter.
+### Intro Cutscene
 
-**Difficulty Scaling:**
+- Character: Marty (warehouse manager) slides up from bottom
+- Marty introduces himself and explains the job
+- Tap to advance through dialogue, then transitions to game
 
-- Levels 1-2: 4×4 grid, 2-3 landmarks
-- Levels 3-6: 5×5 grid, 3-5 landmarks
-- Levels 7-10: 6×6 grid, 5-7 landmarks
-- Resets slightly each new chapter
+## Chapters
 
-**No Failure State:**
+Players go through chapters to progress in the game. Each chapter consists of 5-10 levels and feature one top news story from that week.
 
-- Unlimited moves
-- No time limits
-- Focus on discovery, not competition
+Below is a description of each screen in a chapter:
 
----
+### Chapter Start Interstitial
 
-## **Story Clue System**
+Screen shown when a new chapter starts.
 
-The clues are snippets from the news and their main goal is to invoke curiosity in players.
+- Chapter number and title (e.g., "CHAPTER 1: FISHTOWN IN LIGHTS")
+- Section-specific background image
+- marty introduces the section's story theme
+- START button to begin first level
 
-**Clue Types:**
+### Game Screen
 
-- Text: "A local hero returns..."
-- Category: "🏈 Sports"
-- Location: "Big news in Trenton..."
-- Keywords: "Jackpot", "Championship"
+All elements visible on gameplay screen.
 
-**Example (TBD - Writers)**
+- 6x6 grid with colored pieces and exits
+- Section-specific warehouse backgrounds
+- UI Elements:
+    - Section name at top
+    - Level number
+    - Move counter with best score (based on min moves needed to solve the puzzle)
+    - Restart button (top right)
+    - Eraser booster button (bottom center)
 
----
+### Level Complete
 
-## **County Themes**
+Sequence of events when a level is complete.
 
-To enhance localization, we'll incorporate art assets from different counties in New Jersey based on the news story featured on that chapter.
+- "LEVEL X COMPLETE!" message
+- Confetti particle effect
+- Post-level dialogue popup
+    - Marty reveals what was shipped and try to figure out what's happening
+- And icon of the shipped item pops is visible
+- NEXT button with pulse animation (appears after delay)
 
-**21 NJ Counties, each featuring:**
+### Chapter Complete Screen
 
-- 1-2 unique landmarks
-- Themed decorations
-- Color variations
+Screen shown when a new chapter ends.
 
-**Examples:**
+**Part 1**
 
-- Atlantic: Casino, Boardwalk
-- Bergen: Mall, GW Bridge
-- Cape May: Lighthouse, Beach
-- Essex: Airport, Arts Center
-- Hudson: Liberty Park, Waterfront
+- Players are shown a truck with an open door
+- They are prompted to slide the door to dispatch the shipment.
+- Once they close the door, they proceed to Part 2
 
----
+**Part 2**
 
-## **Mechanics**
-
-As of now, we have the most basic mechanics allowing for a relaxing, forever puzzle game.
-Based on the performance, we may add more mechanics in the future.
-
-**MVP:**
-
-- Tap to rotate tiles
-- Connect all landmarks
-- option to restart (reload) level
-- No restrictions (i.e. move limits, time limits etc)
+- Animation of the truck leaves the warehouse
+- "ALL DELIVERIES CLEARED" header animatin
+- Animated score counter (levels x 100 + eraser bonus)
+- Score breakdown display
+- Marty reveals what the story was really about
+- "Read the full story ->" link to actual news article
+- CONTINUE button to next section
 
 ---
 
-## **Narrative/Characters (TBD)**
+## Core Mechanics
 
-We are planning to incorporate one of these characters in the game as a companion to both guide and excite the player.
+Below is the description of all core mechanics of the game.
 
-**THE PAPER KID:**
+### The Grid
 
-**Companion:**
+This is the gameplay board.
 
-- The last Paper Boy/Girl in town, still delivering physical news in a place that has gone fully digital.
-- Races through neighborhoods shouting the story in quick bursts as they pass.
-- Relies on the player to chart a usable delivery route so they can keep the tradition of print news alive.
+- Default size: 6x6
+- Acts as a bounded play area
+- Walls on all four sides with colored exits at specific positions
 
-**Player’s Role:**
+### Pieces (Blocks)
 
-- The player connects streets to build the Paper Kid’s delivery path through each neighborhood.
-- Each new route lets the Paper Kid shout out another snippet of the day’s story as they speed by.
-- By completing the full set of routes, the player helps them share the entire article with the community.
+These are the gameplay elements (shapes) players slide on the board.
 
-**News Reveal:**
+- Polyomino shapes: DOT, I2, I3, I4, L, J, T, O (2x2), rectangles
+- Each piece has a single color category
+- Fixed orientation per level (no rotation)
+- Multiple pieces of the same color can exist
 
-- When a level is completed, the Paper Kid shouts the next snippet while rushing down the newly opened path.
-- The snippet appears on screen in sync with their shout, revealing the next piece of the story.
+### Movement (Swipe-Based / Ice-Puzzle)
 
-**GOODBOI: THE NEWS HOUND:**
+Description of piece movements on the grid.
 
-**Companion:**
+- **Swipe to slide**: Swipe a piece in any direction
+- Piece slides until it hits a wall, another piece, or exits
+- **Ice-puzzle mechanic**: Pieces don't stop mid-slide
+- Move counter increments on each successful move
 
-- A loyal News Hound with a sharp nose for developing stories.
-- Follows scent trails through different neighborhoods where parts of the article have surfaced.
-- Depends on the player to connect the correct routes so he can track the story piece by piece.
+### Exits
 
-**Player’s Role:**
+- Colored gates positioned on grid edges with house icons
+- Each exit spans 1 or more cells (configurable)
+- Exit color must match piece color for exit to occur
+- Pieces animate sliding out and fading when exiting
 
-- The player draws routes and connects the roads to guide the News Hound from one clue location to the next.
-- Each completed path leads him to another spot where he picks up a new part of the article.
-- By helping the Hound follow the scent trail, the player uncovers the full story.
+### Exit Rule (Physical Fit)
 
-**News Reveal:**
+A piece can only exit if its **perpendicular width** fits through the exit opening.
 
-- When a level is completed, the News Hound “finds” the next snippet, barking or reacting as the new clue appears.
-- The snippet fades in as if discovered on the spot, representing the next piece of the developing article.
+**Example:**
+
+`A 1x3 horizontal piece:
+---
+
+Moving UP/DOWN -> perpendicular width = 3 cells
+Moving LEFT/RIGHT -> perpendicular width = 1 cell
+
+Exit on top wall (2 cells wide):
+- Piece moving UP: 3 cells > 2 cells -> WON'T FIT
+- Piece moving LEFT to left wall exit (3+ cells): 1 cell <= 3 cells -> FITS`
+
+### Win Condition
+
+Clear all pieces from the grid by guiding them to their matching exits.
 
 ---
 
-## Asset List
+## Boosters
 
-Below is the required visual assets for the MVP.
+Below is the boosters players can use to progress in levels:
 
-VFX
+### Eraser Booster
 
-- Rotating tiles (particles)
-- When roads are connected (color change/asset change)
-- When a level is complete (particles & celebratory image)
-  - 5-10 celebratory image variations (traffic light in the current prototype) → to be displayed on different sections
+The eraser can remove any piece from the grid.
 
-UI
-
-- Next button
-- Start Button
-- Chapter Interstitial
-- Chapter Complete Interstitial & news reveal
-- News clues
-- Fill bar (showing progress in a chapter) → how many levels left to finish the chapter & reveal the news
-
-Art
-
-- Shared Game Pieces
-  - House
-  - Gas station
-  - Diner
-  - School
-  - Exit sign _→ can we swap exits based on the locations?_
-  - Roads tiles
-    - straight
-    - L shaped
-    - T junction
-- County Landmarks (TBD)
-- Decorational items (i.e. trees, bushes)
-  - 8+ options
-
-## Asset List (SFX)
-
-Below are the required audio assets for the MVP.
-
-Gameplay
-
-- Music (multiple jazzy tracks, rotating between chapters)
-- Rotating tiles → 5-10 variations
-- When a level is complete
-- When a chapter is complete
-- News reveal interstitial
-
-UI
-
-- Button clicked
+- 2 uses per chapter (resets at chapter start)
+- Tap eraser button to activate eraser mode
+- Tap any piece to remove it instantly (no exit required)
+- Visual feedback: pieces become semi-transparent in eraser mode
+- Unused erasers contribute to section score bonus
 
 ---
 
-## **Content**
+## Chapter & Level System
 
-**AI-Generated Weekly:**
+Difficulty progression resets on every new chapter.
 
-1. AI scans top nj.com stories
-2. Maps stories to NJ counties
-3. Generates 10 clues per story
-4. Creates solvable level layouts
-5. _Human editor reviews before publish(?)_
+### Chapter Structure
 
-**Content Structure:**
+- Variable size (5-10 levels each)
+- Each section tells a cohesive local news story
 
-- 3-5 new chapters per week
-- Each chapter = county + story + 10 levels
-- Clues progress from vague to specific
+### Difficulty Progression
 
----
+Within each section, levels follow a difficulty curve:
 
-## City Lines Level Generation Summary
+- **Easy**: Fewer pieces, simpler shapes
+- **Medium**: More pieces, varied shapes
+- **Hard**: Complex arrangements, more blocking
 
-### Architecture Overview
+**Distribution per section size:**
 
-**Two-tier loading system:**
+| Section Size | Easy | Medium | Hard |
+| --- | --- | --- | --- |
+| 5 levels | 1 | 3 | 1 |
+| 6 levels | 2 | 2 | 2 |
+| 7 levels | 2 | 3 | 2 |
+| 8 levels | 2 | 3 | 3 |
+| 9 levels | 3 | 3 | 3 |
+| 10 levels | 3 | 4 | 3 |
 
-Level 1-3 → Hand-crafted JSON
+### Scoring
 
-Level 4+ → Procedurally generated with deterministic seed
-
----
-
-### LevelGenerator
-
-There is an infinite level genarator integrated in the game. Here is how it works:
-
-**Phase 1: Landmark Placement**
-
-1. **Count**: 2 for easy, 3-4 for medium/hard
-2. **Spacing Constraints:**
-   - Minimum **3 tiles** from turnpike
-   - Minimum **2 tiles** between landmarks
-3. **Position**: Random position anywhere on grid (0 to gridSize-1 for both row and col)
-4. **Cannot occupy**: Already occupied tiles (turnpike or other landmarks)
-5. **Landmark types cycle**: Diner → GasStation → Market (repeats if more than 3)
-6. **Max attempts**: 100 tries per landmark before generation fails
-
-**Phase 2: Path Selection**
-
-- For each landmark → generate path to turnpike using constrained random walk
-- Key constraint: **No crossroads allowed** (max 3 connections per tile = T-junction)
-- There is a variable for detour probability: adds randomness (0.1 easy → 0.6 hard)
-
-**Phase 3: Tile Type Assignment**
-
-- Based on actual connections, assign tile types:
-  - 2 opposite connections → straight road
-  - 2 adjacent connections → corner road
-  - 3 connections → t_junction road
-- Save solution rotation for each tile
-
-**Phase 4: Scramble Road Tiles**
-
-- Randomly rotate all road tiles to create the puzzle
-
-**Phase 5: Tree Decorations**
-
-- Place up decorative assets on empty tiles (non-gameplay)
+- Section Score = (Levels Completed x 100) + (Unused Erasers x 100)
+- Best moves per level saved to localStorage
 
 ---
 
-### Difficulty Scaling
+## Narrative Layer: Warehouse Distribution
 
-| Level Range | Grid Size | Landmarks | Min Path | Detour % |
-| ----------- | --------- | --------- | -------- | -------- |
-| 1-2         | 4×4       | 2-3       | 3        | 10-15%   |
-| 3-6         | 5×5       | 3-5       | 4        | 20-35%   |
-| 7-10        | 6×6       | 5-7       | 5        | 40-60%   |
+Players work in a warehouse helping Dale sort and dispatch packages. Each section's packages relate to a real local news story, revealed through post-level dialogue.
+
+### Current Story Sections
+
+**Section 1: Fishtown in Lights**
+
+- Setting: Leland, Michigan's historic fishing village
+- Story: Community effort to save and illuminate Fishtown
+- Packages: String lights, electrical supplies, hot cocoa, signage, sound equipment
+
+**Section 2: The Spread**
+
+- Setting: University of Michigan basketball
+- Story: Sports betting's impact on college athletics
+- Packages: Team equipment, training materials, compliance materials
+
+### Character/Host
+
+This is the host character introducing the game to the player. He is the authority figure and gives player's directions as well as revealing clues about news stories.
+
+**Marty the Warehouse Manager**
+
+- Thirty-two years on the warehouse floor.
+- Old, cool, stylish. Does his job right.
+- Seen enough to stop asking questions--but still gets curious despite himself.
+
+**How he talks:**
+
+- Short sentences. Punchy. No fluff.
+- Trails off with "..." when thinking or connecting dots
+- Rhetorical questions: "For what?" "But throwing what?"
+- Dry, not warm. But not mean.
+- Light roasting. Calls they player "rookie" and "hotshot." Doesn't comfort the player.
+- When he's impressed, he doesn't say it directly. He just moves on.
+
+**What he sounds like:**
+
+- A guy who's heard every story and stopped being surprised
+- Slightly tired, but shows up anyway
+- The coworker who seems gruff but remembers your birthday
+- Someone narrating true crime but it's about shipping boxes
+
+**Signature patterns:**
+
+- "Let's see what they need."
+- "Something's happening out there."
+- "Wait. No. They're not."
+- "Oh. Now I see it."
+- "Only in [place]."
+- "[State/Town], man."
+
+**What he's NOT:**
+
+- Enthusiastic or bubbly
+- Mean or bitter
+- Wordy or rambling
+- Overly helpful or hand-holdy
+
+**His Introduction:**
+
+- "Hey there. I'm Marty. Managing this floor for the last 32 years."
+- "You're the new help? Alright, we'll see."
+- "You wouldn't believe the stuff people ship to each other. Wedding cakes. Live bees once. I don't ask anymore."
+- "Rules are simple: ship the boxes, clear my dock. Don't make me look bad."
+
+### Marty's Narrative Arc (per section)
+
+Each chapter, Marty discovers bits and pieces of a new story. He starts detached but as he keeps seeing the shipped items, he gets more and more curious. The goal here is to relay that curiosity to players through Marty.
+
+**PHASE 1: DETACHED (Section Start)**
+
+He's just doing his job. Another shipment, another day. Doesn't care yet.
+
+Voice: Flat, factual, slightly bored.
+
+Examples:
+
+- "Big shipment. Old mall in East Brunswick. Something's happening."
+- "Shipments to Prairie du Sac, Wisconsin. Small town. Labor Day weekend. Let's see what they need."
+- "Eight shipments. Some fishing village up north. Never heard of it."
+
+He's not invested yet. He's clocking in.
 
 ---
 
-### Key Technical Details
+**PHASE 2: CURIOUS**
 
-- **Deterministic RNG**: Uses XORShift32 seeded with `levelNumber \* 12345` for reproducibility
-- **Retry Logic**: Up to 10 attempts with different seeds if generation fails
-- **Bad Seed Tracking**: Failed seeds are cached to avoid retrying
-- **Output Format**: `GameConfig` with `entities` (CityGrid), `ui` (HeadlineDisplay), `gridTiles`, and `headlines`
+Something doesn't add up. He notices it but doesn't chase it yet.
 
----
+Voice: Short observations. Questions to himself. First signs of interest.
 
-## **Architecture and Configurability**
+Examples:
 
-**Configurable:**
+- "Flags. Lots of them. Something's getting measured out there."
+- "Medical gear? To a shopping center?"
+- "Custom engraved. 'Longest Throw.' Throw of what?"
 
-- Grid sizes
-- Number of landmarks
-- Detour probability
-- Chapter length
-- Clue display time
-- Rotation behavior
+He's not asking YOU--he's muttering to himself. The questions are rhetorical. He's starting to pay attention.
 
 ---
 
-## **Technical Notes**
+**PHASE 3: PIECING TOGETHER**
 
-**Tracking:**
+Now he's actively connecting dots. Items start talking to each other.
 
-- Completion rates
-- Article click-through
-- Session length
-- County popularity
-- Drop-off points
+Voice: Shorter. Fragmented. Trailing off. Thinking out loud.
 
-**AI Pipeline:**
+Examples:
 
-- Weekly content generation
-- Admin moderation dashboard
-- Manual fallback option
+- "Hand sanitizer. Pallets of it. And a note: 'No gloves allowed.' What are people touching?"
+- "Wagons? For a competition? This doesn't add up."
+- "Skylights. But there's already a roof. Unless..."
+
+The ellipses are key. He's mid-thought. He doesn't have the answer yet but he's circling it.
 
 ---
 
-## UX/UI Implementations
+**PHASE 4: THE CLICK**
 
-Feedback
+The final piece lands. He gets it--sometimes with disbelief, sometimes with amusement.
 
-- When road tile directly next to highway sign is correctly orientated, the road on that tile turns green
-  - If the tile is not correctly oriented, it doesn’t change
-- All subsequent tiles that are correctly orientated and in contact with the tile next to the highway also turn green
+Voice: A beat of realization. Often starts with "Wait" or "Oh."
+
+Examples:
+
+- "For curing something. Drying it out. Flipping it daily. Wait. No. They're not."
+- "Full-grown trees. For indoors. Oh. The roof's not staying."
+- "Backup stuffed animals. Why would an airport need-- oh."
+
+This is the "aha" before the reveal. He figured it out just before you did.
 
 ---
 
-## Post MVP
+**PHASE 5: THE REVEAL (Section Complete)**
 
-### Mechanics
+Now he tells you what it all meant. But he doesn't explain it like a teacher--he delivers it like a guy who just witnessed something and wants you to appreciate it too.
 
-- Unlocking Connections
-- Different Road Types
-- Move Limits
-- Time Limits
-- Hints/undo
-- Achievement badges
-- Story archive
-  - News Basket
-    A place that allows players to see all the news they collected that week
-  - updates weekly
-  - can be displayed:
-    - as a cute oldschool shopping basket
-    - as a newspaper where slots fill up as players collect news stories
-  - provides access to link to news & bookmarks
+Voice: Fuller sentences. A little warmth sneaks in. Often ends with a regional tag or dry observation.
 
-### Leaderboard/Social
+Examples:
 
-- Community challenges
-- County vs. County leaderboards
-- Social sharing
+- "Cow chips. Dried cow manure. Cured in the sun, flipped for a month, then thrown for distance. Forty-three years running. State record's 248 feet. Only in Wisconsin."
+- "Mall was a ghost town. Stores weren't paying rent. So they're tearing it open. East Brunswick never had a downtown. Now it does."
+- "Forty years, one bad inspection, and it all went dark. New owner brought it back the right way. Love to see it."
+
+He's not sentimental but you can tell he respects it. The reveal is him letting you in on something he now cares about, even if he'd never admit it.
+
+---
+
+## Level Generation
+
+### Procedural Generation System
+
+Levels are generated procedurally with seeded randomness for consistency:
+
+1. **Anchor Placement**: Place 1-2 anchor pieces in grid corners
+2. **Exit Assignment**: Create exits based on anchor positions
+3. **Anchor Scramble**: Move anchors away from exits (4 moves)
+4. **Dependent Placement**: Add smaller pieces touching anchors
+5. **Dependent Scramble**: Scramble dependents (2 moves each)
+
+### Shape Library
+
+- **Anchor shapes**: I3_H, I3_V, I2_H, I2_V, O4
+- **Dependent shapes**: DOT, I-pieces, L/J/T/S/Z rotations, rectangles
+
+---
+
+## Audio
+
+### Sound Effects
+
+- `sfx-press.wav`: Piece slide
+- `delivered-1.mp3`: Piece exits successfully
+- `level-end-1.mp3`: Level complete
+- `whoosh.wav`: Eraser use
+
+### Background Music
+
+- `daily-dispatch-music-1.mp3`: Main game BGM
+- Starts on first user interaction (title screen tap)
+
+---
+
+## Technical Details
+
+### Responsive Design
+
+- Mobile-first (portrait orientation)
+- Aspect ratio: 9:16 (360x640 base)
+- Proportional scaling with letterboxing
+- All UI uses percentage-based sizing
+
+### Controls
+
+- **Mobile/Desktop**: Swipe/drag pieces to move
+- **Debug Keys** (development only):
+    - Arrow keys: Previous/next level
+    - E: Jump to section complete screen
+
+---
+
+## UX/UI Considerations
+
+During level/gameplay introduction, we can break up Marty's messages more to accompany what the player is seeing on the screen. We can also simplify Marty's messages to avoid large multiple blocks of text. We should also show a second level that explains how to use shapes to position other shapes to solve the puzzle.
+
+Level 1 Example
+
+- Dale says "See those colored boxes? Swipe the red one towards the matching dock." at the same time the red box and dock highlights.
+    - When player swipes the first one in, Dale says "Great! Now move the other one." at the same time the blue box and dock highlights.
+- Integrating the messages with the highlights prevents a situation where the player closes the dialogue boxes and forgets what they needed to do.
+
+Level 2 Example
+
+- New puzzle shows while Dale says "Things get cluttered here a lot, but you can use that to your advantage. Slide that red box up." The red box is highlighted.
+- When player swipes the box up Dale says "Perfect. Now slide that yellow box to the right." The yellow box highlights.
+- When player swipes the box to the right, Dale says "And just like that, you can get that yellow box on the dock." The yellow block and dock highlight.
+- When player removes the yellow box, Dale says "Now you've got it! Go ahead and finish the job." Player completes level.
+- Including this second example teaches the player a critical part of future puzzle solving: that they'll need to make use of other shapes to clear the board.
+
+### Player Feedback
+
+- Docks should should react to receiving the correct shape AND change state to show they've "closed"
+- When shapes collide, we should include some kind of physics effect and sound, like a slight wobble to the shape that's hit and a thump sound, for extra feedback and delight.
+
+### General
+
+- More clarity around puzzle reset and erase buttons
+- Consider including an undo button
+- More clearly convey this is a swipe/ click and drag game with swipe animations
+- On complete screen, show the object in question (in general more imagery and less text)
+- Show a progress bar or meter to indicate when sections are complete/reset to easy
+- More celebration when player beats a level in Best or less moves
+- Boxes should look more like boxes
+
+### TBD @Elle Opitz
+
+---
+
+## Content Pipeline
+
+### AI-Generated Content (Future)
+
+1. AI scans top local stories
+2. Maps stories to regions/themes
+3. Generates post-level dialogue connecting packages to story
+4. Creates solvable level layouts with appropriate difficulty curve
+5. *Human editor reviews before publish(?)*
+
+### Content Structure
+
+- *N new sections per week -> TBD*
+- Each section = story theme + 5-10 levels + dialogue
+- Story revealed progressively through post-level dialogue

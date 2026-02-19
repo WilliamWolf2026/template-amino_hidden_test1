@@ -40,7 +40,7 @@ const SERVER_STORAGE_URLS: Record<Environment, string | null> = {
   development:
     "http://localhost:4443/download/storage/v1/b/advance-game-manager-bucket/o", // TBD
   // QA: Direct GCS bucket
-  qa: "https://storage.googleapis.com/city-lines-server-qa-storage",
+  qa: "https://storage.googleapis.com/daily-dispatch-server-qa-storage",
   staging:
     "http://localhost:4443/download/storage/v1/b/advance-game-manager-bucket/o", // TBD
   production:

@@ -9,6 +9,7 @@ export const manifest: Manifest = {
     { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
 
     // TILES - Game tiles (theme variants - only one loaded based on tuning)
+    { name: 'atlas-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] },
     { name: 'atlas-tiles-citylines', assets: ['atlas-tiles-citylines.json'] },
     { name: 'atlas-tiles-citylines-fall', assets: ['atlas-tiles-citylines-fall.json'] },
     { name: 'atlas-tiles-citylines-winter', assets: ['atlas-tiles-citylines-winter.json'] },

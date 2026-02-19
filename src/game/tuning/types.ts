@@ -19,7 +19,7 @@ export function getTileBundleName(theme: TileTheme): string {
     case 'winter':
       return 'atlas-tiles-citylines-winter';
     default:
-      return 'atlas-tiles-citylines';
+      return 'atlas-tiles-daily-dispatch';
   }
 }
 

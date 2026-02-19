@@ -3,16 +3,16 @@ name: "Multi-Environment Deployment to Infra (GCS)"
 on:
   push:
     branches:
-      - main  # QA deployments
+      - main # QA deployments
     tags:
-      - 'staging-v*'   # Staging deployments
-      - 'v*'           # Production deployments
+      - "staging-v*" # Staging deployments
+      - "v*" # Production deployments
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment'
+        description: "Target environment"
         required: false
-        default: 'qa'
+        default: "qa"
         type: choice
         options:
           - dev
@@ -22,10 +22,10 @@ on:
       version_name:
         description: 'Version name for deployment (defaults to "main" for non-frozen deployments)'
         required: false
-        default: 'main'
+        default: "main"
         type: string
       is_frozen:
-        description: 'Whether this is a frozen/immutable version'
+        description: "Whether this is a frozen/immutable version"
         required: false
         default: false
         type: boolean
@@ -37,7 +37,7 @@ jobs:
       - name: Set game name
         id: game_info
         run: |
-          GAME_NAME="citylines"
+          GAME_NAME="dailydispatch"
           echo "GAME_NAME=$GAME_NAME" >> $GITHUB_ENV
           echo "Game name: $GAME_NAME"
 
