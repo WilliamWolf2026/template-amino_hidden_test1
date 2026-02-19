@@ -4,7 +4,7 @@ import type { BlockState } from '../types/block';
 import type { DockState } from '../types/dock';
 import type { Direction, GridPosition } from '../types/grid';
 import { DIR_VECTORS, GRID_SIZE, posKey } from '../types/grid';
-import { getAbsoluteCells } from '../data/shapes';
+import { getAbsoluteCells, SHAPES } from '../data/shapes';
 import { GridSimulation, type SlideResult } from './GridSimulation';
 import { Block } from './Block';
 import { Dock } from './Dock';
@@ -291,7 +291,7 @@ export class DailyDispatchGame extends Container {
 
     // Flash VFX on every successful swipe (fire-and-forget, don't await)
     if (blockView) {
-      this.playSwipeFlash(blockView.x, blockView.y, event.direction);
+      this.playSwipeFlash(blockView, event.direction);
     }
 
     if (blockView && result.newPosition) {
@@ -368,25 +368,32 @@ export class DailyDispatchGame extends Container {
 
   // ── VFX ──
 
-  /** Play flash VFX at block position, rotated to face swipe direction */
-  private playSwipeFlash(x: number, y: number, direction: Direction): void {
+  /** Play flash VFX on every cell of the block, rotated to face swipe direction */
+  private playSwipeFlash(blockView: Block, direction: Direction): void {
     if (!this.gpuLoader.hasSheet('vfx-flash_fx_shape_04')) return;
 
-    const vfx = this.gpuLoader.createAnimatedSprite('vfx-flash_fx_shape_04', 'flash');
-    vfx.anchor.set(0.5);
-    vfx.x = x;
-    vfx.y = y;
-    vfx.rotation = DIRECTION_ROTATION[direction];
-    vfx.scale.set(this.cellSize / 128); // Scale to match cell size
-    vfx.alpha = 0.85;
-    vfx.animationSpeed = 0.6;
-    vfx.loop = false;
-    vfx.onComplete = () => {
-      this.vfxContainer.removeChild(vfx);
-      vfx.destroy();
-    };
-    this.vfxContainer.addChild(vfx);
-    vfx.play();
+    const shapeDef = SHAPES[blockView.shape];
+    const half = this.cellSize / 2;
+    const vec = DIR_VECTORS[direction];
+
+    for (const cell of shapeDef.cells) {
+      const vfx = this.gpuLoader.createAnimatedSprite('vfx-flash_fx_shape_04', 'flash');
+      vfx.anchor.set(0.5);
+      // Position in front of each cell (offset one cell in swipe direction)
+      vfx.x = blockView.x + cell.col * this.cellSize + half + vec.col * this.cellSize;
+      vfx.y = blockView.y + cell.row * this.cellSize + half + vec.row * this.cellSize;
+      vfx.rotation = DIRECTION_ROTATION[direction];
+      vfx.scale.set(this.cellSize / 48);
+      vfx.alpha = 0.85;
+      vfx.animationSpeed = 0.6;
+      vfx.loop = false;
+      vfx.onComplete = () => {
+        this.vfxContainer.removeChild(vfx);
+        vfx.destroy();
+      };
+      this.vfxContainer.addChild(vfx);
+      vfx.play();
+    }
   }
 
   /** Play glow VFX at dock position when a block exits, rotated 45 degrees */
@@ -404,7 +411,7 @@ export class DailyDispatchGame extends Container {
 
     // Rotate 45 degrees as requested
     vfx.rotation = Math.PI / 4;
-    vfx.scale.set(this.cellSize / 100);
+    vfx.scale.set(this.cellSize / 40);
     vfx.alpha = 0.9;
     vfx.animationSpeed = 0.5;
     vfx.loop = false;
