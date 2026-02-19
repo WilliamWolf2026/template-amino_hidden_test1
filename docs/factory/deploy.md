@@ -8,6 +8,12 @@ Architecture {
   - CI workflow: `.github/workflows/deploy-infra-gcs.yml`
 }
 
+Prerequisites {
+  - Game must be registered in `wolfgames/infrastructure` before first deploy
+  - Without this, the dispatch event is sent but infrastructure ignores it
+  - This is a one-time setup step per new game (outside this repo)
+}
+
 Constraints {
   - Main-branch-only strategy — all releases come from `main`
   - Semantic versioning (MAJOR.MINOR.PATCH)

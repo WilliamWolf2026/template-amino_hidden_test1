@@ -19,9 +19,25 @@ function getDockFrame(wall: WallSide, open: boolean, color: BlockColor): string 
   return `prop-truck_${direction}_${state}_${color}.png`;
 }
 
+/** Drive-away direction vector per wall side */
+function getDriveVector(wall: WallSide): { x: number; y: number } {
+  switch (wall) {
+    case 'left': return { x: -1, y: 0 };
+    case 'right': return { x: 1, y: 0 };
+    case 'top': return { x: 0, y: -1 };
+    case 'bottom': return { x: 0, y: 1 };
+  }
+}
+
+/** One open/closed sprite pair for a single truck */
+interface TruckSpritePair {
+  open: Sprite;
+  closed: Sprite;
+}
+
 /**
  * Visual representation of a truck dock (exit gate) on the grid edge.
- * Displays open/closed state sprites positioned outside the grid.
+ * Creates one truck sprite per wallIndex so multi-cell docks show multiple trucks.
  */
 export class Dock extends Container {
   readonly dockId: string;
@@ -29,8 +45,7 @@ export class Dock extends Container {
   readonly wall: WallSide;
   readonly wallIndices: number[];
 
-  private openSprite: Sprite;
-  private closedSprite: Sprite;
+  private trucks: TruckSpritePair[] = [];
   private cellSize: number;
   private gridSize: number;
 
@@ -53,90 +68,121 @@ export class Dock extends Container {
 
     const atlas = getAtlasName();
 
-    // Create open sprite
-    this.openSprite = gpuLoader.createSprite(atlas, getDockFrame(state.wall, true, state.color));
-    this.openSprite.anchor.set(0.5);
-    this.openSprite.visible = !state.closed;
+    // Create one truck sprite pair per wallIndex
+    for (const idx of state.wallIndices) {
+      const openSprite = gpuLoader.createSprite(atlas, getDockFrame(state.wall, true, state.color));
+      openSprite.anchor.set(0.5);
+      openSprite.visible = !state.closed;
 
-    // Create closed sprite
-    this.closedSprite = gpuLoader.createSprite(atlas, getDockFrame(state.wall, false, state.color));
-    this.closedSprite.anchor.set(0.5);
-    this.closedSprite.visible = state.closed;
+      const closedSprite = gpuLoader.createSprite(atlas, getDockFrame(state.wall, false, state.color));
+      closedSprite.anchor.set(0.5);
+      closedSprite.visible = state.closed;
 
-    this.addChild(this.openSprite);
-    this.addChild(this.closedSprite);
+      // Position each truck at its own wall index
+      this.positionTruck(openSprite, idx);
+      this.positionTruck(closedSprite, idx);
 
-    // Position dock outside the grid edge
-    this.positionOnWall();
+      // Flip side docks on the left wall so truck faces the grid
+      if (state.wall === 'left') {
+        openSprite.scale.x = -1;
+        closedSprite.scale.x = -1;
+      }
 
-    // Flip side docks on the right wall so truck faces the grid
-    if (state.wall === 'right') {
-      this.openSprite.scale.x = -1;
-      this.closedSprite.scale.x = -1;
+      this.addChild(openSprite);
+      this.addChild(closedSprite);
+      this.trucks.push({ open: openSprite, closed: closedSprite });
     }
   }
 
-  /** Animate dock closing (block exited through this dock) */
+  /** Animate dock closing then driving away */
   close(duration: number = 0.3): Promise<void> {
     return new Promise((resolve) => {
-      gsap.to(this.openSprite, {
-        alpha: 0,
-        duration: duration * 0.5,
-        onComplete: () => {
-          this.openSprite.visible = false;
-          this.closedSprite.visible = true;
-          this.closedSprite.alpha = 0;
-          gsap.to(this.closedSprite, {
-            alpha: 1,
-            duration: duration * 0.5,
-            onComplete: resolve,
-          });
-        },
-      });
+      let completed = 0;
+      const total = this.trucks.length;
+      const driveVec = getDriveVector(this.wall);
+      const driveDistance = this.cellSize * 2.5;
+
+      for (const truck of this.trucks) {
+        // Snap-switch: hide open, show closed with a scale pop
+        const tl = gsap.timeline({
+          onComplete: () => {
+            completed++;
+            if (completed >= total) resolve();
+          },
+        });
+
+        // Frame switch with scale punch
+        tl.to(truck.open, {
+          alpha: 0,
+          duration: duration * 0.3,
+          ease: 'power2.in',
+          onComplete: () => {
+            truck.open.visible = false;
+          },
+        });
+        tl.set(truck.closed, { visible: true, alpha: 1 });
+        tl.fromTo(
+          truck.closed.scale,
+          { x: truck.closed.scale.x * 1.2, y: 1.2 },
+          { x: truck.closed.scale.x * 1, y: 1, duration: duration * 0.4, ease: 'back.out(2)' },
+        );
+
+        // Drive away
+        tl.to(truck.closed, {
+          x: truck.closed.x + driveVec.x * driveDistance,
+          y: truck.closed.y + driveVec.y * driveDistance,
+          alpha: 0,
+          duration: 0.5,
+          ease: 'power2.in',
+        });
+      }
     });
   }
 
   /** Reset dock to open state */
   open(): void {
-    this.openSprite.visible = true;
-    this.openSprite.alpha = 1;
-    this.closedSprite.visible = false;
-    this.closedSprite.alpha = 1;
+    for (const truck of this.trucks) {
+      truck.open.visible = true;
+      truck.open.alpha = 1;
+      truck.closed.visible = false;
+      truck.closed.alpha = 1;
+      // Reset closed sprite position in case it drove away
+      this.positionTruck(truck.closed, this.wallIndices[this.trucks.indexOf(truck)]);
+    }
   }
 
-  /** Position the dock container outside the grid based on its wall */
-  private positionOnWall(): void {
-    // Center of the dock's wallIndices span
-    const minIdx = Math.min(...this.wallIndices);
-    const maxIdx = Math.max(...this.wallIndices);
-    const centerIdx = (minIdx + maxIdx) / 2;
-
+  /** Position a single truck sprite at the given wall index */
+  private positionTruck(sprite: Sprite, idx: number): void {
     const gridPixelSize = this.gridSize * this.cellSize;
-    const dockOffset = this.cellSize * 0.6; // How far outside the grid
+    const dockOffset = this.cellSize * 0.6;
+    const cellCenter = idx * this.cellSize + this.cellSize / 2;
 
     switch (this.wall) {
       case 'left':
-        this.x = -dockOffset;
-        this.y = centerIdx * this.cellSize + this.cellSize / 2;
+        sprite.x = -dockOffset;
+        sprite.y = cellCenter;
         break;
       case 'right':
-        this.x = gridPixelSize + dockOffset;
-        this.y = centerIdx * this.cellSize + this.cellSize / 2;
+        sprite.x = gridPixelSize + dockOffset;
+        sprite.y = cellCenter;
         break;
       case 'top':
-        this.x = centerIdx * this.cellSize + this.cellSize / 2;
-        this.y = -dockOffset;
+        sprite.x = cellCenter;
+        sprite.y = -dockOffset;
         break;
       case 'bottom':
-        this.x = centerIdx * this.cellSize + this.cellSize / 2;
-        this.y = gridPixelSize + dockOffset;
+        sprite.x = cellCenter;
+        sprite.y = gridPixelSize + dockOffset;
         break;
     }
   }
 
   override destroy(): void {
-    gsap.killTweensOf(this.openSprite);
-    gsap.killTweensOf(this.closedSprite);
+    for (const truck of this.trucks) {
+      gsap.killTweensOf(truck.open);
+      gsap.killTweensOf(truck.closed);
+      gsap.killTweensOf(truck.closed.scale);
+    }
     super.destroy({ children: true });
   }
 }

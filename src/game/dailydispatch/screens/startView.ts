@@ -172,11 +172,14 @@ export function setupDailyDispatchStartScreen(deps: StartScreenDeps): StartScree
     const buttonY = characterY + characterHeight / 2 + gaps.characterBottom + buttonHeight / 2 + 15;
 
     if (titleSprite) { titleSprite.x = centerX / contentScale; titleSprite.y = titleY; }
+    // Align Marty's left edge with the title's left edge
+    const titleLeftEdge = (centerX / contentScale) - (titleSprite?.width ?? 0) / 2;
+    const characterX = titleLeftEdge + (character?.width ?? 0) / 2;
     if (characterShadow && character) {
-      characterShadow.x = centerX / contentScale;
+      characterShadow.x = characterX;
       characterShadow.y = characterY + (character.height / 2) - 10;
     }
-    if (character) { character.x = centerX / contentScale; character.y = characterY; }
+    if (character) { character.x = characterX; character.y = characterY; }
     if (startButton) { startButton.x = centerX / contentScale; startButton.y = buttonY; }
   };
 
@@ -231,6 +234,7 @@ export function setupDailyDispatchStartScreen(deps: StartScreenDeps): StartScree
 
         character = gpuLoader.createSprite(tileBundleName, 'character-marty_idle.png');
         character.anchor.set(0.5);
+        character.scale.set(1.35);
         uiContainer.addChild(character);
 
         const buttonLabel = config.mode === 'new' ? 'START' : 'CONTINUE';

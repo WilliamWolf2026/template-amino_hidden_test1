@@ -20,9 +20,9 @@ import { DailyDispatchGame } from '~/game/dailydispatch/core/DailyDispatchGame';
 import { CompanionCharacter } from '~/game/dailydispatch/ui/companion/CompanionCharacter';
 import { DialogueBox } from '~/game/dailydispatch/ui/companion/DialogueBox';
 import { CluePopup } from '~/game/dailydispatch/ui/CluePopup';
-import { ProgressBar } from '~/game/shared/components/ProgressBar';
+import { SpriteButton } from '~/game/dailydispatch/core/SpriteButton';
 import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfig } from '~/game/dailydispatch/types/section';
-import { setAtlasName } from '~/game/dailydispatch/utils/atlasHelper';
+import { setAtlasName, getAtlasName } from '~/game/dailydispatch/utils/atlasHelper';
 import type { ChapterRef } from '~/game/types/gameData';
 import type { LevelConfig } from '~/game/dailydispatch/types/level';
 import { SAMPLE_PUZZLE, SAMPLE_PUZZLE_MEDIUM } from '~/game/dailydispatch/data/samplePuzzle';
@@ -77,7 +77,6 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
   const [pixiApp, setPixiApp] = createSignal<Application | null>(null);
   const [gameInstance, setGameInstance] = createSignal<DailyDispatchGame | null>(null);
   const [audioManager, setAudioManager] = createSignal<GameAudioManager | null>(null);
-  const [progressBar, setProgressBar] = createSignal<ProgressBar | null>(null);
   const [sectionConfig, setSectionConfig] = createSignal<SectionConfig | null>(null);
   const [modalPhase, setModalPhase] = createSignal<ModalPhase>('introduction');
   const [activeChapterRef, setActiveChapterRef] = createSignal<ChapterRef | null>(null);
@@ -96,6 +95,9 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
   let cluePopup: CluePopup | null = null;
   let chapterLabel: Text | null = null;
   let moveText: Text | null = null;
+  let audioButton: SpriteButton | null = null;
+  let deleteButton: SpriteButton | null = null;
+  let restartButton: SpriteButton | null = null;
 
   // Level management — Phase 4 will replace with generated levels
   const testLevels: LevelConfig[] = [SAMPLE_PUZZLE, SAMPLE_PUZZLE_MEDIUM];
@@ -273,7 +275,7 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
       // ── HUD ──
 
       chapterLabel = new Text({
-        text: `${gameState.currentLevel()} / ${gameState.totalLevels()}`,
+        text: `Level: ${gameState.currentLevel()}`,
         style: {
           fontFamily: GAME_FONT_FAMILY,
           fontSize: 24,
@@ -283,22 +285,11 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
           dropShadow: { color: '#000000', alpha: 0.5, blur: 3, distance: 2 },
         },
       });
-      chapterLabel.anchor.set(0.5);
+      chapterLabel.anchor.set(0.5, 0);
       app.stage.addChild(chapterLabel);
 
-      const barWidth = Math.min(320, app.screen.width - 48);
-      const bar = new ProgressBar({
-        width: barWidth,
-        height: 36,
-        fontFamily: GAME_FONT_FAMILY,
-        showLabel: false,
-      });
-      app.stage.addChild(bar);
-      setProgressBar(bar);
-      bar.setProgress(gameState.currentLevel(), gameState.totalLevels(), false);
-
       moveText = new Text({
-        text: 'Moves: 0',
+        text: 'Moves: 00',
         style: {
           fontFamily: GAME_FONT_FAMILY,
           fontSize: 20,
@@ -306,34 +297,100 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
           stroke: { color: '#000000', width: 3 },
         },
       });
-      moveText.anchor.set(1, 0);
+      moveText.anchor.set(0.5, 0);
       app.stage.addChild(moveText);
 
+      // ── HUD Buttons ──
+
+      const btnSize = 48;
+      const atlasName = getAtlasName();
+
+      // Delete button — top left
+      deleteButton = new SpriteButton(gpuLoader, {
+        atlasName,
+        spriteName: 'ui-button_delete.png',
+        width: btnSize,
+        height: btnSize,
+        onClick: () => {
+          // Toggle eraser mode on the game
+          const gi = gameInstance();
+          if (gi) {
+            // Simple erase-mode toggle (highlight blocks, next tap erases)
+            console.log('[HUD] Delete button pressed');
+          }
+        },
+      });
+      app.stage.addChild(deleteButton);
+
+      // Restart button — top right
+      restartButton = new SpriteButton(gpuLoader, {
+        atlasName,
+        spriteName: 'ui-button_restart.png',
+        width: btnSize,
+        height: btnSize,
+        onClick: () => {
+          const gi = gameInstance();
+          if (gi) {
+            gi.loadLevel(getCurrentLevel());
+            positionGame();
+            if (chapterLabel) chapterLabel.text = `Level: ${gameState.currentLevel()}`;
+            if (moveText) moveText.text = 'Moves: 00';
+          }
+        },
+      });
+      app.stage.addChild(restartButton);
+
+      // Audio button — bottom left
+      audioButton = new SpriteButton(gpuLoader, {
+        atlasName,
+        spriteName: 'ui-button_audio.png',
+        width: btnSize,
+        height: btnSize,
+        onClick: () => {
+          const vol = audio.volume();
+          coordinator.audio.setMasterVolume(vol > 0 ? 0 : 1);
+          console.log('[HUD] Audio button pressed');
+        },
+      });
+      app.stage.addChild(audioButton);
+
       const positionHUD = () => {
-        const gridTop = game.y;
-        const barY = Math.max(50, gridTop - 50);
-        const bw = Math.min(320, app.screen.width - 48);
-        bar.x = (app.screen.width - bw) / 2;
-        bar.y = barY;
         if (chapterLabel) {
           chapterLabel.x = app.screen.width / 2;
-          chapterLabel.y = Math.max(20, barY - 24);
+          chapterLabel.y = 16;
         }
         if (moveText) {
-          moveText.x = app.screen.width - 24;
-          moveText.y = Math.max(20, barY - 24);
+          moveText.x = app.screen.width / 2;
+          moveText.y = 16 + 28;
+        }
+        // Delete button — top left
+        if (deleteButton) {
+          deleteButton.x = 24 + btnSize / 2;
+          deleteButton.y = 16 + btnSize / 2;
+        }
+        // Restart button — top right
+        if (restartButton) {
+          restartButton.x = app.screen.width - 24 - btnSize / 2;
+          restartButton.y = 16 + btnSize / 2;
+        }
+        // Audio button — bottom left
+        if (audioButton) {
+          audioButton.x = 24 + btnSize / 2;
+          audioButton.y = app.screen.height - 24 - btnSize / 2;
         }
       };
 
       positionHUD();
 
+      const formatMoves = (n: number) => String(n).padStart(2, '0');
+
       const fadeOutHUD = () => {
-        gsap.to(bar, { alpha: 0.15, duration: 0.3, ease: 'power2.out' });
         if (chapterLabel) gsap.to(chapterLabel, { alpha: 0.15, duration: 0.3, ease: 'power2.out' });
+        if (moveText) gsap.to(moveText, { alpha: 0.15, duration: 0.3, ease: 'power2.out' });
       };
       const fadeInHUD = () => {
-        gsap.to(bar, { alpha: 1, duration: 0.3, ease: 'power2.out' });
         if (chapterLabel) gsap.to(chapterLabel, { alpha: 1, duration: 0.3, ease: 'power2.out' });
+        if (moveText) gsap.to(moveText, { alpha: 1, duration: 0.3, ease: 'power2.out' });
       };
 
       cluePopup = new CluePopup(gpuLoader);
@@ -351,16 +408,16 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         positionHUD();
 
         const current = gameState.currentLevel();
-        const total = gameState.totalLevels();
-        bar.setProgress(current, total);
-        if (chapterLabel) chapterLabel.text = `${current} / ${total}`;
-        if (moveText) moveText.text = 'Moves: 0';
+        if (chapterLabel) chapterLabel.text = `Level: ${current}`;
+        if (moveText) moveText.text = 'Moves: 00';
       };
 
       // ── Game events ──
 
       game.onGameEvent('blockMoved', () => {
-        if (moveText) moveText.text = `Moves: ${game.getMoveCount()}`;
+        if (moveText) {
+          moveText.text = `Moves: ${formatMoves(game.getMoveCount())}`;
+        }
       });
 
       game.onGameEvent('levelComplete', (moveCount) => {
@@ -609,8 +666,8 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
                 catalogIndex: cat?.currentIndex ?? 0,
               });
 
-              bar.setProgress(1, nextLen, false);
-              if (chapterLabel) chapterLabel.text = `1 / ${nextLen}`;
+              if (chapterLabel) chapterLabel.text = 'Level: 1';
+              if (moveText) moveText.text = 'Moves: 00';
               catalogIndex = cat?.currentIndex ?? 0;
 
               chapterStartTimestamp = Date.now();
@@ -628,7 +685,6 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
               fireTrackLevelStart(1, nextChapterRef);
               positionGame();
               positionHUD();
-              if (moveText) moveText.text = 'Moves: 0';
 
               const chapterStartText = nextConfig.story.summary || "Let's sort more packages!";
               setModalPhase('chapter-start');
@@ -710,14 +766,11 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
             clearBlockState();
             advanceLevel();
             gameState.incrementLevel();
-            bar.setProgress(gameState.currentLevel(), gameState.totalLevels());
             loadNextLevelWithTransition();
           }
         };
         window.addEventListener('keydown', skipKeyHandler);
       }
-
-      app.ticker.add(() => bar.update());
 
       console.log('[DailyDispatch] Game started');
     },

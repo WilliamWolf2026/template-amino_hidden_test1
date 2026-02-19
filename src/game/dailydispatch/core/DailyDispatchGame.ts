@@ -95,10 +95,10 @@ export class DailyDispatchGame extends Container {
     this.vfxContainer = new Container();
     this.vfxContainer.label = 'vfx';
 
-    // Layer order (bottom to top)
+    // Layer order (bottom to top) — blocks under docks so they slide beneath trucks
     this.addChild(this.gridContainer);
-    this.addChild(this.docksContainer);
     this.addChild(this.blocksContainer);
+    this.addChild(this.docksContainer);
     this.addChild(this.vfxContainer);
 
     this.label = 'dailydispatch-game';
