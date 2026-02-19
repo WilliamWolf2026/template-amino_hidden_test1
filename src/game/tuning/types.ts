@@ -19,7 +19,7 @@ export function getTileBundleName(theme: TileTheme): string {
     case 'winter':
       return 'atlas-tiles-citylines-winter';
     default:
-      return 'atlas-tiles-citylines';
+      return 'atlas-tiles-daily-dispatch';
   }
 }
 
@@ -208,6 +208,24 @@ export interface DevModeConfig {
   skipStartScreen: boolean;
 }
 
+/** Slide animation config for Daily Dispatch blocks */
+export interface SlideAnimationConfig {
+  /** Duration per cell of slide travel (seconds) @min 0.02 @max 0.3 @step 0.01 */
+  durationPerCell: number;
+  /** Easing for slide movement */
+  slideEasing: string;
+  /** Duration of exit animation (seconds) @min 0.1 @max 1 @step 0.05 */
+  exitDuration: number;
+  /** Easing for exit animation */
+  exitEasing: string;
+}
+
+/** Eraser booster config */
+export interface EraserConfig {
+  /** Number of eraser uses per chapter @min 0 @max 5 @step 1 */
+  usesPerChapter: number;
+}
+
 export interface GameTuning extends GameTuningBase {
   devMode: DevModeConfig;
   theme: ThemeConfig;
@@ -228,6 +246,8 @@ export interface GameTuning extends GameTuningBase {
   generator: GeneratorConfig;
   levelTransition: LevelTransitionConfig;
   tutorialHand: TutorialHandTuning;
+  slideAnimation: SlideAnimationConfig;
+  eraser: EraserConfig;
 }
 
 // ============================================
@@ -360,5 +380,14 @@ export const GAME_DEFAULTS: GameTuning = {
     waitBetweenTaps: 1.5,
     slideUpDuration: 0.4,
     fadeOutDuration: 0.3,
+  },
+  slideAnimation: {
+    durationPerCell: 0.08,
+    slideEasing: 'power2.out',
+    exitDuration: 0.4,
+    exitEasing: 'power2.in',
+  },
+  eraser: {
+    usesPerChapter: 2,
   },
 };

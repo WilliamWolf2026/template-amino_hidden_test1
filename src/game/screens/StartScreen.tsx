@@ -7,7 +7,7 @@ import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 import type { GameTuning } from '~/game/tuning';
 
 // Game-specific start screen — swap this import for a different game
-import { setupCityLinesStartScreen } from '~/game/citylines/screens/startView';
+import { setupDailyDispatchStartScreen } from '~/game/dailydispatch/screens/startView';
 
 export default function StartScreen() {
   const { goto } = useScreen();
@@ -17,7 +17,7 @@ export default function StartScreen() {
   let containerRef: HTMLDivElement | undefined;
 
   // Setup game-specific start screen controller
-  const startScreen = setupCityLinesStartScreen({
+  const startScreen = setupDailyDispatchStartScreen({
     goto,
     coordinator,
     initGpu,

@@ -19,6 +19,7 @@ Reusable workflows for common development tasks.
 | `/task` | Execute with tracking | Yes |
 | `/commit` | Git commit | Yes |
 | `/update-docs` | Sync doc indexes with actual files | Yes |
+| `/deploy` | Deploy to QA/staging/production | Asks first |
 | `/newgame` | Setup checklist for forking to a new game | No |
 
 ---
@@ -44,6 +45,7 @@ Reusable workflows for common development tasks.
 | `/plan` | "What should we do next?" |
 | `/task` | "Implement this feature" |
 | `/commit` | "Commit these changes" |
+| `/deploy` | "Deploy this to staging" "Release to production" |
 | `/update-docs` | "Sync all index files" |
 | `/newgame` | "I'm starting a new game from this repo" |
 
@@ -71,6 +73,7 @@ docs/factory/
 ├── user-test.md
 ├── help.md
 ├── log.md
+├── deploy.md
 └── newgame.md
 ```
 
