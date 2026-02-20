@@ -28,7 +28,8 @@ import { loadSectionConfig, getClueForLevel, getChapterLength, type SectionConfi
 import { setAtlasName, getAtlasName } from '~/game/dailydispatch/utils/atlasHelper';
 import type { ChapterRef } from '~/game/types/gameData';
 import type { LevelConfig } from '~/game/dailydispatch/types/level';
-import { SAMPLE_PUZZLE, SAMPLE_PUZZLE_MEDIUM } from '~/game/dailydispatch/data/samplePuzzle';
+import { SAMPLE_PUZZLE } from '~/game/dailydispatch/data/samplePuzzle';
+import { ChapterGenerationService } from '~/game/dailydispatch/services/ChapterGenerationService';
 
 import { getTileBundleName, type GameTuning } from '~/game/tuning';
 import { GameAudioManager } from '~/game/audio/manager';
@@ -105,10 +106,10 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
   let deleteButton: SpriteButton | null = null;
   let restartButton: SpriteButton | null = null;
 
-  // Level management — Phase 4 will replace with generated levels
-  const testLevels: LevelConfig[] = [SAMPLE_PUZZLE, SAMPLE_PUZZLE_MEDIUM];
+  // Level management — generated from chapter seeds
+  let generatedLevels: LevelConfig[] = [SAMPLE_PUZZLE]; // fallback until chapter loads
   const [currentLevelIndex, setCurrentLevelIndex] = createSignal(0);
-  const getCurrentLevel = () => testLevels[currentLevelIndex() % testLevels.length];
+  const getCurrentLevel = () => generatedLevels[currentLevelIndex()] ?? generatedLevels[0];
 
   // Analytics state
   let catalogIndex = 0;
@@ -194,6 +195,10 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
         setSectionConfig(config);
         const chapterLength = getChapterLength(config);
         gameState.setTotalLevels(chapterLength);
+
+        // Generate all levels for this chapter from seeds + difficulty progression
+        const generated = ChapterGenerationService.generateChapter(config);
+        generatedLevels = generated.levels;
 
         if (savedProgress && savedProgress.currentLevel > 1) {
           const levelIndex = Math.min(savedProgress.currentLevel - 1, chapterLength - 1);
@@ -443,6 +448,10 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
             setCurrentLevelIndex(0);
             gameState.setCurrentLevel(1);
             gameState.setTotalLevels(nextLen);
+
+            // Generate levels for the new chapter
+            const nextGenerated = ChapterGenerationService.generateChapter(nextConfig);
+            generatedLevels = nextGenerated.levels;
 
             const cat = getCatalog();
             startChapter({
