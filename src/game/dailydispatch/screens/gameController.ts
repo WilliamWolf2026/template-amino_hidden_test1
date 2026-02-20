@@ -272,7 +272,7 @@ export function setupDailyDispatchGame(deps: GameScreenDeps): GameScreenControll
       // Center game in viewport
       const positionGame = () => {
         const gridPx = game.getGridPixelSize();
-        const margin = 80;
+        const margin = 63;
         const availW = app.screen.width - margin * 2;
         const availH = app.screen.height - margin * 2 - 120;
         const scale = Math.min(1, availW / gridPx, availH / gridPx);

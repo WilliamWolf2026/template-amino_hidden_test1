@@ -915,7 +915,7 @@ export function setupCityLinesGame(deps: GameScreenDeps): GameScreenController {
               }
             } else {
               showCompanion(
-                "Amazing work! You've completed all available patrols. Check back soon for new routes!",
+                "Amazing work! You've completed all available dispatches. Check back soon for new deliveries!",
                 companionConfig.overlayAlpha
               );
             }

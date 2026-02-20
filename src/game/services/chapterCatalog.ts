@@ -58,7 +58,7 @@ export async function initCatalog(): Promise<CatalogState> {
   } catch (err) {
     console.warn('[Catalog] Failed to fetch index, using fallback:', err);
     catalog = {
-      index: { games: [{ uid: 'fallback', url: 'patrol-1.json', publishDate: '' }] },
+      index: { games: [{ uid: 'fallback', url: 'dispatch-1.json', publishDate: '' }] },
       currentIndex: 0,
     };
   }
