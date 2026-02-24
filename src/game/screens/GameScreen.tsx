@@ -3,7 +3,7 @@ import { Application, TilingSprite, type Texture } from 'pixi.js';
 import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, pauseState } from '~/scaffold';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import { createParticleRuntime } from '~/vfx/particleRuntime';
+import { createParticleRuntime } from '~/scaffold/systems/vfx/particleRuntime';
 
 const EFFECT_NAME = 'effect';
 
