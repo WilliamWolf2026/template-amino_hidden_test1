@@ -1,4 +1,4 @@
-import { createContext, useContext, type ParentProps, Show } from 'solid-js';
+import { createContext, useContext, type ParentProps, Show, Suspense } from 'solid-js';
 import { createScreenManager, type ScreenManager, type ScreenManagerOptions } from './manager';
 import type { ScreenId } from './types';
 import { ScreenBoundary } from '../errors/boundary';
@@ -52,10 +52,12 @@ export function ScreenRenderer(props: ScreenRendererProps) {
       style={{ 'transition-duration': `${transitionConfig.duration}ms` }}
     >
       <ScreenBoundary onNavigate={handleNavigateToStart}>
-        <Show when={current() === 'loading'}>{props.screens.loading}</Show>
-        <Show when={current() === 'start'}>{props.screens.start}</Show>
-        <Show when={current() === 'game'}>{props.screens.game}</Show>
-        <Show when={current() === 'results'}>{props.screens.results}</Show>
+        <Suspense>
+          <Show when={current() === 'loading'}>{props.screens.loading}</Show>
+          <Show when={current() === 'start'}>{props.screens.start}</Show>
+          <Show when={current() === 'game'}>{props.screens.game}</Show>
+          <Show when={current() === 'results'}>{props.screens.results}</Show>
+        </Suspense>
       </ScreenBoundary>
     </div>
   );

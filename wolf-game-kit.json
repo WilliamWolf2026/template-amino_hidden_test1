@@ -1,0 +1,7 @@
+{
+  "$comment": "Keep in sync with src/game/config/identity.ts (single source of truth). Read by: scaffold/lib/gameKit.ts",
+  "projectId": "daily_dispatch",
+  "gameSlug": "dailydispatch",
+  "gameName": "Daily Dispatch",
+  "environment": "QA"
+}

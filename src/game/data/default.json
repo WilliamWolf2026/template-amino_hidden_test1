@@ -1,0 +1,44 @@
+{
+  "uid": "local-fallback-dispatch",
+  "name": "Daily Dispatch",
+  "chapters": [
+    {
+      "id": 1,
+      "uid": "local-chapter-dispatch-1",
+      "name": "Daily Dispatch",
+      "county": {
+        "uid": "local-county-default",
+        "name": "default",
+        "texturePack": {
+          "uid": "local-tp-county-default",
+          "name": "default",
+          "type": "common",
+          "packFileKey": "atlas-tiles-citylines.json"
+        }
+      },
+      "story": {
+        "uid": "local-story-dispatch-1",
+        "info": "Hey there I'm Marty. Managing this floor for the last 32 years.",
+        "headline": "Daily Dispatch",
+        "summary": "See! Easy as that! Let's keep on shipping.",
+        "imageUrl": "",
+        "articleUrl": ""
+      },
+      "texturePack": {
+        "uid": "local-tp-default",
+        "name": "default",
+        "type": "common",
+        "packFileKey": "atlas-tiles-citylines.json"
+      },
+      "levels": [
+        { "uid": "local-level-1", "levelNumber": 1, "config": {}, "seed": 42001, "clues": [{ "uid": "local-clue-1", "text": "See! Easy as that! Let's keep on shipping." }] },
+        { "uid": "local-level-2", "levelNumber": 2, "config": {}, "seed": 42002, "clues": [{ "uid": "local-clue-2", "text": "That's the way. Keep those packages moving." }] },
+        { "uid": "local-level-3", "levelNumber": 3, "config": {}, "seed": 42003, "clues": [{ "uid": "local-clue-3", "text": "You're getting the hang of this. Stay sharp." }] },
+        { "uid": "local-level-4", "levelNumber": 4, "config": {}, "seed": 42004, "clues": [{ "uid": "local-clue-4", "text": "Nice work. This floor runs smooth when the routes are clear." }] },
+        { "uid": "local-level-5", "levelNumber": 5, "config": {}, "seed": 42005, "clues": [{ "uid": "local-clue-5", "text": "Almost done with this batch. Keep it up." }] },
+        { "uid": "local-level-6", "levelNumber": 6, "config": {}, "seed": 42006, "clues": [{ "uid": "local-clue-6", "text": "Good hustle. Just a few more to go." }] },
+        { "uid": "local-level-7", "levelNumber": 7, "config": {}, "seed": 42007, "clues": [{ "uid": "local-clue-7", "text": "All packages loaded! Another dispatch cleared." }] }
+      ]
+    }
+  ]
+}

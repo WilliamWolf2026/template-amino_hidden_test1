@@ -1,41 +1,27 @@
-import posthog from 'posthog-js';
+import { PostHog } from "./gameKit";
 
-let initialized = false;
+let posthogInstance: PostHog | null = null;
 
-export function initPostHog(apiKey?: string, apiHost?: string) {
-  if (initialized || !apiKey) return;
-
-  posthog.init(apiKey, {
-    api_host: apiHost ?? 'https://app.posthog.com',
-    loaded: () => {
-      if (import.meta.env.DEV) {
-        posthog.debug();
-      }
-    },
-    capture_pageview: false, // We'll handle this manually for SPA
-    autocapture: false, // Manual control for game events
-  });
-
-  initialized = true;
+/** * Injects the PostHog instance from GameKit into the Scaffold.
+ * This allows scaffold systems (like ErrorReporter) to track events
+ * without needing to know about GameKit or the game's config.
+ */
+export function setPostHogInstance(instance: PostHog) {
+  posthogInstance = instance;
 }
 
 export function capture(event: string, properties?: Record<string, unknown>) {
-  if (!initialized) {
-    console.log('[PostHog not initialized]', event, properties);
+  if (!posthogInstance) {
+    console.warn(`[Scaffold] Capture called before bridge init: ${event}`);
     return;
   }
-
-  posthog.capture(event, properties);
+  posthogInstance.capture(event, properties);
 }
 
 export function identify(userId: string, properties?: Record<string, unknown>) {
-  if (!initialized) return;
-  posthog.identify(userId, properties);
+  posthogInstance?.identify(userId, properties);
 }
 
 export function setPersonProperties(properties: Record<string, unknown>) {
-  if (!initialized) return;
-  posthog.people.set(properties);
+  posthogInstance?.people.set(properties);
 }
-
-export { posthog };

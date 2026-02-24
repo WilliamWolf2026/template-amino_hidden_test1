@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Local Baloo font - works on all devices */
+@font-face {
+  font-family: 'Baloo';
+  src: url('/assets/fonts/Baloo-Regular.woff2') format('woff2'),
+       url('/assets/fonts/Baloo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --dynamic-vh: 1vh;
   --background-rgb: 0, 0, 0;
@@ -28,4 +38,17 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+/* Screen reader only - accessible but hidden */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

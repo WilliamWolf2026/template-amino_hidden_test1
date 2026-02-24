@@ -1,4 +1,5 @@
 import { type JSX, splitProps } from 'solid-js';
+import { useAssets } from '~/scaffold/systems/assets';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -22,15 +23,27 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 export function Button(props: ButtonProps) {
-  const [local, rest] = splitProps(props, ['variant', 'size', 'loading', 'children', 'class', 'disabled']);
+  const [local, rest] = splitProps(props, ['variant', 'size', 'loading', 'children', 'class', 'disabled', 'onClick']);
+  const { coordinator } = useAssets();
 
   const variant = () => local.variant ?? 'primary';
   const size = () => local.size ?? 'md';
+
+  const handleClick = (e: MouseEvent) => {
+    // Play button click sound
+    coordinator.audio.play('sfx-citylines', 'button_click', { volume: 0.7 });
+
+    // Call original onClick if provided
+    if (local.onClick) {
+      local.onClick(e);
+    }
+  };
 
   return (
     <button
       {...rest}
       disabled={local.disabled || local.loading}
+      onClick={handleClick}
       class={`
         rounded-lg font-medium transition-all duration-200
         disabled:opacity-50 disabled:cursor-not-allowed

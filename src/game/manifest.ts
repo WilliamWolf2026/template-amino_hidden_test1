@@ -1,26 +1,30 @@
 import type { Manifest } from '~/scaffold/systems/assets';
+import { getCdnUrl, getLocalAssetPath } from '~/game/config';
 
 export const manifest: Manifest = {
-  cdnBase: '/assets',
+  cdnBase: getCdnUrl(),
+  localBase: getLocalAssetPath(),
   bundles: [
     // THEME - Branding (agnostic, loaded first)
     { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
 
-    // BOOT - Minimal for loading screen
-    // { name: 'boot-spinner', assets: ['ui/spinner.json'] },
+    // TILES - Game tiles (theme variants - only one loaded based on tuning)
+    { name: 'atlas-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] },
+    { name: 'atlas-tiles-citylines', assets: ['atlas-tiles-citylines.json'] },
+    { name: 'atlas-tiles-citylines-fall', assets: ['atlas-tiles-citylines-fall.json'] },
+    { name: 'atlas-tiles-citylines-winter', assets: ['atlas-tiles-citylines-winter.json'] },
 
-    // CORE - Required before gameplay
-    { name: 'core-background', assets: ['animation-water.json'] },
-    // { name: 'core-chrome', assets: ['ui/buttons.json', 'ui/modals.json'] },
+    // VFX
+    { name: 'vfx-rotate', assets: ['vfx-rotate.json'] },
+    { name: 'vfx-blast', assets: ['vfx-blast.json'] },
+    { name: 'vfx-flash_fx_shape_04', assets: ['vfx-flash_fx_shape_04.json'] },
+    { name: 'vfx-mg_glow_09', assets: ['vfx-mg_glow_09.json'] },
+    { name: 'vfx-mg_noglow_01', assets: ['vfx-mg_noglow_01.json'] },
 
-    // SCENES
-    // { name: 'scene-gameplay', assets: ['scenes/gameplay/entities.json'] },
-
-    // AUDIO (agnostic)
-    // { name: 'audio-sfx-ui', assets: ['audio/sfx-ui.json'] },
-    // { name: 'audio-music', assets: ['audio/music.json'] },
-
-    // DEFERRED - Low priority
-    // { name: 'defer-extras', assets: ['ui/achievements.json'] },
+    // AUDIO
+    { name: 'audio-sfx-daily-dispatch', assets: ['sfx-daily-dispatch.json'] },
+    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] }, // scaffold Button.tsx hardcodes this channel
+    { name: 'audio-music-citylines-1', assets: ['music-citylines-1.json'] },
+    { name: 'audio-music-warehouse-puzzle', assets: ['music-warehouse-puzzle.json'] },
   ],
 };

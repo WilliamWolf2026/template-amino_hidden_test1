@@ -1,0 +1,1 @@
+export { useCompanionDialogue } from './useCompanionDialogue';
