@@ -3,11 +3,15 @@ import { Application, TilingSprite, type Texture } from 'pixi.js';
 import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, pauseState } from '~/scaffold';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import { createParticleRuntime } from '~/vfx/particleRuntime';
+
+const EFFECT_NAME = 'effect';
 
 export function GameScreen() {
   const { coordinator } = useAssets();
   let containerRef: HTMLDivElement | undefined;
   let app: Application | null = null;
+  let vfxRuntime: ReturnType<typeof createParticleRuntime> | null = null;
 
   const [engineReady, setEngineReady] = createSignal(false);
 
@@ -86,11 +90,26 @@ export function GameScreen() {
         graphics.rotation += 0.01 * ticker.deltaTime;
       }
     });
+
+    // VFX: load and play effect
+    try {
+      const basePath = `/assets/vfx/effects/${EFFECT_NAME}/`;
+      const vfxData = await fetch(`${basePath}effect.json`).then((r) => r.json());
+      const runtime = createParticleRuntime(app, { assetBasePath: basePath });
+      await runtime.loadVFXData(vfxData);
+      app.ticker.add(runtime.update);
+      vfxRuntime = runtime;
+    } catch (err) {
+      console.warn('[GameScreen] VFX not loaded (unzip effect into public/assets/vfx/effects/<effect-name>/):', err);
+    }
   });
 
   onCleanup(() => {
-    // Keep app cached for potential return (don't destroy)
-    // If you want to destroy: app?.destroy(true, { children: true });
+    if (vfxRuntime) {
+      if (app) app.ticker.remove(vfxRuntime.update);
+      vfxRuntime.destroy();
+      vfxRuntime = null;
+    }
     if (app) {
       app.ticker.stop();
     }

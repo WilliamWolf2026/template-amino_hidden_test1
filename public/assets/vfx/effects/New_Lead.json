@@ -1,0 +1,159 @@
+{
+  "version": "2.0",
+  "timestamp": "2026-02-23T18:37:24.622Z",
+  "spawners": [
+    {
+      "id": "spawner_1771871844622_cprzahi",
+      "name": "Spawner 1",
+      "position": {
+        "x": 0,
+        "y": -640
+      },
+      "visible": true,
+      "config": {
+        "textureName": "confetti_strip.png",
+        "alphaStart": 1,
+        "alphaEnd": 0,
+        "sizeMode": "pixels",
+        "sizeStartPixels": 16,
+        "sizeEndPixels": 16,
+        "scaleStart": 0.02,
+        "scaleEnd": 0.01,
+        "scaleVariance": 0.18,
+        "colorStart": {
+          "r": 255,
+          "g": 255,
+          "b": 255
+        },
+        "colorEnd": {
+          "r": 255,
+          "g": 255,
+          "b": 255
+        },
+        "speed": 1,
+        "speedVariance": 0.3,
+        "angle": 0,
+        "angleVariance": 70,
+        "acceleration": 0,
+        "gravity": 0.001,
+        "rotationStart": 0,
+        "rotationSpeed": 15,
+        "rotationVariance": 1.5,
+        "rotationDirection": "random",
+        "emitterStartDelay": 0,
+        "emitterLifetime": 3,
+        "emitterLifetimeVariance": 0,
+        "particleLifetime": 10,
+        "particleLifetimeVariance": 0.2,
+        "loop": false,
+        "emitting": true,
+        "burst": false,
+        "spawnRate": 2,
+        "maxParticles": 180,
+        "particlesPerWave": 3,
+        "blendMode": "normal",
+        "autoPlay": true,
+        "shape": {
+          "type": "edge",
+          "radiusThickness": 0,
+          "arc": 360,
+          "emitFrom": "volume",
+          "randomizeDirection": 0,
+          "alignToDirection": true,
+          "angle": 0,
+          "radius": 150
+        },
+        "trails": {
+          "enabled": false,
+          "ratio": 1,
+          "lifetime": 0.5,
+          "minVertexDistance": 10,
+          "inheritParticleColor": false
+        },
+        "limitVelocity": {
+          "enabled": false,
+          "speedLimit": 1,
+          "dampen": 0.5,
+          "drag": 0
+        },
+        "velocityOverLifetime": {
+          "speedModifier": 1,
+          "radial": 0,
+          "linearY": 0
+        },
+        "bursts": [
+          {
+            "time": 0,
+            "count": 46,
+            "cycles": 1,
+            "interval": 0,
+            "probability": 1
+          }
+        ],
+        "startColorMode": "randomColor",
+        "startColorKeys": [
+          {
+            "t": 0.5,
+            "r": 239,
+            "g": 211,
+            "b": 9,
+            "a": 128
+          },
+          {
+            "t": 1,
+            "r": 164,
+            "g": 196,
+            "b": 172,
+            "a": 1
+          },
+          {
+            "t": 1,
+            "r": 214,
+            "g": 114,
+            "b": 101,
+            "a": 1
+          },
+          {
+            "t": 1,
+            "r": 230,
+            "g": 164,
+            "b": 246,
+            "a": 1
+          },
+          {
+            "t": 1,
+            "r": 117,
+            "g": 172,
+            "b": 203,
+            "a": 1
+          }
+        ],
+        "noise": {
+          "enabled": true,
+          "strength": 0.1,
+          "frequency": 0.56,
+          "scrollSpeed": 3.3,
+          "octaves": 1,
+          "octaveScale": 2,
+          "octaveMultiplier": 1,
+          "strengthOverLifetime": [
+            [
+              0,
+              1
+            ],
+            [
+              0.5,
+              0.7
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        "colorOverLifetimeEnabled": false
+      }
+    }
+  ],
+  "aspectRatio": "9:16"
+}
