@@ -1,0 +1,220 @@
+import type { GridSize } from './grid';
+import type { LandmarkPlacement, ExitPlacement, LandmarkType } from './landmark';
+
+/** New Jersey counties available in the game */
+export type County = 'atlantic' | 'bergen' | 'cape_may' | 'essex' | 'hudson';
+
+/** Road tile types */
+export type RoadTileType = 'straight' | 'corner' | 't_junction';
+
+/** Road tile placement in level config (aligned with generator: x = column, y = row) */
+export interface RoadTilePlacement {
+  type: RoadTileType;
+  x: number;  // Column (0-based, left to right)
+  y: number;  // Row (0-based, top to bottom)
+  /** Solution rotation state (0, 1, 2, 3) where 0=0°, 1=90°, 2=180°, 3=270° */
+  solutionRotation: number;
+  /** Initial scrambled rotation state (0, 1, 2, 3) */
+  initialRotation: number;
+}
+
+/** Level configuration */
+export interface LevelConfig {
+  levelNumber: number;
+  gridSize: GridSize;
+  landmarks: LandmarkPlacement[];
+  exits: ExitPlacement[];
+  roadTiles: RoadTilePlacement[];
+  /** County for theming */
+  county: County;
+  /** Story clue revealed on completion */
+  clue: string;
+  /** Optional celebration image URL */
+  celebrationImageUrl?: string;
+  /** Seed used for generation (for reproducible decorations) */
+  seed?: number;
+}
+
+/** Chapter configuration */
+export interface ChapterConfig {
+  chapterNumber: number;
+  county: County;
+  countyLandmarks: LandmarkType[];
+  levels: LevelConfig[];
+  storyHeadline: string;
+  storySummary: string;
+}
+
+/** Difficulty settings per GDD */
+export interface DifficultySettings {
+  gridSize: GridSize;
+  landmarkCount: { min: number; max: number };
+  detourProbability: number;
+  minPathLength: number;
+}
+
+/** Difficulty presets */
+export const DIFFICULTY_PRESETS: Record<string, DifficultySettings> = {
+  easy: { gridSize: 4, landmarkCount: { min: 2, max: 2 }, detourProbability: 0.1, minPathLength: 3 },
+  medium: { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.3, minPathLength: 4 },
+  hard: { gridSize: 6, landmarkCount: { min: 3, max: 4 }, detourProbability: 0.6, minPathLength: 5 },
+};
+
+/**
+ * Progressive difficulty curve for chapter levels (10 levels per chapter)
+ * Based on GDD Progression section:
+ * - Levels 1-2: 4×4 grid, 2-3 landmarks
+ * - Levels 3-6: 5×5 grid, 3-5 landmarks
+ * - Levels 7-10: 6×6 grid, 5-7 landmarks
+ */
+export const CHAPTER_LEVEL_PROGRESSION: DifficultySettings[] = [
+  // Level 1: 4x4, 2 landmarks (GDD: 2-3)
+  { gridSize: 4, landmarkCount: { min: 2, max: 2 }, detourProbability: 0.1, minPathLength: 3 },
+  // Level 2: 4x4, 2-3 landmarks (GDD: 2-3)
+  { gridSize: 4, landmarkCount: { min: 2, max: 3 }, detourProbability: 0.15, minPathLength: 3 },
+  // Level 3: 5x5, 3 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.2, minPathLength: 4 },
+  // Level 4: 5x5, 3-4 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 3, max: 4 }, detourProbability: 0.25, minPathLength: 4 },
+  // Level 5: 5x5, 4 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 4, max: 4 }, detourProbability: 0.3, minPathLength: 4 },
+  // Level 6: 5x5, 4-5 landmarks (GDD: 3-5)
+  { gridSize: 5, landmarkCount: { min: 4, max: 5 }, detourProbability: 0.35, minPathLength: 4 },
+  // Level 7: 6x6, 5 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 5, max: 5 }, detourProbability: 0.4, minPathLength: 5 },
+  // Level 8: 6x6, 5-6 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 5, max: 6 }, detourProbability: 0.5, minPathLength: 5 },
+  // Level 9: 6x6, 6 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 6, max: 6 }, detourProbability: 0.55, minPathLength: 5 },
+  // Level 10: 6x6, 6-7 landmarks (GDD: 5-7)
+  { gridSize: 6, landmarkCount: { min: 6, max: 7 }, detourProbability: 0.6, minPathLength: 5 },
+];
+
+/**
+ * Continuous difficulty progression (absolute level numbers, does not reset)
+ * Based on GDD Difficulty Scaling table:
+ * - Level 4-5 (Easy): 4×4 grid, 2 landmarks, 10% detour
+ * - Level 6-8 (Medium): 5×5 grid, 3 landmarks, 30% detour
+ * - Level 9+ (Hard): 6×6 grid, 3 landmarks, 60% detour
+ *
+ * Note: Levels 1-3 use tutorial settings (3×3, 1-2 landmarks)
+ */
+export const CONTINUOUS_DIFFICULTY_THRESHOLDS = {
+  tutorial: { maxLevel: 3, settings: { gridSize: 3, landmarkCount: { min: 1, max: 2 }, detourProbability: 0.05, minPathLength: 2 } as DifficultySettings },
+  easy: { maxLevel: 5, settings: { gridSize: 4, landmarkCount: { min: 2, max: 2 }, detourProbability: 0.1, minPathLength: 3 } as DifficultySettings },
+  medium: { maxLevel: 8, settings: { gridSize: 5, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.3, minPathLength: 4 } as DifficultySettings },
+  hard: { maxLevel: Infinity, settings: { gridSize: 6, landmarkCount: { min: 3, max: 3 }, detourProbability: 0.6, minPathLength: 5 } as DifficultySettings },
+};
+
+/**
+ * Get difficulty using continuous progression (does not reset per chapter)
+ * Uses absolute level numbers with fixed thresholds
+ *
+ * @param levelNumber - Absolute level number (1-based)
+ * @returns Difficulty settings for this level
+ */
+export function getContinuousDifficulty(levelNumber: number): DifficultySettings {
+  const { tutorial, easy, medium, hard } = CONTINUOUS_DIFFICULTY_THRESHOLDS;
+
+  if (levelNumber <= tutorial.maxLevel) return tutorial.settings;
+  if (levelNumber <= easy.maxLevel) return easy.settings;
+  if (levelNumber <= medium.maxLevel) return medium.settings;
+  return hard.settings;
+}
+
+/**
+ * Get difficulty settings for a given level number.
+ * Maps any chapter length to the 10-level progression curve.
+ *
+ * @param levelNumber - Absolute level number (1-based)
+ * @param chapterLength - Number of levels in the chapter (default: 10)
+ * @returns Difficulty settings for this level
+ *
+ * @example
+ * getDifficultyForLevel(1)      // Level 1 of 10 (easy)
+ * getDifficultyForLevel(10)     // Level 10 of 10 (hard)
+ * getDifficultyForLevel(5, 8)   // Level 5 of 8 (scaled medium-hard)
+ */
+export function getDifficultyForLevel(levelNumber: number, chapterLength: number = 10): DifficultySettings {
+  // Convert to 0-based index within chapter
+  const chapterLevelIndex = (levelNumber - 1) % chapterLength;
+
+  // Scale to 10-level progression (handles variable chapter lengths)
+  const progressionIndex = Math.floor(
+    (chapterLevelIndex / chapterLength) * CHAPTER_LEVEL_PROGRESSION.length
+  );
+
+  return CHAPTER_LEVEL_PROGRESSION[
+    Math.min(progressionIndex, CHAPTER_LEVEL_PROGRESSION.length - 1)
+  ];
+}
+
+/**
+ * Convert DifficultySettings to GeneratorConfig
+ * Maps abstract difficulty settings to concrete generator parameters
+ *
+ * @param difficulty - The difficulty settings to convert
+ * @param baseConfig - Base generator config to merge with (provides wriggle tuning params)
+ * @returns Complete generator config with difficulty-based parameters
+ */
+export function difficultyToGeneratorConfig(
+  difficulty: DifficultySettings,
+  baseConfig: {
+    sidePushRadius: number;
+    sidePushFactor: number;
+    wriggleDistanceMagnifier: number;
+    wriggleExtentChaosFactor: number;
+    wrigglePasses: number;
+  }
+): {
+  width: number;
+  height: number;
+  exitPoints: number;
+  pointsSpacing: number;
+  sidePushRadius: number;
+  sidePushFactor: number;
+  wriggleFactor: number;
+  wriggleDistanceMagnifier: number;
+  wriggleExtent: number;
+  wriggleExtentChaosFactor: number;
+  wrigglePasses: number;
+} {
+  // Pick landmark count (randomly between min and max)
+  const landmarkCount = Math.floor(
+    Math.random() * (difficulty.landmarkCount.max - difficulty.landmarkCount.min + 1)
+  ) + difficulty.landmarkCount.min;
+
+  // Calculate appropriate pointsSpacing based on grid size and landmark count
+  // With many landmarks on a small grid, we need reduced spacing to fit them all
+  // Formula: scale down spacing as landmark density increases
+  const gridArea = difficulty.gridSize * difficulty.gridSize;
+  const landmarkDensity = landmarkCount / gridArea;
+
+  // Base spacing from minPathLength, but scale down for high density
+  // At low density (2 landmarks on 6x6 = 0.055), use full minPathLength
+  // At high density (7 landmarks on 6x6 = 0.194), reduce to ~40% of minPathLength
+  const densityFactor = Math.max(0.4, 1 - (landmarkDensity * 3));
+  const adjustedSpacing = Math.max(2, Math.floor(difficulty.minPathLength * densityFactor));
+
+  return {
+    width: difficulty.gridSize,
+    height: difficulty.gridSize,
+    exitPoints: landmarkCount,
+    pointsSpacing: adjustedSpacing,
+    sidePushRadius: baseConfig.sidePushRadius,
+    sidePushFactor: baseConfig.sidePushFactor,
+
+    // Map detourProbability to wriggleFactor
+    // detourProbability 0.1-0.6 → wriggleFactor 0.2-0.999
+    // Higher detourProbability = more wriggling
+    wriggleFactor: 0.2 + (difficulty.detourProbability * 1.3),
+
+    // Map detourProbability to wriggleExtent
+    // More detour = more curve intensity
+    wriggleExtent: 0.3 + (difficulty.detourProbability * 0.7),
+
+    wriggleDistanceMagnifier: baseConfig.wriggleDistanceMagnifier,
+    wriggleExtentChaosFactor: baseConfig.wriggleExtentChaosFactor,
+    wrigglePasses: baseConfig.wrigglePasses,
+  };
+}

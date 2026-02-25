@@ -1,5 +1,5 @@
 import { Howl, Howler } from 'howler';
-import type { Manifest, AudioSpriteData } from '../types';
+import type { Manifest, AudioSpriteData, ProgressCallback } from '../types';
 
 interface ChannelState {
   howl: Howl;
@@ -24,9 +24,16 @@ export class AudioLoader {
   private masterVolume = 1;
   private masterMuted = false;
   private initialized = false;
+  private usingFallback = false;
 
   init(manifest: Manifest): void {
     this.manifest = manifest;
+  }
+
+  private getBaseUrl(): string {
+    return this.usingFallback && this.manifest.localBase
+      ? this.manifest.localBase
+      : this.manifest.cdnBase;
   }
 
   // Must be called after user gesture (e.g., start button click)
@@ -43,21 +50,44 @@ export class AudioLoader {
 
   // Register an audio sprite from loaded JSON
   async register(jsonPath: string): Promise<void> {
-    const key = jsonPath.replace(/\.json$/, '');
+    // Use just the filename (without directory and extension) as the key
+    // e.g., 'audio/sfx-citylines.json' -> 'sfx-citylines'
+    const filename = jsonPath.split('/').pop() || jsonPath;
+    const key = filename.replace(/\.json$/, '');
     if (this.channels.has(key)) return;
 
-    const jsonUrl = `${this.manifest.cdnBase}/${jsonPath}`;
-    const response = await fetch(jsonUrl);
+    const baseUrl = this.getBaseUrl();
+    const jsonUrl = `${baseUrl}/${jsonPath}`;
+    let response: Response;
 
-    if (!response.ok) {
-      throw new Error(`Failed to load audio: ${jsonUrl}`);
+    try {
+      response = await fetch(jsonUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      // If CDN fails and we have a local fallback, try that
+      if (!this.usingFallback && this.manifest.localBase) {
+        console.warn(`[Audio] CDN failed for ${jsonPath}, falling back to local`);
+        this.usingFallback = true;
+        const localUrl = `${this.manifest.localBase}/${jsonPath}`;
+        response = await fetch(localUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to load audio: ${localUrl}`);
+        }
+      } else {
+        throw new Error(`Failed to load audio: ${jsonUrl}`);
+      }
     }
 
     const json: AudioSpriteData = await response.json();
 
-    // Resolve src paths relative to JSON location
-    const dir = jsonPath.substring(0, jsonPath.lastIndexOf('/'));
-    const resolvedSrc = json.src.map((s) => `${this.manifest.cdnBase}/${dir}/${s}`);
+    // Resolve src paths relative to JSON location (avoid double slash when jsonPath has no directory)
+    const dir = jsonPath.includes('/') ? jsonPath.substring(0, jsonPath.lastIndexOf('/')) : '';
+    const currentBase = this.getBaseUrl();
+    const resolvedSrc = dir
+      ? json.src.map((s) => `${currentBase}/${dir}/${s}`)
+      : json.src.map((s) => `${currentBase}/${s}`);
 
     const howl = new Howl({
       src: resolvedSrc,
@@ -80,14 +110,20 @@ export class AudioLoader {
   }
 
   // Load all audio bundles from manifest
-  async loadBundle(name: string): Promise<void> {
+  async loadBundle(name: string, onProgress?: ProgressCallback): Promise<void> {
     const bundle = this.manifest.bundles.find((b) => b.name === name);
     if (!bundle) throw new Error(`Unknown bundle: ${name}`);
 
+    const jsonPaths = bundle.assets.filter((p) => p.endsWith('.json'));
+    const total = jsonPaths.length;
+    let completed = 0;
+
     await Promise.all(
-      bundle.assets
-        .filter((p) => p.endsWith('.json') && p.includes('audio/'))
-        .map((p) => this.register(p))
+      jsonPaths.map(async (p) => {
+        await this.register(p);
+        completed++;
+        onProgress?.(completed / total);
+      })
     );
   }
 

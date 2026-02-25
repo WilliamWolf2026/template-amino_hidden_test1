@@ -1,4 +1,3 @@
 export * from './LoadingScreen';
-export * from './StartScreen';
-export * from './GameScreen';
 export * from './ResultsScreen';
+// StartScreen and GameScreen are lazy-loaded via config.ts

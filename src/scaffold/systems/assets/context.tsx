@@ -1,6 +1,7 @@
 import { createContext, useContext, createSignal, type ParentProps } from 'solid-js';
 import { AssetCoordinator, type CoordinatorConfig } from './coordinator';
-import type { Manifest } from './types';
+import type { Manifest, ProgressCallback } from './types';
+import { useManifest } from '~/scaffold/systems/manifest/context';
 
 // Context shape
 interface AssetContextValue {
@@ -8,12 +9,12 @@ interface AssetContextValue {
   ready: () => boolean;
   gpuReady: () => boolean;
   loading: () => boolean;
-  loadBundle: (name: string) => Promise<void>;
-  loadBoot: () => Promise<void>;
-  loadCore: () => Promise<void>;
-  loadTheme: () => Promise<void>;
-  loadAudio: () => Promise<void>;
-  loadScene: (name: string) => Promise<void>;
+  loadBundle: (name: string, onProgress?: ProgressCallback) => Promise<void>;
+  loadBoot: (onProgress?: ProgressCallback) => Promise<void>;
+  loadCore: (onProgress?: ProgressCallback) => Promise<void>;
+  loadTheme: (onProgress?: ProgressCallback) => Promise<void>;
+  loadAudio: (onProgress?: ProgressCallback) => Promise<void>;
+  loadScene: (name: string, onProgress?: ProgressCallback) => Promise<void>;
   initGpu: () => Promise<void>;
   unlockAudio: () => void;
 }
@@ -21,13 +22,18 @@ interface AssetContextValue {
 const AssetContext = createContext<AssetContextValue>();
 
 interface AssetProviderProps extends ParentProps {
-  manifest: Manifest;
   config: CoordinatorConfig;
 }
 
 export function AssetProvider(props: AssetProviderProps) {
+  const { manifest } = useManifest();
   const coordinator = new AssetCoordinator();
-  coordinator.init(props.manifest, props.config);
+  coordinator.init(manifest(), props.config);
+
+  // Log asset source
+  const cdnBase = manifest().cdnBase;
+  const isRemote = cdnBase.startsWith('http');
+  console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
 
   const [ready, setReady] = createSignal(false);
   const [gpuReady, setGpuReady] = createSignal(false);
@@ -49,31 +55,31 @@ export function AssetProvider(props: AssetProviderProps) {
     gpuReady,
     loading,
 
-    async loadBundle(name: string) {
-      await wrapLoad(() => coordinator.loadBundle(name));
+    async loadBundle(name: string, onProgress?: ProgressCallback) {
+      await wrapLoad(() => coordinator.loadBundle(name, onProgress));
     },
 
-    async loadBoot() {
+    async loadBoot(onProgress?: ProgressCallback) {
       await wrapLoad(async () => {
-        await coordinator.loadBoot();
+        await coordinator.loadBoot(onProgress);
         setReady(true);
       });
     },
 
-    async loadCore() {
-      await wrapLoad(() => coordinator.loadCore());
+    async loadCore(onProgress?: ProgressCallback) {
+      await wrapLoad(() => coordinator.loadCore(onProgress));
     },
 
-    async loadTheme() {
-      await wrapLoad(() => coordinator.loadTheme());
+    async loadTheme(onProgress?: ProgressCallback) {
+      await wrapLoad(() => coordinator.loadTheme(onProgress));
     },
 
-    async loadAudio() {
-      await wrapLoad(() => coordinator.loadAudio());
+    async loadAudio(onProgress?: ProgressCallback) {
+      await wrapLoad(() => coordinator.loadAudio(onProgress));
     },
 
-    async loadScene(name: string) {
-      await wrapLoad(() => coordinator.loadScene(name));
+    async loadScene(name: string, onProgress?: ProgressCallback) {
+      await wrapLoad(() => coordinator.loadScene(name, onProgress));
     },
 
     async initGpu() {

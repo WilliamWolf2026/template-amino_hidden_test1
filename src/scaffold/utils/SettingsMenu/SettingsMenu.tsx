@@ -1,24 +1,32 @@
 import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import gsap from 'gsap';
 import { useAudio } from '~/scaffold/systems/audio';
+import { setIsPanelOpen, isPanelOpen } from '~/scaffold/dev/TuningPanel';
+import { IS_DEV_ENV } from '~/scaffold/dev/env';
+import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';
-import soundAmbientOnIcon from './assets/icon_sound_ambient_on.svg';
-import soundAmbientOffIcon from './assets/icon_sound_ambient_off.svg';
 import volumeHighIcon from './assets/icon_volume_high.svg';
 import volumeMediumIcon from './assets/icon_volume_medium.svg';
 import volumeLowIcon from './assets/icon_volume_low.svg';
 import volumeMutedIcon from './assets/icon_volume_muted.svg';
+import wrenchIcon from './assets/icon_wrench.svg';
+import trashIcon from './assets/icon_trash.svg';
 
 // Settings Menu Configuration
 const SETTINGS_CONFIG = {
   showVolumeSlider: true,
-  showAmbientToggle: true,
+  showTuningToggle: IS_DEV_ENV,
   showMusicToggle: true,
   backgroundColor: 'rgb(23,23,23)',
   borderRadius: '26px',
 };
+
+export interface SettingsMenuProps {
+  /** Callback to reset progress (shows reset button when provided) */
+  onResetProgress?: () => void;
+}
 
 interface StatusNotificationProps {
   message: string;
@@ -62,8 +70,9 @@ function StatusNotification(props: StatusNotificationProps) {
   );
 }
 
-export default function SettingsMenu() {
+export default function SettingsMenu(props: SettingsMenuProps = {}) {
   const audio = useAudio();
+  const { trackAudioSettingChanged } = useAnalytics();
 
   const [isOpen, setIsOpen] = createSignal(false);
   const [statusMessage, setStatusMessage] = createSignal('');
@@ -174,22 +183,54 @@ export default function SettingsMenu() {
     setShowStatus(true);
   };
 
-  const handleAmbientToggle = () => {
-    audio.toggleAmbient();
-    const status = !audio.ambientEnabled() ? 'AMBIENT ON' : 'AMBIENT OFF';
+  const handleTuningToggle = () => {
+    setIsPanelOpen(!isPanelOpen());
+    const status = isPanelOpen() ? 'TUNING ON' : 'TUNING OFF';
     showStatusNotification(status);
   };
 
   const handleMusicToggle = () => {
+    const oldValue = audio.musicEnabled();
     audio.toggleMusic();
-    const status = !audio.musicEnabled() ? 'MUSIC ON' : 'MUSIC OFF';
+    const newValue = !oldValue;
+    const status = newValue ? 'MUSIC ON' : 'MUSIC OFF';
     showStatusNotification(status);
+    trackAudioSettingChanged({
+      setting_type: 'mute',
+      old_value: oldValue,
+      new_value: newValue,
+      screen_name: 'settings_menu',
+    });
   };
+
+  // Debounce volume tracking to avoid spamming during slider drag
+  let volumeTrackTimer: ReturnType<typeof setTimeout> | null = null;
+  let volumeBeforeDrag = audio.volume();
 
   const handleVolumeChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     const newVolume = parseFloat(target.value);
     audio.setVolume(newVolume);
+
+    if (volumeTrackTimer) clearTimeout(volumeTrackTimer);
+    volumeTrackTimer = setTimeout(() => {
+      trackAudioSettingChanged({
+        setting_type: 'volume',
+        old_value: volumeBeforeDrag,
+        new_value: newVolume,
+        screen_name: 'settings_menu',
+      });
+      volumeBeforeDrag = newVolume;
+    }, 300);
+  };
+
+  const handleResetProgress = () => {
+    if (props.onResetProgress) {
+      props.onResetProgress();
+      showStatusNotification('PROGRESS RESET');
+      // Close menu after reset
+      toggleMenu();
+    }
   };
 
   const getVolumeIcon = () => {
@@ -246,7 +287,7 @@ export default function SettingsMenu() {
 
       <div
         ref={menuPanelRef}
-        class="settings-panel absolute right-0 top-[calc(100%+10px)] shadow-lg p-4 w-[380px] max-w-[calc(100vw-2rem)] text-white"
+        class="settings-panel absolute right-0 top-[calc(100%+10px)] shadow-lg p-3 sm:p-4 w-95 max-w-[calc(100vw-1rem)] text-white"
         style={{
           'transform-origin': 'top right',
           opacity: 0,
@@ -259,7 +300,7 @@ export default function SettingsMenu() {
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-2 sm:gap-3 justify-between w-full flex-wrap sm:flex-nowrap">
             <Show when={SETTINGS_CONFIG.showVolumeSlider}>
-              <div class="relative h-[60px] flex-grow min-w-[120px]">
+              <div class="relative h-11 sm:h-15 grow min-w-30">
                 <div class="absolute inset-0 bg-[rgb(60,60,60)] rounded-xl overflow-hidden">
                   <div
                     class="absolute top-0 left-0 h-full bg-white"
@@ -299,25 +340,25 @@ export default function SettingsMenu() {
               </div>
             </Show>
 
-            <Show when={SETTINGS_CONFIG.showAmbientToggle}>
+            <Show when={IS_DEV_ENV}>
               <button
-                class={`h-[60px] w-[60px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
-                  !audio.ambientEnabled() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
+                class={`h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
+                  !isPanelOpen() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
                 }`}
-                onClick={handleAmbientToggle}
-                aria-label={!audio.ambientEnabled() ? 'Unmute Ambient' : 'Mute Ambient'}
+                onClick={handleTuningToggle}
+                aria-label={isPanelOpen() ? 'Close Tuning Panel' : 'Open Tuning Panel'}
               >
                 <img
-                  src={!audio.ambientEnabled() ? soundAmbientOffIcon : soundAmbientOnIcon}
-                  alt={!audio.ambientEnabled() ? 'Ambient Muted' : 'Ambient On'}
-                  class="w-6 h-6"
+                  src={wrenchIcon}
+                  alt="Tuning"
+                  class={`w-6 h-6 ${isPanelOpen() ? 'brightness-0' : 'invert'}`}
                 />
               </button>
             </Show>
 
             <Show when={SETTINGS_CONFIG.showMusicToggle}>
               <button
-                class={`h-[60px] w-[60px] flex-shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
+                class={`h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
                   !audio.musicEnabled() ? 'bg-[rgb(60,60,60)]' : 'bg-white'
                 }`}
                 onClick={handleMusicToggle}
@@ -327,6 +368,20 @@ export default function SettingsMenu() {
                   src={!audio.musicEnabled() ? soundMusic2MutedIcon : soundMusic2Icon}
                   alt={!audio.musicEnabled() ? 'Music Muted' : 'Music On'}
                   class="w-6 h-6"
+                />
+              </button>
+            </Show>
+
+            <Show when={props.onResetProgress}>
+              <button
+                class="h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 bg-[rgb(60,60,60)] hover:bg-red-600"
+                onClick={handleResetProgress}
+                aria-label="Reset Progress"
+              >
+                <img
+                  src={trashIcon}
+                  alt="Reset Progress"
+                  class="w-6 h-6 invert"
                 />
               </button>
             </Show>

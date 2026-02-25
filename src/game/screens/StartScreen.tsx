@@ -1,75 +1,44 @@
-import { createSignal, Show, onMount } from 'solid-js';
+import { onMount, onCleanup } from 'solid-js';
 import { useScreen } from '~/scaffold/systems/screens';
 import { useAssets } from '~/scaffold/systems/assets';
-import { Button } from '~/scaffold/ui/Button';
-import { ProgressBar } from '~/scaffold/ui/ProgressBar';
-import { Logo } from '~/scaffold/ui/Logo';
-import { gameState } from '~/game/state';
+import { useTuning, type ScaffoldTuning } from '~/scaffold';
+import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 
-export function StartScreen() {
+import type { GameTuning } from '~/game/tuning';
+
+// Game-specific start screen — swap this import for a different game
+import { setupDailyDispatchStartScreen } from '~/game/dailydispatch/screens/startView';
+
+export default function StartScreen() {
   const { goto } = useScreen();
-  const { initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
-  const [loading, setLoading] = createSignal(false);
-  const [progress, setProgress] = createSignal(0);
+  const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
+  const tuning = useTuning<ScaffoldTuning, GameTuning>();
+  const { trackGameStart } = useAnalytics();
+  let containerRef: HTMLDivElement | undefined;
 
-  // Preload Pixi in background while user views start screen
-  onMount(() => {
-    initGpu();
+  // Setup game-specific start screen controller
+  const startScreen = setupDailyDispatchStartScreen({
+    goto,
+    coordinator,
+    initGpu,
+    unlockAudio,
+    loadCore,
+    loadAudio,
+    tuning,
+    analytics: { trackGameStart },
   });
 
-  const handleStart = async () => {
-    setLoading(true);
-    setProgress(0);
+  onMount(() => {
+    if (containerRef) startScreen.init(containerRef);
+  });
 
-    try {
-      unlockAudio();
-      setProgress(10);
-
-      await initGpu();
-      setProgress(30);
-
-      await loadCore();
-      setProgress(60);
-
-      await loadAudio();
-      setProgress(90);
-
-      gameState.reset();
-      setProgress(100);
-
-      await new Promise((r) => setTimeout(r, 200));
-      await goto('game');
-    } catch (error) {
-      console.error('Failed to start game:', error);
-      setLoading(false);
-      setProgress(0);
-    }
-  };
+  onCleanup(() => startScreen.destroy());
 
   return (
-    <div class="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black">
-      {/* Logo area */}
-      <div class="mb-12">
-        <h1 class="text-6xl font-bold text-white tracking-tight">GAME</h1>
-        <p class="text-center text-gray-400 mt-2">Production Scaffold</p>
-      </div>
+    <div class={`fixed inset-0`} style={{ 'background-color': startScreen.backgroundColor }}>
+      {/* Pixi canvas container */}
+      <div ref={containerRef} class="absolute inset-0" />
 
-      {/* Start button or progress bar */}
-      <Show
-        when={!loading()}
-        fallback={
-          <ProgressBar progress={progress()} label="Loading game..." class="w-64" />
-        }
-      >
-        <Button size="lg" onClick={handleStart} class="min-w-[200px]">
-          Start Game
-        </Button>
-      </Show>
-
-      {/* Logo at bottom center */}
-      <div class="absolute bottom-8">
-        <Logo class="opacity-50" />
-      </div>
     </div>
   );
 }
