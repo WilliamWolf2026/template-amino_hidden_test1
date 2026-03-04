@@ -54,403 +54,59 @@ These rules are enforced by convention. Code in `core/` must never reference `mo
 
 ## Complete Architecture Diagram
 
-```mermaid
-graph TB
-    %% =============================================
-    %% TECH STACK (Top)
-    %% =============================================
-    subgraph TECH["TECH STACK"]
-        SOLID["Solid.js"]
-        PIXI["Pixi.js v8"]
-        PHASER["Phaser"]
-        THREE["Three.js"]
-        GSAP["GSAP"]
-        HOWLER["Howler"]
-        TWEAK["Tweakpane"]
-        SENTRY["Sentry"]
-    end
-
-    %% =============================================
-    %% APP ENTRY
-    %% =============================================
-    APP["app.tsx"]
-
-    %% =============================================
-    %% CORE LAYER
-    %% =============================================
-    subgraph CORE["CORE - Reusable Platform"]
-
-        subgraph PROVIDERS["Providers"]
-            GB["GlobalBoundary"]
-            TP["TuningProvider - useTuning()"]
-            VP["ViewportModeWrapper"]
-            PP["PauseProvider - usePause()"]
-            MP["ManifestProvider - useManifest()"]
-            AP["AssetProvider - useAssets()"]
-            SP["ScreenProvider - useScreen()"]
-            AUP["AudioProvider - useAudio()"]
-        end
-
-        subgraph TUNING_SYS["Tuning System"]
-            T_STATE["TuningState"]
-            T_LOADER["Loader"]
-            T_TYPES["ScaffoldTuning"]
-        end
-
-        subgraph ASSET_SYS["Asset System"]
-            COORD["AssetCoordinator"]
-            DOM_L["DomLoader"]
-            GPU_L["PixiLoader"]
-            GPU_PHASER["PhaserLoader"]
-            GPU_THREE["ThreeLoader"]
-            AUDIO_L["AudioLoader"]
-        end
-
-        subgraph SCREEN_SYS["Screen System"]
-            S_MGR["ScreenManager"]
-            S_TRANS["Transitions"]
-        end
-
-        subgraph OTHER_SYS["Other Systems"]
-            P_STATE["PauseState"]
-            A_STATE["AudioState"]
-            E_BOUND["ErrorBoundaries"]
-            E_REPORT["ErrorReporter"]
-            VFX["VFX / Particles"]
-        end
-
-        subgraph CORE_UI["UI Components"]
-            BTN["Button"]
-            SPIN["Spinner"]
-            PROG["ProgressBar"]
-            PAUSE_OV["PauseOverlay"]
-            MOB_VP["MobileViewport"]
-            VT["ViewportToggle"]
-            LOGO["Logo"]
-            SETTINGS["SettingsMenu"]
-        end
-
-        subgraph DEV["Dev Tools"]
-            PANEL["TuningPanel"]
-            BIND["Bindings"]
-            REG["TuningRegistry"]
-        end
-    end
-
-    %% =============================================
-    %% MODULES LAYER
-    %% =============================================
-    subgraph MODULES["MODULES - Shared Building Blocks"]
-
-        subgraph PRIMITIVES["Primitives"]
-            M_SBTN["SpriteButton - renderers/pixi.ts"]
-            M_PBAR["ProgressBar - renderers/pixi.ts"]
-            M_DBOX["DialogueBox - renderers/pixi.ts"]
-            M_CHAR["CharacterSprite - renderers/pixi.ts"]
-        end
-
-        subgraph PREFABS["Prefabs"]
-            M_AVATAR["AvatarPopup - renderers/pixi.ts"]
-        end
-
-        subgraph LOGIC["Logic"]
-            M_PROGRESS["Progress - factory"]
-            M_CATALOG["Catalog - factory"]
-            M_LOADER["Loader - factory"]
-            M_LVLCOMP["LevelCompletion - controller"]
-        end
-    end
-
-    %% =============================================
-    %% GAME LAYER
-    %% =============================================
-    subgraph GAME["GAME - CityLines"]
-
-        subgraph GSETUP["Setup"]
-            G_ANALYTICS["AnalyticsProvider"]
-            G_FLAGS["FeatureFlagProvider"]
-        end
-
-        subgraph GCONFIG["Config"]
-            G_CONF["config/index.ts"]
-            G_MAN["manifest"]
-            G_STATE["state.ts"]
-            GT_TYPES["CityLinesTuning"]
-        end
-
-        subgraph SCREENS["Screens"]
-            SCR_LOAD["LoadingScreen"]
-            SCR_START["StartScreen"]
-            SCR_GAME["GameScreen"]
-            SCR_RES["ResultsScreen"]
-        end
-
-        subgraph GAUDIO["Audio"]
-            GA_MGR["GameAudioManager"]
-            GA_SND["SoundRegistry"]
-        end
-
-        subgraph ENGINE["Core Engine"]
-            CLG["CityLinesGame - Pixi.Container"]
-
-            subgraph ELEMENTS["Elements"]
-                TILE["RoadTile"]
-                LAND["Landmark"]
-                EXIT["Exit"]
-                CHAR["Character"]
-            end
-
-            subgraph GAME_LOGIC["Logic"]
-                CONN["ConnectionDetector"]
-                LVL_GEN["LevelGenerator"]
-                DECO["DecorationSystem"]
-            end
-
-            subgraph GAME_UI["Game UI"]
-                COMP_CHAR["Companion"]
-                DIALOGUE["DialogueBox"]
-                PROG_BAR["ProgressBar"]
-            end
-        end
-    end
-
-    %% =============================================
-    %% VERTICAL FLOW - Tech to App
-    %% =============================================
-    SOLID --> APP
-    SENTRY --> APP
-
-    %% =============================================
-    %% VERTICAL FLOW - App to Core
-    %% =============================================
-    APP --> GB
-    GB --> TP
-    TP --> VP
-    VP --> PP
-    PP --> MP
-    MP --> AP
-    AP --> SP
-    SP --> AUP
-
-    %% =============================================
-    %% Provider to System connections
-    %% =============================================
-    TP -.-> T_STATE
-    AP -.-> COORD
-    SP -.-> S_MGR
-    PP -.-> P_STATE
-    AUP -.-> A_STATE
-
-    %% =============================================
-    %% Asset System internal
-    %% =============================================
-    COORD --> DOM_L
-    COORD --> GPU_L
-    COORD --> GPU_PHASER
-    COORD --> GPU_THREE
-    COORD --> AUDIO_L
-
-    %% =============================================
-    %% Tech to Loaders
-    %% =============================================
-    PIXI -.-> GPU_L
-    PHASER -.-> GPU_PHASER
-    THREE -.-> GPU_THREE
-    HOWLER -.-> AUDIO_L
-    GSAP -.-> CLG
-    TWEAK -.-> PANEL
-
-    %% =============================================
-    %% Game Setup in provider stack
-    %% =============================================
-    G_ANALYTICS -.-> TP
-    G_FLAGS -.-> G_ANALYTICS
-
-    %% =============================================
-    %% Game Config to Core
-    %% =============================================
-    G_MAN -->|"bundles"| MP
-    GT_TYPES -->|"extends"| T_TYPES
-    G_CONF -->|"screens"| S_MGR
-
-    %% =============================================
-    %% Modules import core only
-    %% =============================================
-    M_PROGRESS -.->|"uses core/utils/storage"| CORE
-    M_LVLCOMP -.->|"uses core systems"| CORE
-
-    %% =============================================
-    %% Game uses modules
-    %% =============================================
-    GAME_UI -.->|"uses primitives"| PRIMITIVES
-    CLG -.->|"uses LevelCompletion"| M_LVLCOMP
-
-    %% =============================================
-    %% Screens use Hooks (the key integration!)
-    %% =============================================
-    SCR_LOAD -->|"useAssets()"| AP
-    SCR_LOAD -->|"useScreen()"| SP
-    SCR_START -->|"useTuning()"| TP
-    SCR_GAME -->|"useAssets()"| AP
-    SCR_GAME -->|"useTuning()"| TP
-    SCR_GAME -->|"useAudio()"| AUP
-
-    %% =============================================
-    %% GameScreen creates game
-    %% =============================================
-    SCR_GAME --> CLG
-    SCR_GAME --> GA_MGR
-    GA_MGR --> AUDIO_L
-
-    %% =============================================
-    %% Core game internal
-    %% =============================================
-    CLG --> TILE
-    CLG --> LAND
-    CLG --> EXIT
-    CLG --> CONN
-    CLG --> LVL_GEN
-    CLG --> DECO
-
-    %% =============================================
-    %% STYLES - Tech
-    %% =============================================
-    style SOLID fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px
-    style PIXI fill:#e91e63,color:#fff,stroke:#c2185b,stroke-width:2px
-    style PHASER fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
-    style THREE fill:#000,color:#fff,stroke:#333,stroke-width:2px
-    style GSAP fill:#88ce02,color:#000,stroke:#6ba002,stroke-width:2px
-    style HOWLER fill:#f59e0b,color:#000,stroke:#d97706,stroke-width:2px
-    style TWEAK fill:#0ea5e9,color:#fff,stroke:#0284c7,stroke-width:2px
-    style SENTRY fill:#362d59,color:#fff,stroke:#2a2245,stroke-width:2px
-
-    %% =============================================
-    %% STYLES - App
-    %% =============================================
-    style APP fill:#1e293b,color:#fff,stroke:#0f172a,stroke-width:3px
-
-    %% =============================================
-    %% STYLES - Core Providers (cyan)
-    %% =============================================
-    style GB fill:#134e4a,color:#fff,stroke:#0f766e,stroke-width:2px
-    style TP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-    style VP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-    style PP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-    style MP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-    style AP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-    style SP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-    style AUP fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
-
-    %% =============================================
-    %% STYLES - Core Systems (cyan)
-    %% =============================================
-    style T_STATE fill:#14b8a6,color:#fff,stroke:#0d9488
-    style T_LOADER fill:#14b8a6,color:#fff,stroke:#0d9488
-    style T_TYPES fill:#14b8a6,color:#fff,stroke:#0d9488
-    style COORD fill:#14b8a6,color:#fff,stroke:#0d9488
-    style DOM_L fill:#2dd4bf,color:#000,stroke:#14b8a6
-    style GPU_L fill:#e91e63,color:#fff,stroke:#c2185b
-    style GPU_PHASER fill:#6366f1,color:#fff,stroke:#4f46e5
-    style GPU_THREE fill:#000,color:#fff,stroke:#333
-    style AUDIO_L fill:#f59e0b,color:#000,stroke:#d97706
-    style S_MGR fill:#14b8a6,color:#fff,stroke:#0d9488
-    style S_TRANS fill:#14b8a6,color:#fff,stroke:#0d9488
-    style P_STATE fill:#14b8a6,color:#fff,stroke:#0d9488
-    style A_STATE fill:#14b8a6,color:#fff,stroke:#0d9488
-    style E_BOUND fill:#14b8a6,color:#fff,stroke:#0d9488
-    style E_REPORT fill:#14b8a6,color:#fff,stroke:#0d9488
-    style VFX fill:#14b8a6,color:#fff,stroke:#0d9488
-
-    %% =============================================
-    %% STYLES - Core UI (cyan)
-    %% =============================================
-    style BTN fill:#5eead4,color:#000,stroke:#2dd4bf
-    style SPIN fill:#5eead4,color:#000,stroke:#2dd4bf
-    style PROG fill:#5eead4,color:#000,stroke:#2dd4bf
-    style PAUSE_OV fill:#5eead4,color:#000,stroke:#2dd4bf
-    style MOB_VP fill:#5eead4,color:#000,stroke:#2dd4bf
-    style VT fill:#5eead4,color:#000,stroke:#2dd4bf
-    style LOGO fill:#5eead4,color:#000,stroke:#2dd4bf
-    style SETTINGS fill:#5eead4,color:#000,stroke:#2dd4bf
-
-    %% =============================================
-    %% STYLES - Core Dev (cyan)
-    %% =============================================
-    style PANEL fill:#06b6d4,color:#fff,stroke:#0891b2
-    style BIND fill:#06b6d4,color:#fff,stroke:#0891b2
-    style REG fill:#06b6d4,color:#fff,stroke:#0891b2
-
-    %% =============================================
-    %% STYLES - Modules (green)
-    %% =============================================
-    style M_SBTN fill:#22c55e,color:#fff,stroke:#16a34a,stroke-width:2px
-    style M_PBAR fill:#22c55e,color:#fff,stroke:#16a34a,stroke-width:2px
-    style M_DBOX fill:#22c55e,color:#fff,stroke:#16a34a,stroke-width:2px
-    style M_CHAR fill:#22c55e,color:#fff,stroke:#16a34a,stroke-width:2px
-    style M_AVATAR fill:#4ade80,color:#000,stroke:#22c55e,stroke-width:2px
-    style M_PROGRESS fill:#86efac,color:#000,stroke:#4ade80
-    style M_CATALOG fill:#86efac,color:#000,stroke:#4ade80
-    style M_LOADER fill:#86efac,color:#000,stroke:#4ade80
-    style M_LVLCOMP fill:#86efac,color:#000,stroke:#4ade80
-
-    %% =============================================
-    %% STYLES - Game Setup (orange)
-    %% =============================================
-    style G_ANALYTICS fill:#ea580c,color:#fff,stroke:#c2410c,stroke-width:2px
-    style G_FLAGS fill:#ea580c,color:#fff,stroke:#c2410c,stroke-width:2px
-
-    %% =============================================
-    %% STYLES - Game Config (orange)
-    %% =============================================
-    style G_CONF fill:#ea580c,color:#fff,stroke:#c2410c,stroke-width:2px
-    style G_MAN fill:#ea580c,color:#fff,stroke:#c2410c,stroke-width:2px
-    style G_STATE fill:#ea580c,color:#fff,stroke:#c2410c,stroke-width:2px
-    style GT_TYPES fill:#ea580c,color:#fff,stroke:#c2410c,stroke-width:2px
-
-    %% =============================================
-    %% STYLES - Game Screens (orange)
-    %% =============================================
-    style SCR_LOAD fill:#fb923c,color:#000,stroke:#f97316,stroke-width:2px
-    style SCR_START fill:#fb923c,color:#000,stroke:#f97316,stroke-width:2px
-    style SCR_GAME fill:#fb923c,color:#000,stroke:#f97316,stroke-width:2px
-    style SCR_RES fill:#fb923c,color:#000,stroke:#f97316,stroke-width:2px
-
-    %% =============================================
-    %% STYLES - Game Audio (orange)
-    %% =============================================
-    style GA_MGR fill:#fbbf24,color:#000,stroke:#f59e0b
-    style GA_SND fill:#fbbf24,color:#000,stroke:#f59e0b
-
-    %% =============================================
-    %% STYLES - Core Game Engine (orange)
-    %% =============================================
-    style CLG fill:#f97316,color:#fff,stroke:#ea580c,stroke-width:2px
-    style TILE fill:#fdba74,color:#000,stroke:#fb923c
-    style LAND fill:#fdba74,color:#000,stroke:#fb923c
-    style EXIT fill:#fdba74,color:#000,stroke:#fb923c
-    style CHAR fill:#fdba74,color:#000,stroke:#fb923c
-    style CONN fill:#fde68a,color:#000,stroke:#fcd34d
-    style LVL_GEN fill:#fcd34d,color:#000,stroke:#fbbf24
-    style DECO fill:#fde68a,color:#000,stroke:#fcd34d
-    style COMP_CHAR fill:#fed7aa,color:#000,stroke:#fdba74
-    style DIALOGUE fill:#fed7aa,color:#000,stroke:#fdba74
-    style PROG_BAR fill:#fed7aa,color:#000,stroke:#fdba74
+                      Solid.js  Pixi.js v8  GSAP  Howler  Tweakpane  Sentry
+                         │         │          │      │        │         │
+                         └─────────┴──────────┴──────┴────────┴─────────┘
+                                              │
+                                              ▼
+                                    ┌─────────────────┐
+                                    │     app.tsx      │
+                                    └────────┬────────┘
+                                             │
+        ┌────────────────────────────────────┼────────────────────────────────────┐
+        ▼                                    ▼                                    ▼
+┌─────────────────────────┐  ┌─────────────────────────────┐  ┌────────────────────────────┐
+│  CORE  (src/core/)      │  │  MODULES  (src/modules/)    │  │  GAME  (src/game/)         │
+│  Framework shell         │  │  Reusable building blocks   │  │  Game-specific code        │
+│  DO NOT EDIT             │  │                             │  │                            │
+│                         │  │  Primitives:                │  │  Config:                   │
+│  Providers:             │  │    sprite-button            │  │    identity, manifest,     │
+│    GlobalBoundary       │  │    dialogue-box             │  │    config, state, tuning   │
+│    TuningProvider       │  │    character-sprite         │  │                            │
+│    PauseProvider        │  │    progress-bar             │  │  Setup:                    │
+│    ManifestProvider     │  │                             │  │    AnalyticsProvider       │
+│    AssetProvider        │  │  Logic:                     │  │    FeatureFlagProvider     │
+│    ScreenProvider       │  │    level-completion         │  │                            │
+│    AudioProvider        │  │    progress (factory)       │  │  Screens:                  │
+│                         │  │    catalog (factory)        │  │    Loading → Start →       │
+│  Systems:               │  │    loader (factory)         │  │    Game → Results          │
+│    Assets (loaders)     │  │                             │  │                            │
+│    Screens (manager)    │  │  Prefabs:                   │  │  Audio:                    │
+│    Tuning (state)       │  │    avatar-popup             │  │    GameAudioManager        │
+│    Audio (base manager) │  │                             │  │                            │
+│    Errors (boundaries)  │  │  Each module has:           │  │  Game Logic:               │
+│    Pause (state)        │  │    index.ts (public API)    │  │    citylines/              │
+│    VFX (particles)      │  │    defaults.ts              │  │    dailydispatch/          │
+│                         │  │    tuning.ts                │  │                            │
+│  UI:                    │  │    renderers/pixi.ts        │  │  Services:                 │
+│    Button, Spinner,     │  │                             │  │    progress, catalog,      │
+│    MobileViewport,      │  │                             │  │    loader (configured      │
+│    ViewportToggle,      │  │                             │  │    from module factories)  │
+│    PauseOverlay, Logo   │  │                             │  │                            │
+│                         │  │                             │  │                            │
+│  Dev:                   │  │                             │  │                            │
+│    TuningPanel          │  │                             │  │                            │
+│    (Tweakpane)          │  │                             │  │                            │
+└─────────────────────────┘  └─────────────────────────────┘  └────────────────────────────┘
+         ▲                              ▲         │                    │         │
+         │                              │         │                    │         │
+         │           can import ────────┘         │                    │         │
+         │                                         │   can import ─────┘         │
+         │              can import ────────────────┘                             │
+         │                                              can import ──────────────┘
+         │
+         └── ZERO dependencies on modules/ or game/
 ```
-
-### Legend
-
-| Color | Meaning |
-|-------|---------|
-| **Blue** | Solid.js (UI framework) |
-| **Pink** | Pixi.js (current 2D renderer) |
-| **Purple** | Phaser (alternative 2D renderer) |
-| **Black** | Three.js (alternative 3D renderer) |
-| **Green (bright)** | GSAP (animation) |
-| **Yellow** | Howler.js (audio) |
-| **Cyan / Teal** | Core systems, providers, UI |
-| **Green** | Modules (primitives, prefabs, logic) |
-| **Orange** | Game-specific code |
-| **Amber** | Game services and controllers |
 
 ---
 
