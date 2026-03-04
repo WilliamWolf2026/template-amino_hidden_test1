@@ -18,7 +18,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Deep technical reference | core/deep-dive.md |
 | Scaffold inventory & migration | core/scaffold-overview-and-migration.md |
 
-## Scaffold Systems (source)
+## Core Systems (source)
 
 | Intent | Path |
 |--------|------|
@@ -49,7 +49,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Analytics context, PostHog | src/core/systems/telemetry/AnalyticsContext.tsx |
 | Feature flags | src/core/systems/telemetry/FeatureFlagContext.tsx |
 
-## Scaffold UI & Dev Tools (source)
+## Core UI & Dev Tools (source)
 
 | Intent | Path |
 |--------|------|
@@ -67,7 +67,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Dev tool bindings | src/core/dev/bindings.ts |
 | Tuning registry | src/core/dev/tuningRegistry.ts |
 
-## Scaffold Config & Libs (source)
+## Core Config & Libs (source)
 
 | Intent | Path |
 |--------|------|
@@ -78,7 +78,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Wolf Game Kit integration | src/core/lib/gameKit.ts |
 | Analytics base | src/core/lib/analytics.ts |
 
-## Scaffold Systems (docs)
+## Core Systems (docs)
 
 | Intent | Path |
 |--------|------|
@@ -91,6 +91,28 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | How viewport modes work | core/systems/viewport-mode.md |
 | Tuning panel docs | core/components/tuning-panel.md |
 | Easing picker docs | core/components/easing-picker.md |
+
+## Modules (docs)
+
+| Intent | Path |
+|--------|------|
+| Module system overview, categories | modules/index.md |
+| How to create a new module | modules/writing-a-module.md |
+
+## Modules (source)
+
+| Intent | Path |
+|--------|------|
+| Module index & placement rules | src/modules/INDEX.md |
+| SpriteButton (pressable sprite) | src/modules/primitives/sprite-button/ |
+| DialogueBox (9-slice bubble) | src/modules/primitives/dialogue-box/ |
+| CharacterSprite (animated atlas) | src/modules/primitives/character-sprite/ |
+| ProgressBar (segmented progress) | src/modules/primitives/progress-bar/ |
+| LevelCompletionController (state machine) | src/modules/logic/level-completion/ |
+| Progress service factory | src/modules/logic/progress/ |
+| Catalog service factory | src/modules/logic/catalog/ |
+| Content loader factory | src/modules/logic/loader/ |
+| AvatarPopup (avatar + dialogue) | src/modules/prefabs/avatar-popup/ |
 
 ## Game Config & Setup (source)
 
@@ -123,18 +145,6 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 |--------|------|
 | GameAudioManager, extends BaseAudioManager | src/game/audio/manager.ts |
 | Sound effect definitions, SFX constants | src/game/audio/sounds.ts |
-
-## Game Shared Components (source)
-
-| Intent | Path |
-|--------|------|
-| SpriteButton (Pixi interactive button) | src/game/shared/components/SpriteButton.ts |
-| ProgressBar (Pixi progress indicator) | src/game/shared/components/ProgressBar.ts |
-| DialogueBox (text display) | src/game/shared/components/DialogueBox.ts |
-| CharacterSprite (NPC rendering) | src/game/shared/components/CharacterSprite.ts |
-| AvatarPopup (character popup UI) | src/game/shared/components/AvatarPopup.ts |
-| LevelCompletionController (shared) | src/game/shared/controllers/LevelCompletionController.ts |
-| Viewport mode toggle | src/game/shared/ui/ViewportToggle.tsx |
 
 ## Game Services & Hooks (source)
 
