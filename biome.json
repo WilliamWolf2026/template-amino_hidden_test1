@@ -1,0 +1,11 @@
+{
+  "extends": ["@wolfgames/game-kit/config/biome"],
+  "files": {
+    "includes": ["**", "!dist", "!index.html"]
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
+}
