@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import type { DialogueMessage } from '~/game/types/dialogue';
+import type { DialogueMessage } from '~/game/config';
 
 /**
  * Dialogue state management hook

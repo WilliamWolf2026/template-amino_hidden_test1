@@ -66,8 +66,10 @@ modules/<category>/<module-name>/
   index.ts          -- public API (barrel export)
   defaults.ts       -- extracted magic numbers
   tuning.ts         -- panel schema for Tweakpane
-  renderers/        -- visual modules only
-    pixi.ts         -- Pixi.js implementation
+  renderers/        -- renderer-specific implementations
+    pixi.ts         -- Pixi.js implementation (default)
+    phaser.ts       -- Phaser implementation (optional)
+    three.ts        -- Three.js implementation (optional)
 ```
 
 ### Logic modules (factory functions)
@@ -173,6 +175,137 @@ When deciding where to put new code:
 | Reusable across games | `modules/` (pick the right category) |
 | Game-specific, not reusable | `game/` (not a module) |
 | Framework-level, all games need it | `core/` (not a module) |
+
+## Multi-Renderer Architecture
+
+Visual modules separate **behavior** from **rendering**. Each module owns its defaults and tuning, while the `renderers/` folder provides engine-specific implementations.
+
+```
+                       ┌──────────────────────┐
+                       │   sprite-button/     │
+                       ├──────────────────────┤
+                       │  defaults.ts          │  ← Shared behavior constants
+                       │  tuning.ts            │  ← Shared tuning schema
+                       │  index.ts             │  ← Barrel (re-exports all)
+                       └──────────┬───────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              ▼                   ▼                    ▼
+     ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+     │  renderers/      │ │  renderers/      │ │  renderers/      │
+     │  pixi.ts         │ │  phaser.ts       │ │  three.ts        │
+     ├─────────────────┤ ├─────────────────┤ ├─────────────────┤
+     │ SpriteButton     │ │ PhaserSprite     │ │ ThreeSprite      │
+     │ extends          │ │ Button extends   │ │ Button extends   │
+     │ PIXI.Container   │ │ Phaser.GameObj   │ │ THREE.Group      │
+     └─────────────────┘ └─────────────────┘ └─────────────────┘
+```
+
+The game imports only the renderer it needs:
+
+```typescript
+// Pixi game (default)
+import { SpriteButton } from '~/modules/primitives/sprite-button';
+
+// Phaser game
+import { PhaserSpriteButton } from '~/modules/primitives/sprite-button';
+
+// Three.js game
+import { ThreeSpriteButton } from '~/modules/primitives/sprite-button';
+```
+
+All renderers share the same `defaults.ts` and `tuning.ts`, so behavior is consistent and tuning works regardless of engine.
+
+### Unity Analogy
+
+This pattern is similar to Unity's component model where behavior and rendering are separated:
+
+```
+Unity                           This Framework
+─────────────────               ──────────────────
+MonoBehaviour (script)     ←→   defaults.ts + tuning.ts (behavior)
+Renderer (MeshRenderer)    ←→   renderers/pixi.ts (visual)
+Inspector (properties)     ←→   TuningPanel (Tweakpane)
+Prefab (assembled)         ←→   prefabs/ (composed modules)
+ScriptableObject (data)    ←→   defaults.ts (extracted constants)
+```
+
+Key parallels:
+- **Inspector ↔ Tuning Panel**: Both let you tweak values at runtime without code changes
+- **Prefab ↔ Prefab Module**: Both assemble smaller pieces into reusable higher-level objects
+- **Renderer swap ↔ renderers/**: Both let you change the visual backend without touching logic
+- **ScriptableObject ↔ defaults.ts**: Both extract data/config from code into a separate, shareable location
+
+## Tuning Integration
+
+Every module can expose tunable parameters through a standard contract. The Tuning Panel (press backtick \`) auto-discovers these and renders them in color-coded sections:
+
+```
+┌──────────────────────────────────┐
+│  TUNING PANEL                     │
+├──────────────────────────────────┤
+│                                   │
+│  ┌─ CORE (cyan) ───────────────┐ │
+│  │  Viewport mode    [S] [L] [∞]│ │
+│  │  Transition speed  ───●──── │ │
+│  └─────────────────────────────┘ │
+│                                   │
+│  ┌─ MODULES (green) ───────────┐ │
+│  │  > Sprite Button             │ │
+│  │    hoverScale    ───●────── │ │
+│  │    pressScale    ──●─────── │ │
+│  │    pressDuration ─●──────── │ │
+│  │  > Dialogue Box              │ │
+│  │  > Progress Bar              │ │
+│  │  > Level Completion          │ │
+│  └─────────────────────────────┘ │
+│                                   │
+│  ┌─ GAME (orange) ─────────────┐ │
+│  │  > Theme                     │ │
+│  │  > Difficulty                │ │
+│  │  > Scoring                   │ │
+│  └─────────────────────────────┘ │
+└──────────────────────────────────┘
+```
+
+### How it works
+
+1. **Module exports** a `tuning.ts` with standard shape:
+
+```typescript
+export const spriteButtonTuning = {
+  name: 'Sprite Button',             // Display name in panel
+  defaults: SPRITE_BUTTON_DEFAULTS,  // Initial values from defaults.ts
+  schema: {                          // Tweakpane control definitions
+    hoverScale:  { type: 'number', min: 1.0, max: 1.3, step: 0.01 },
+    pressScale:  { type: 'number', min: 0.7, max: 1.0, step: 0.01 },
+  },
+} as const;
+```
+
+2. **Panel auto-discovers** tuning exports and creates collapsible folders per module
+3. **Changes flow** through Solid.js signals to the renderer in real time
+4. **Persisted** to localStorage so tuned values survive page reload
+
+No manual registration is needed. Export the tuning schema, and the panel picks it up.
+
+### Data flow
+
+```
+defaults.ts ──► tuning.ts (schema) ──► TuningPanel (UI)
+                                              │
+                                         user drags slider
+                                              │
+                                              ▼
+                                     Solid.js tuning store
+                                              │
+                                              ▼
+                                    renderer reads value
+                                    (e.g. hoverScale)
+                                              │
+                                              ▼
+                                      visual updates live
+```
 
 ## Related Documentation
 

@@ -11,7 +11,7 @@ import { createStore } from "solid-js/store";
 import { getUserData } from "./helper";
 import { useAnalytics } from "./AnalyticsContext";
 import { type PostHog } from "~/core/lib/analytics";
-import { GAME_STORAGE_PREFIX } from "~/game/config/identity";
+import { GAME_STORAGE_PREFIX } from "~/game/config";
 
 // ============================================================================
 // STRICT TYPE DEFINITIONS & CONSTANTS

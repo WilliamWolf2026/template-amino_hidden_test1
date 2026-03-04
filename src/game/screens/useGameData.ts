@@ -1,6 +1,6 @@
 import { type Accessor } from 'solid-js';
 import { useManifest } from '~/core/systems/manifest/context';
-import type { GameData } from '~/game/types/gameData';
+import type { GameData } from '~/game/config';
 
 /**
  * Typed accessor for game data from the manifest provider.

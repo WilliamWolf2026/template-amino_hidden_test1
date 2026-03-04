@@ -7,7 +7,7 @@ import { useAnalytics } from '~/game/setup/AnalyticsContext';
 import type { GameTuning } from '~/game/tuning';
 
 // Game-specific start screen — swap this import for a different game
-import { setupDailyDispatchStartScreen } from '~/game/dailydispatch/screens/startView';
+import { setupStartScreen } from '~/game/mygame/screens/startView';
 
 export default function StartScreen() {
   const { goto } = useScreen();
@@ -17,7 +17,7 @@ export default function StartScreen() {
   let containerRef: HTMLDivElement | undefined;
 
   // Setup game-specific start screen controller
-  const startScreen = setupDailyDispatchStartScreen({
+  const startScreen = setupStartScreen({
     goto,
     coordinator,
     initGpu,

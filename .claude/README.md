@@ -2,10 +2,11 @@
 
 ## Permission Modes
 
-| Mode | File | Description |
-|------|------|-------------|
-| **Restricted** | `settings.restricted.json` | Protects `scaffold/` and `ai/` |
-| **Admin** | `settings.admin.json` | Full access to everything |
+| Mode | File | Can Edit | Blocks |
+|------|------|----------|--------|
+| **Design** | `settings.design.json` | `game/`, `docs/`, `public/` | `core/`, `modules/`, `ai/` |
+| **Dev** | `settings.dev.json` | `game/`, `modules/`, `docs/`, `public/` | `core/`, `ai/` |
+| **Admin** | `settings.admin.json` | Everything | Nothing |
 
 ## Context Modes
 
@@ -17,11 +18,14 @@
 ## Quick Switch
 
 ```bash
-# Admin mode (allow everything)
-cp .claude/settings.admin.json .claude/settings.local.json
+# Design mode (game code only)
+cp .claude/settings.design.json .claude/settings.local.json
 
-# Restricted mode (safe)
-cp .claude/settings.restricted.json .claude/settings.local.json
+# Dev mode (game + modules)
+cp .claude/settings.dev.json .claude/settings.local.json
+
+# Admin mode (unrestricted)
+cp .claude/settings.admin.json .claude/settings.local.json
 
 # Lite context (strip coding standards + doc triggers)
 cp CLAUDE.lite.md CLAUDE.md
@@ -36,13 +40,17 @@ git checkout CLAUDE.md
 
 `settings.local.json` is the active file.
 
-### Restricted Mode Allows:
-- Edit: `src/game/**`, `docs/**`, `public/levels/**`
+### Design Mode
+- Edit: `src/game/**`, `docs/**`, `public/**`
 - Read: everything
 - Bash: git, bun, npm, tsc
+- Blocks: `src/core/**`, `src/modules/**`, `ai/**`
 
-### Restricted Mode Blocks:
-- Edit: `src/scaffold/**`, `ai/**`
+### Dev Mode
+- Edit: `src/game/**`, `src/modules/**`, `docs/**`, `public/**`
+- Read: everything
+- Bash: git, bun, npm, tsc
+- Blocks: `src/core/**`, `ai/**`
 
-### Admin Mode:
+### Admin Mode
 - Everything allowed

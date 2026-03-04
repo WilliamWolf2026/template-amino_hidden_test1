@@ -25,20 +25,20 @@ Welcome to the Game Production Framework documentation. This framework uses a 3-
 │  CORE             │ │  MODULES          │ │  GAME             │
 │  (Framework)      │ │  (Building Blocks)│ │  (Your Game)      │
 ├───────────────────┤ ├───────────────────┤ ├───────────────────┤
-│ Providers:        │ │ Primitives:       │ │ Config:           │
-│  └─ Tuning        │ │  └─ SpriteButton  │ │  └─ manifest.ts   │
-│  └─ Assets        │ │  └─ DialogueBox   │ │  └─ config.ts     │
-│  └─ Screen        │ │  └─ ProgressBar   │ │  └─ state.ts      │
-│  └─ Audio         │ │  └─ CharacterSprite│ │                   │
-│  └─ Pause         │ │                   │ │ Screens:          │
-│                   │ │ Logic:            │ │  └─ Loading        │
-│ Systems:          │ │  └─ LevelComplete │ │  └─ Start          │
-│  └─ AssetCoord    │ │  └─ Progress      │ │  └─ Game           │
-│  └─ ScreenMgr     │ │  └─ Catalog       │ │  └─ Results        │
-│  └─ TuningState   │ │  └─ Loader        │ │                   │
-│                   │ │                   │ │ Game Logic:       │
-│ UI: Button, etc.  │ │ Prefabs:          │ │  └─ CityLines     │
-│ Dev: TuningPanel  │ │  └─ AvatarPopup   │ │  └─ DailyDispatch │
+│ Providers:        │ │ Primitives:       │ │ Infrastructure:   │
+│  └─ Tuning        │ │  └─ SpriteButton  │ │  └─ config.ts     │
+│  └─ Assets        │ │  └─ DialogueBox   │ │  └─ state.ts      │
+│  └─ Screen        │ │  └─ ProgressBar   │ │  └─ tuning/       │
+│  └─ Audio         │ │  └─ CharacterSprite│ │  └─ setup/        │
+│  └─ Pause         │ │                   │ │                   │
+│                   │ │ Logic:            │ │ Screens:          │
+│ Systems:          │ │  └─ LevelComplete │ │  └─ Loading        │
+│  └─ AssetCoord    │ │  └─ Progress      │ │  └─ Start          │
+│  └─ ScreenMgr     │ │  └─ Catalog       │ │  └─ Game           │
+│  └─ TuningState   │ │  └─ Loader        │ │  └─ Results        │
+│                   │ │                   │ │                   │
+│ UI: Button, etc.  │ │ Prefabs:          │ │ Game Logic:       │
+│ Dev: TuningPanel  │ │  └─ AvatarPopup   │ │  └─ mygame/       │
 └───────────────────┘ └───────────────────┘ └───────────────────┘
 
 Dependency flow: core ← modules ← game

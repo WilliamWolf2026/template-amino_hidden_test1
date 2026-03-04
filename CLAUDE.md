@@ -63,7 +63,7 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 | `/newgame` | Setup checklist for forking to a new game |
 | `/newmodule` | Create a new module in modules/ |
 
-## File Permissions
+## File Permissions (Dev Mode)
 
 | Folder | Read | Edit |
 |--------|:----:|:----:|
@@ -71,14 +71,14 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 | `src/modules/` | Yes | Yes |
 | `src/core/` | Yes | **No** |
 | `docs/` | Yes | Yes |
-| `public/levels/` | Yes | Yes |
+| `public/` | Yes | Yes |
 | `ai/` | Yes | **No** |
 
 **Switch modes:** See [.claude/README.md](.claude/README.md)
 ```bash
-cp .claude/settings.admin.json .claude/settings.local.json      # Admin
-cp .claude/settings.restricted.json .claude/settings.local.json # Safe
-cp CLAUDE.lite.md CLAUDE.md                                      # Lite (no rules/docs)
+cp .claude/settings.design.json .claude/settings.local.json  # Design (game only)
+cp .claude/settings.dev.json .claude/settings.local.json     # Dev (game + modules)
+cp .claude/settings.admin.json .claude/settings.local.json   # Admin (unrestricted)
 ```
 
 ## Tech Stack

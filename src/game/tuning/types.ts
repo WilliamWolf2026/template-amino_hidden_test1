@@ -1,5 +1,6 @@
 import type { GameTuningBase } from '~/core/systems/tuning/types';
-import type { GridSize } from '~/game/citylines/types/grid';
+
+export type GridSize = 4 | 5 | 6;
 
 // ============================================
 // GAME TUNING TYPES

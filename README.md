@@ -28,11 +28,13 @@ src/
 │   └── prefabs/       # AvatarPopup
 │
 └── game/              # Game-specific code
-    ├── screens/       # Loading, Start, Game, Results
-    ├── citylines/     # CityLines game logic
-    ├── dailydispatch/ # Daily Dispatch game logic
-    ├── manifest.ts    # Asset definitions
-    └── tuning/        # Game parameters
+    ├── config.ts      # Identity, environment, manifest, types, screen wiring
+    ├── state.ts       # Runtime signals (score, health, level)
+    ├── screens/       # Solid.js screen shells (Loading, Start, Game, Results)
+    ├── setup/         # AnalyticsContext, FeatureFlagContext
+    ├── audio/         # GameAudioManager + sound definitions
+    ├── tuning/        # Game tuning types + defaults
+    └── mygame/        # Your game (Pixi engine, controllers, UI, etc.)
 ```
 
 ### Dependency Rules

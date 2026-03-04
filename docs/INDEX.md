@@ -118,15 +118,12 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 
 | Intent | Path |
 |--------|------|
-| Game config, screen mappings | src/game/config.ts |
-| Game identity, branding | src/game/config/identity.ts |
-| Font configuration | src/game/config/fonts.ts |
-| Environment setup | src/game/config/environment.ts |
-| Asset manifest, bundle registration | src/game/manifest.ts |
+| Game config (identity, environment, manifest, types, screen mappings) | src/game/config.ts |
 | Global game state | src/game/state.ts |
 | Game tuning defaults | src/game/tuning/index.ts |
 | Game tuning type definitions | src/game/tuning/types.ts |
 | Game module root export | src/game/index.ts |
+| Game index (structure reference) | src/game/INDEX.md |
 
 ## Game Screens (source)
 
@@ -137,7 +134,8 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Main gameplay screen | src/game/screens/GameScreen.tsx |
 | Results screen, game over | src/game/screens/ResultsScreen.tsx |
 | Level completion overlay | src/game/screens/components/CompletionOverlay.tsx |
-| Companion dialogue hook | src/game/screens/hooks/useCompanionDialogue.ts |
+| useGameData hook | src/game/screens/useGameData.ts |
+| useCompanionDialogue hook | src/game/screens/useCompanionDialogue.ts |
 
 ## Game Audio (source)
 
@@ -146,137 +144,39 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | GameAudioManager, extends BaseAudioManager | src/game/audio/manager.ts |
 | Sound effect definitions, SFX constants | src/game/audio/sounds.ts |
 
-## Game Services & Hooks (source)
+## Game Setup (source)
 
 | Intent | Path |
 |--------|------|
-| Chapter catalog, metadata | src/game/services/chapterCatalog.ts |
-| Chapter loader, CDN fetch | src/game/services/chapterLoader.ts |
-| Player progress, save/load | src/game/services/progress.ts |
-| useGameData hook | src/game/hooks/useGameData.ts |
-| Analytics event trackers | src/game/analytics/trackers.ts |
-| Debug URL parameters | src/game/utils/debugParams.ts |
+| Analytics context provider | src/game/setup/AnalyticsContext.tsx |
+| Feature flag context provider | src/game/setup/FeatureFlagContext.tsx |
+| Analytics helper (getUserData) | src/game/setup/helper.ts |
 
-## Game Types (source)
+## Game Logic — mygame/ (source)
 
 | Intent | Path |
 |--------|------|
-| Dialogue system types | src/game/types/dialogue.ts |
-| Game data types | src/game/types/gameData.ts |
+| Game controller (Pixi ↔ GameScreen bridge) | src/game/mygame/screens/gameController.ts |
+| Start view (Pixi ↔ StartScreen bridge) | src/game/mygame/screens/startView.ts |
+| Game engine classes | src/game/mygame/core/ |
+| Controllers | src/game/mygame/controllers/ |
+| Systems | src/game/mygame/systems/ |
+| UI components | src/game/mygame/ui/ |
+| Static data | src/game/mygame/data/ |
+| Types | src/game/mygame/types/ |
+| Services | src/game/mygame/services/ |
 
-## CityLines — Core (source)
+## Archive — Old Games (source)
 
-| Intent | Path |
-|--------|------|
-| CityLines main game engine | src/game/citylines/core/CityLinesGame.ts |
-| Road tile, draggable roads | src/game/citylines/core/RoadTile.ts |
-| Connection detection, path validation | src/game/citylines/core/ConnectionDetector.ts |
-| Exit / destination tile | src/game/citylines/core/Exit.ts |
-| Landmark / building tile | src/game/citylines/core/Landmark.ts |
-| NPC character | src/game/citylines/core/Character.ts |
-| Progress bar (CityLines) | src/game/citylines/core/ProgressBar.ts |
-| Sprite button (CityLines) | src/game/citylines/core/SpriteButton.ts |
-| Tutorial hand pointer animation | src/game/citylines/core/TutorialHand.ts |
-
-## CityLines — Level Generation (source)
+Previous game implementations preserved for reference:
 
 | Intent | Path |
 |--------|------|
-| Procedural level generator | src/game/citylines/core/LevelGenerator/LevelGenerator.ts |
-| Dijkstra pathfinding | src/game/citylines/core/LevelGenerator/Dijkstra.ts |
-| Priority queue (pathfinding) | src/game/citylines/core/LevelGenerator/PriorityQueue.ts |
-| Seeded RNG (XoroShiro128+) | src/game/citylines/core/LevelGenerator/XoroShiro128Plus.ts |
-
-## CityLines — UI, Data, Services (source)
-
-| Intent | Path |
-|--------|------|
-| Clue / hint popup | src/game/citylines/ui/CluePopup.ts |
-| Companion character (dialogue NPC) | src/game/citylines/ui/companion/CompanionCharacter.ts |
-| Companion config | src/game/citylines/ui/companion/CompanionConfig.ts |
-| Companion dialogue box | src/game/citylines/ui/companion/DialogueBox.ts |
-| Companion animations | src/game/citylines/animations/companionAnimations.ts |
-| County / region definitions | src/game/citylines/data/counties.ts |
-| Landmark sprite data | src/game/citylines/data/landmarks.ts |
-| Sample level (reference) | src/game/citylines/data/sampleLevel.ts |
-| Chapter generation service | src/game/citylines/services/ChapterGenerationService.ts |
-| Level generation service | src/game/citylines/services/LevelGenerationService.ts |
-| Level completion controller | src/game/citylines/controllers/LevelCompletionController.ts |
-| Decoration system (flowers, trees) | src/game/citylines/systems/DecorationSystem.ts |
-| Game loop controller | src/game/citylines/screens/gameController.ts |
-| Start screen view | src/game/citylines/screens/startView.ts |
-| Atlas helper, sprite lookup | src/game/citylines/utils/atlasHelper.ts |
-| Connection evaluation logic | src/game/citylines/utils/evaluateConnections.ts |
-| Start screen utilities | src/game/citylines/utils/startScreenHelper.ts |
-
-## CityLines — Types (source)
-
-| Intent | Path |
-|--------|------|
-| Game data structures | src/game/citylines/types/gameData.ts |
-| Grid / tile types | src/game/citylines/types/grid.ts |
-| Landmark type definitions | src/game/citylines/types/landmark.ts |
-| Level definition types | src/game/citylines/types/level.ts |
-| Section / area types | src/game/citylines/types/section.ts |
-
-## Daily Dispatch — Core (source)
-
-| Intent | Path |
-|--------|------|
-| Daily Dispatch main game engine | src/game/dailydispatch/core/DailyDispatchGame.ts |
-| Sliding puzzle block | src/game/dailydispatch/core/Block.ts |
-| Puzzle solver algorithm | src/game/dailydispatch/core/Solver.ts |
-| Sliding puzzle generator | src/game/dailydispatch/core/SlidingPuzzleGenerator.ts |
-| Grid simulation | src/game/dailydispatch/core/GridSimulation.ts |
-| Swipe / touch detection | src/game/dailydispatch/core/SwipeDetector.ts |
-| Warehouse dock / delivery point | src/game/dailydispatch/core/Dock.ts |
-| Road tile (Dispatch) | src/game/dailydispatch/core/RoadTile.ts |
-| Connection detection (Dispatch) | src/game/dailydispatch/core/ConnectionDetector.ts |
-| Exit tile (Dispatch) | src/game/dailydispatch/core/Exit.ts |
-| Landmark (Dispatch) | src/game/dailydispatch/core/Landmark.ts |
-| NPC character (Dispatch) | src/game/dailydispatch/core/Character.ts |
-| Tutorial hand (Dispatch) | src/game/dailydispatch/core/TutorialHand.ts |
-| Sprite button (Dispatch) | src/game/dailydispatch/core/SpriteButton.ts |
-| Progress bar (Dispatch) | src/game/dailydispatch/core/ProgressBar.ts |
-
-## Daily Dispatch — UI, Data, Services (source)
-
-| Intent | Path |
-|--------|------|
-| Clue popup (Dispatch) | src/game/dailydispatch/ui/CluePopup.ts |
-| Level complete overlay | src/game/dailydispatch/ui/LevelCompleteOverlay.ts |
-| Level points display | src/game/dailydispatch/ui/LevelPointsOverlay.ts |
-| Truck closing animation | src/game/dailydispatch/ui/TruckCloseOverlay.ts |
-| Companion character (Dispatch) | src/game/dailydispatch/ui/companion/CompanionCharacter.ts |
-| Companion config (Dispatch) | src/game/dailydispatch/ui/companion/CompanionConfig.ts |
-| Companion dialogue box (Dispatch) | src/game/dailydispatch/ui/companion/DialogueBox.ts |
-| Companion animations (Dispatch) | src/game/dailydispatch/animations/companionAnimations.ts |
-| County definitions (Dispatch) | src/game/dailydispatch/data/counties.ts |
-| Landmark data (Dispatch) | src/game/dailydispatch/data/landmarks.ts |
-| Block shape definitions | src/game/dailydispatch/data/shapes.ts |
-| Sample level (Dispatch) | src/game/dailydispatch/data/sampleLevel.ts |
-| Sample puzzle | src/game/dailydispatch/data/samplePuzzle.ts |
-| Score service, point calculation | src/game/dailydispatch/services/ScoreService.ts |
-| Chapter generation (Dispatch) | src/game/dailydispatch/services/ChapterGenerationService.ts |
-| Level generation (Dispatch) | src/game/dailydispatch/services/LevelGenerationService.ts |
-| Level completion controller (Dispatch) | src/game/dailydispatch/controllers/LevelCompletionController.ts |
-| Decoration system (Dispatch) | src/game/dailydispatch/systems/DecorationSystem.ts |
-| Game loop controller (Dispatch) | src/game/dailydispatch/screens/gameController.ts |
-| Start screen view (Dispatch) | src/game/dailydispatch/screens/startView.ts |
-| Atlas helper (Dispatch) | src/game/dailydispatch/utils/atlasHelper.ts |
-| Connection evaluation (Dispatch) | src/game/dailydispatch/utils/evaluateConnections.ts |
-
-## Daily Dispatch — Types (source)
-
-| Intent | Path |
-|--------|------|
-| Block type definitions | src/game/dailydispatch/types/block.ts |
-| Dock type definitions | src/game/dailydispatch/types/dock.ts |
-| Game data structures (Dispatch) | src/game/dailydispatch/types/gameData.ts |
-| Grid / tile types (Dispatch) | src/game/dailydispatch/types/grid.ts |
-| Landmark types (Dispatch) | src/game/dailydispatch/types/landmark.ts |
-| Level types (Dispatch) | src/game/dailydispatch/types/level.ts |
-| Section types (Dispatch) | src/game/dailydispatch/types/section.ts |
+| CityLines (archived) | src/game/archive/games/citylines/ |
+| DailyDispatch (archived) | src/game/archive/games/dailydispatch/ |
+| Old analytics (archived) | src/game/archive/games/analytics/ |
+| Old services (archived) | src/game/archive/games/services/ |
+| Old game docs (archived) | src/game/archive/games/docs/ |
 
 ## Public Assets & Data
 
@@ -458,12 +358,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Add a new screen | src/game/screens/*.tsx, src/game/config.ts |
 | Add a new sound effect | src/game/audio/sounds.ts, src/game/audio/manager.ts |
 | Add a new game tuning param | src/game/tuning/types.ts, public/config/tuning/game.json |
-| Add a new asset / sprite | src/game/manifest.ts, public/assets/ |
-| Add a new landmark (CityLines) | src/game/citylines/data/landmarks.ts, src/game/citylines/types/landmark.ts, src/game/citylines/core/Landmark.ts |
-| Add a new landmark (Dispatch) | src/game/dailydispatch/data/landmarks.ts, src/game/dailydispatch/types/landmark.ts, src/game/dailydispatch/core/Landmark.ts |
-| Add a new block shape (Dispatch) | src/game/dailydispatch/data/shapes.ts, src/game/dailydispatch/types/block.ts |
+| Add a new asset / sprite | src/game/config.ts (manifest section), public/assets/ |
 | Add a new chapter | public/chapters/*.json, public/chapters/index.json |
-| Change scoring logic | src/game/dailydispatch/services/ScoreService.ts |
-| Change level generation | src/game/citylines/core/LevelGenerator/LevelGenerator.ts |
-| Add companion dialogue | src/game/citylines/ui/companion/CompanionConfig.ts, src/game/citylines/animations/companionAnimations.ts |
-| Debug game state | src/game/utils/debugParams.ts, guides/development/debugging.md |
+| Add game logic | src/game/mygame/core/, src/game/mygame/controllers/ |
+| Add a new module | src/modules/<category>/<name>/, docs/modules/writing-a-module.md |

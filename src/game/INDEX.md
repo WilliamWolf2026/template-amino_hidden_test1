@@ -2,23 +2,36 @@
 
 Game-specific code. Can import from `core/` and `modules/`. Nothing outside `game/` should import from here.
 
-## Infrastructure (customize when forking)
+## Structure
+
+```
+src/game/
+  config.ts        # Identity, environment, fonts, screens, manifest, data types
+  state.ts         # Runtime signals (score, health, level)
+  index.ts         # Barrel export
+
+  audio/           # GameAudioManager + sound definitions
+  screens/         # Solid.js screen shells + hooks
+  setup/           # AnalyticsContext, FeatureFlagContext
+  tuning/          # Game tuning types + defaults
+
+  mygame/          # Your game (Pixi engine, controllers, etc.)
+  archive/         # Old games (CityLines, DailyDispatch)
+```
+
+## Infrastructure
 
 | Intent | Path |
 |--------|------|
-| Game identity (name, slug, IDs) | config/identity.ts |
-| Font configuration | config/fonts.ts |
-| Screen wiring, initial screen, server URLs | config.ts |
-| Asset manifest / bundles | manifest.ts |
+| Identity, environment, fonts, screen wiring, manifest, data types | config.ts |
 | Global game state signals | state.ts |
-| Default game data (chapters, levels) | data/default.json |
-| Game-specific tuning types | tuning/types.ts |
-| Game tuning defaults & URL overrides | tuning/index.ts |
-| Analytics context & trackers | setup/AnalyticsContext.tsx |
+| Game tuning types + defaults | tuning/types.ts |
+| Game tuning barrel + URL helpers | tuning/index.ts |
+| Analytics context | setup/AnalyticsContext.tsx |
 | Feature flag context | setup/FeatureFlagContext.tsx |
 | Analytics helper (getUserData) | setup/helper.ts |
 
-## Screens (Solid.js)
+## Screens (Solid.js shells)
 
 | Intent | Path |
 |--------|------|
@@ -26,16 +39,9 @@ Game-specific code. Can import from `core/` and `modules/`. Nothing outside `gam
 | Start / menu screen | screens/StartScreen.tsx |
 | Main game screen | screens/GameScreen.tsx |
 | Results / completion screen | screens/ResultsScreen.tsx |
-| Completion overlay component | screens/components/CompletionOverlay.tsx |
-| Companion dialogue hook | screens/hooks/useCompanionDialogue.ts |
-
-## Services
-
-| Intent | Path |
-|--------|------|
-| Chapter catalog (ordered content) | services/chapterCatalog.ts |
-| Chapter loader (fetch + transform) | services/chapterLoader.ts |
-| Player progress (save/load/clear) | services/progress.ts |
+| Completion overlay | screens/components/CompletionOverlay.tsx |
+| useGameData hook | screens/useGameData.ts |
+| useCompanionDialogue hook | screens/useCompanionDialogue.ts |
 
 ## Audio
 
@@ -44,39 +50,38 @@ Game-specific code. Can import from `core/` and `modules/`. Nothing outside `gam
 | GameAudioManager (extends BaseAudioManager) | audio/manager.ts |
 | Sound effect catalog | audio/sounds.ts |
 
-## Hooks & Types
+## Game Logic (mygame/)
 
 | Intent | Path |
 |--------|------|
-| useGameData hook | hooks/useGameData.ts |
-| Dialogue type system | types/dialogue.ts |
-| Game data interfaces | types/gameData.ts |
-| Debug URL params | utils/debugParams.ts |
-| Analytics trackers | analytics/trackers.ts |
-
-## Game Logic (replace when forking)
-
-| Intent | Path |
-|--------|------|
-| CityLines — road connection puzzle | citylines/ |
-| DailyDispatch — sliding block puzzle | dailydispatch/ |
+| Game controller (Pixi ↔ GameScreen bridge) | mygame/screens/gameController.ts |
+| Start view (Pixi ↔ StartScreen bridge) | mygame/screens/startView.ts |
+| Game engine classes | mygame/core/ |
+| Animations | mygame/animations/ |
+| Controllers | mygame/controllers/ |
+| Systems | mygame/systems/ |
+| UI components | mygame/ui/ |
+| Static data | mygame/data/ |
+| Types | mygame/types/ |
+| Utilities | mygame/utils/ |
+| Services | mygame/services/ |
 
 ## Where to put new files
 
-- Game mechanic / controller → `game/<your-game-name>/`
-- New screen → `game/screens/`
-- New state signals → `game/state.ts`
-- Module configuration → `game/setup/`
-- Game-specific tuning → `game/tuning/`
+- Game engine class (Pixi container, entity) → `mygame/core/`
+- Game controller / orchestration → `mygame/controllers/`
+- Game-specific Pixi UI → `mygame/ui/`
+- Game state signals → `state.ts`
+- Game tuning values → `tuning/`
+- New Solid.js screen → `screens/`
 - Reusable across games? → Don't put it here, use `modules/`.
 
 ## Forking Checklist
 
-1. `config/identity.ts` — change name, slug, IDs
-2. `config.ts` — point to your screens
-3. `manifest.ts` — list your asset bundles
-4. `state.ts` — define your state shape
-5. `tuning/` — set your tuning defaults
-6. `setup/` — configure analytics, feature flags
-7. `screens/` — build your screens
-8. Delete `citylines/` & `dailydispatch/`, create your game folder
+1. `config.ts` — change identity (GAME_ID, GAME_SLUG, GAME_NAME), environment URLs, manifest bundles
+2. `state.ts` — define your state shape
+3. `tuning/` — set your tuning defaults
+4. `setup/` — configure analytics, feature flags
+5. `screens/` — customize screen shells
+6. `audio/` — define your sounds
+7. Rename `mygame/` to your game name, build your game there
