@@ -1,4 +1,4 @@
-import { AvatarPopup } from '~/game/shared/components/AvatarPopup';
+import { AvatarPopup } from '~/modules/prefabs/avatar-popup';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 import { CHARACTER_BASE_SIZE } from './companion/CompanionConfig';

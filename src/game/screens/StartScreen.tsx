@@ -2,7 +2,7 @@ import { onMount, onCleanup } from 'solid-js';
 import { useScreen } from '~/scaffold/systems/screens';
 import { useAssets } from '~/scaffold/systems/assets';
 import { useTuning, type ScaffoldTuning } from '~/scaffold';
-import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
+import { useAnalytics } from '~/game/setup/AnalyticsContext';
 
 import type { GameTuning } from '~/game/tuning';
 

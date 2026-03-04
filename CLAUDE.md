@@ -1,18 +1,42 @@
 # Claude Code Project Context
 
-## Quick Context
+## Quick Context — Amino Architecture
 
 ```
-app.tsx ──► scaffold/ (providers, hooks, UI, viewport config)
-        └─► game/ (screens, audio, tuning, shared/, citylines/)
-
-Scaffold provides: useAssets, useScreen, useTuning, useAudio, BaseAudioManager, viewport config
-Game shared/: SpriteButton, ProgressBar, DialogueBox, CharacterSprite, AvatarPopup, LevelCompletionController
-Game extends: screens/, audio/manager.ts, tuning/types.ts, citylines/
+src/
+  scaffold/   ← framework shell (providers, hooks, systems, dev tools) — DO NOT EDIT
+  modules/    ← reusable building blocks (primitives, logic, prefabs)
+  game/       ← game code (config, screens, proprietary game logic)
 ```
 
-**Full context map:** [docs/scaffold/context-map.md](docs/scaffold/context-map.md)
+**Dependency rules:**
+```
+scaffold/  →  no deps on modules/ or game/
+modules/   →  can import from scaffold/
+game/      →  can import from scaffold/ + modules/
+app.tsx    →  can import from all three
+```
+
+**Tier indexes:** Read the INDEX.md in each tier for intent → path routing:
+- `src/scaffold/INDEX.md` — what the framework provides
+- `src/modules/INDEX.md` — what modules exist + placement rules
+- `src/game/INDEX.md` — game contents + where to put new files
+
 **Doc index:** [docs/doc-index.md](docs/doc-index.md) — flat routing table for all docs & factory commands
+
+## Where to Put New Code
+
+| What you're building | Where it goes |
+|---------------------|---------------|
+| Single-purpose reusable component | `src/modules/primitives/<name>/` |
+| Pure logic, no rendering | `src/modules/logic/<name>/` |
+| Assembled from multiple primitives | `src/modules/prefabs/<name>/` |
+| Game screen | `src/game/screens/` |
+| Game mechanic / controller | `src/game/<game-name>/` |
+| Game state signals | `src/game/state.ts` |
+| Game tuning values | `src/game/tuning/` |
+| Module configuration for a game | `src/game/setup/` |
+| Framework system / provider | `src/scaffold/systems/` (admin only) |
 
 ## Coding Standards & Docs
 
@@ -37,12 +61,14 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 | `/commit` | Git commit |
 | `/deploy` | Deploy to QA/staging/production |
 | `/newgame` | Setup checklist for forking to a new game |
+| `/newmodule` | Create a new module in modules/ |
 
 ## File Permissions
 
 | Folder | Read | Edit |
 |--------|:----:|:----:|
 | `src/game/` | Yes | Yes |
+| `src/modules/` | Yes | Yes |
 | `src/scaffold/` | Yes | **No** |
 | `docs/` | Yes | Yes |
 | `public/levels/` | Yes | Yes |
@@ -67,22 +93,36 @@ cp CLAUDE.lite.md CLAUDE.md                                      # Lite (no rule
 
 ```
 src/
-  scaffold/     # Reusable framework (DO NOT EDIT)
-    config/     # Viewport constraints
-  game/         # Game-specific (EDITABLE)
-    shared/     # Reusable components & controllers (game-level)
-    citylines/  # Core game logic (wraps shared/ with game config)
-    screens/    # Solid.js screens
-    audio/      # GameAudioManager
+  scaffold/       # Framework shell — DO NOT EDIT
+    systems/      # Assets, audio, screens, tuning, pause, errors, vfx, manifest
+    config/       # Environment, viewport
+    ui/           # Button, Spinner, Logo, MobileViewport, ViewportToggle
+    dev/          # TuningPanel, Tweakpane
+    utils/        # Storage, SettingsMenu
+    lib/          # PostHog, Sentry, GameKit
+    analytics/    # Event schemas
+  modules/        # Reusable building blocks
+    primitives/   # SpriteButton, DialogueBox, CharacterSprite, ProgressBar
+    logic/        # LevelCompletionController
+    prefabs/      # AvatarPopup
+  game/           # Game-specific — EDITABLE
+    config/       # Identity, fonts, environment
+    setup/        # AnalyticsContext, FeatureFlagContext
+    screens/      # Solid.js screens (Loading, Start, Game, Results)
+    services/     # Progress, catalog, loader
+    audio/        # GameAudioManager, sounds
+    tuning/       # Game tuning types & defaults
+    citylines/    # CityLines game mode
+    dailydispatch/ # DailyDispatch game mode
 docs/
-  factory/      # Reusable commands
-  scaffold/     # Framework docs
-  game/         # Game docs
-  guides/       # How-to guides
+  factory/        # Reusable commands
+  scaffold/       # Framework docs
+  game/           # Game docs
+  guides/         # How-to guides
 public/
-  levels/       # Level JSON configs
+  levels/         # Level JSON configs
 ai/
-  rules/        # Coding standards (DO NOT EDIT)
+  rules/          # Coding standards — DO NOT EDIT
 ```
 
 ## Common Tasks

@@ -3,7 +3,6 @@ import gsap from 'gsap';
 import { useAudio } from '~/scaffold/systems/audio';
 import { setIsPanelOpen, isPanelOpen } from '~/scaffold/dev/TuningPanel';
 import { IS_DEV_ENV } from '~/scaffold/dev/env';
-import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';
@@ -26,6 +25,13 @@ const SETTINGS_CONFIG = {
 export interface SettingsMenuProps {
   /** Callback to reset progress (shows reset button when provided) */
   onResetProgress?: () => void;
+  /** Callback when audio settings change (volume, mute) */
+  onAudioSettingChanged?: (params: {
+    setting_type: string;
+    old_value: unknown;
+    new_value: unknown;
+    screen_name: string;
+  }) => void;
 }
 
 interface StatusNotificationProps {
@@ -72,7 +78,6 @@ function StatusNotification(props: StatusNotificationProps) {
 
 export default function SettingsMenu(props: SettingsMenuProps = {}) {
   const audio = useAudio();
-  const { trackAudioSettingChanged } = useAnalytics();
 
   const [isOpen, setIsOpen] = createSignal(false);
   const [statusMessage, setStatusMessage] = createSignal('');
@@ -195,7 +200,7 @@ export default function SettingsMenu(props: SettingsMenuProps = {}) {
     const newValue = !oldValue;
     const status = newValue ? 'MUSIC ON' : 'MUSIC OFF';
     showStatusNotification(status);
-    trackAudioSettingChanged({
+    props.onAudioSettingChanged?.({
       setting_type: 'mute',
       old_value: oldValue,
       new_value: newValue,
@@ -214,7 +219,7 @@ export default function SettingsMenu(props: SettingsMenuProps = {}) {
 
     if (volumeTrackTimer) clearTimeout(volumeTrackTimer);
     volumeTrackTimer = setTimeout(() => {
-      trackAudioSettingChanged({
+      props.onAudioSettingChanged?.({
         setting_type: 'volume',
         old_value: volumeBeforeDrag,
         new_value: newVolume,

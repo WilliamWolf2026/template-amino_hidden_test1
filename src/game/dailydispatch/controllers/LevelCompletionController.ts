@@ -6,4 +6,4 @@ export {
   type LevelCompletionControllerConfig,
   type CompletionState,
   type CompletionEvents,
-} from '~/game/shared/controllers/LevelCompletionController';
+} from '~/modules/logic/level-completion';

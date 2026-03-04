@@ -16,16 +16,16 @@ import {
 } from '~/scaffold';
 import { initSentry } from '~/scaffold/lib/sentry';
 import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
-import { gameConfig } from '~/game';
+import { gameConfig, manifest, defaultGameData } from '~/game';
 import { ManifestProvider } from '~/scaffold/systems/manifest/context';
 import { GAME_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
 import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './scaffold/dev/env';
-import { AnalyticsProvider } from '~/scaffold/systems/telemetry/AnalyticsContext';
-import { FeatureFlagProvider } from '~/scaffold/systems/telemetry/FeatureFlagContext';
-import { ViewportToggle } from '~/game/shared/ui/ViewportToggle';
+import { AnalyticsProvider, useAnalytics } from '~/game/setup/AnalyticsContext';
+import { FeatureFlagProvider } from '~/game/setup/FeatureFlagContext';
+import { ViewportToggle } from '~/scaffold/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
@@ -39,6 +39,17 @@ const handleResetProgress = () => {
   // Reload to show start screen (since progress is now cleared)
   window.location.reload();
 };
+
+/** SettingsMenu wired with game analytics */
+function GameSettingsMenu() {
+  const { trackAudioSettingChanged } = useAnalytics();
+  return (
+    <SettingsMenu
+      onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined}
+      onAudioSettingChanged={trackAudioSettingChanged}
+    />
+  );
+}
 
 /** Reads viewport mode from scaffold tuning and wraps children in the appropriate MobileViewport config */
 function ViewportModeWrapper(props: { children: JSX.Element }) {
@@ -94,7 +105,7 @@ export default function App() {
             <ViewportModeWrapper>
               {/* Settings Menu - Top Right Corner */}
               <div class="fixed top-2 right-2 z-[9999]">
-                <SettingsMenu onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined} />
+                <GameSettingsMenu />
               </div>
               {/* Viewport Toggle - Top Left Corner (dev only) */}
               <Show when={IS_DEV_ENV}>
@@ -103,7 +114,7 @@ export default function App() {
                 </div>
               </Show>
               <PauseProvider>
-                <ManifestProvider>
+                <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
                   <AssetProvider config={{ engine: scaffoldConfig.engine }}>
                     <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
                       <ScreenRenderer screens={gameConfig.screens} />

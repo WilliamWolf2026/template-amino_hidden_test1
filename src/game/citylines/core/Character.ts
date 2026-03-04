@@ -1,4 +1,4 @@
-import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
+import { CharacterSprite } from '~/modules/primitives/character-sprite';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 

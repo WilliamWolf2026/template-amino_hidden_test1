@@ -47,7 +47,7 @@ export interface StartScreenDeps {
     game: GameTuning;
     scaffold: ScaffoldTuning;
   };
-  analytics: Pick<ReturnType<typeof import('~/scaffold/systems/telemetry/AnalyticsContext').useAnalytics>, 'trackGameStart'>;
+  analytics: Pick<ReturnType<typeof import('~/game/setup/AnalyticsContext').useAnalytics>, 'trackGameStart'>;
 }
 
 export function setupCityLinesStartScreen(deps: StartScreenDeps): StartScreenController {

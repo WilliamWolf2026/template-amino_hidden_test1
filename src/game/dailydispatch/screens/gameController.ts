@@ -69,7 +69,7 @@ export interface GameScreenDeps {
   };
   gameData: ReturnType<typeof useGameData>;
   analytics: Pick<
-    ReturnType<typeof import('~/scaffold/systems/telemetry/AnalyticsContext').useAnalytics>,
+    ReturnType<typeof import('~/game/setup/AnalyticsContext').useAnalytics>,
     'trackLevelStart' | 'trackLevelComplete' | 'trackChapterStart' | 'trackChapterComplete'
   >;
 }

@@ -4,7 +4,7 @@ import { useAssets } from '~/scaffold/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
 import { Logo } from '~/scaffold/ui/Logo';
 import { useAudio } from '~/scaffold/systems/audio';
-import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
+import { useAnalytics } from '~/game/setup/AnalyticsContext';
 
 import type { GameTuning } from '~/game/tuning';
 import { useGameData } from '~/game/hooks/useGameData';

@@ -1,4 +1,4 @@
-import { DialogueBox as SharedDialogueBox } from '~/game/shared/components/DialogueBox';
+import { DialogueBox as SharedDialogueBox } from '~/modules/primitives/dialogue-box';
 import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../../utils/atlasHelper';
 import { POSITIONING } from './CompanionConfig';

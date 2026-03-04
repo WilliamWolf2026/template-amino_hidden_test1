@@ -8,8 +8,6 @@ import {
   type Accessor,
 } from 'solid-js';
 import type { Manifest } from '~/scaffold/systems/assets';
-import { manifest as manifestDefault, defaultGameData } from '~/game';
-import { gameConfig } from '~/game/config';
 
 /** Provider mode: standalone (default) or injected (embed/parent context) */
 export type ManifestMode = 'standalone' | 'injected';
@@ -27,15 +25,24 @@ interface ManifestContextValue {
   getGameData: () => unknown;
 }
 
+export interface ManifestProviderProps {
+  /** Default asset manifest */
+  manifest: Manifest;
+  /** Default game data (chapters, levels, stories) */
+  defaultGameData: unknown;
+  /** Server storage URL for CDN fetch (null to skip) */
+  serverStorageUrl: string | null;
+}
+
 const ManifestContext = createContext<ManifestContextValue>();
 
-export const ManifestProvider: ParentComponent = (props) => {
+export const ManifestProvider: ParentComponent<ManifestProviderProps> = (props) => {
   const params = new URLSearchParams(window.location.search);
   const isEmbed = params.get('mode') === 'embed';
 
   // -- Signals --
-  const [manifest, setManifest] = createSignal<Manifest>(manifestDefault);
-  const [gameData, setGameData] = createSignal<unknown>(defaultGameData);
+  const [manifest, setManifest] = createSignal<Manifest>(props.manifest);
+  const [gameData, setGameData] = createSignal<unknown>(props.defaultGameData);
   const [mode, setMode] = createSignal<ManifestMode>(
     isEmbed ? 'injected' : 'standalone'
   );
@@ -84,9 +91,9 @@ export const ManifestProvider: ParentComponent = (props) => {
     onCleanup(() => ac.abort());
 
     // Source 2: CDN fetch (if not in embed mode waiting for injection)
-    if (!isEmbed && gameConfig.serverStorageUrl) {
+    if (!isEmbed && props.serverStorageUrl) {
       try {
-        const response = await fetch(`${gameConfig.serverStorageUrl}/chapters/default.json`);
+        const response = await fetch(`${props.serverStorageUrl}/chapters/default.json`);
         if (response.ok) {
           const data = await response.json();
 

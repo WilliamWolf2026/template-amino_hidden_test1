@@ -18,6 +18,8 @@
       "Write(docs/**)",
       "Edit(src/game/**)",
       "Write(src/game/**)",
+      "Edit(src/modules/**)",
+      "Write(src/modules/**)",
       "Edit(public/levels/**)",
       "Write(public/levels/**)"
     ],
