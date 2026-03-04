@@ -15,11 +15,14 @@ Single-purpose, configurable components. No deps on other modules.
 
 ## Logic
 
-Pure logic, no rendering.
+Pure logic, no rendering. Factory functions configured by game code.
 
 | Module | What it does | Path |
 |--------|-------------|------|
 | level-completion | State machine: playing → completing → complete | logic/level-completion/ |
+| progress | Save/load progress backed by localStorage | logic/progress/ |
+| catalog | Ordered content catalog with navigation | logic/catalog/ |
+| loader | Fetch + transform content pipeline | logic/loader/ |
 
 ## Prefabs
 
@@ -36,10 +39,19 @@ Every module follows this shape:
 ```
 modules/<category>/<module-name>/
   index.ts          ← public API (barrel export)
-  <Module>.ts       ← implementation
-  types.ts          ← config interface (future)
-  defaults.ts       ← extracted magic numbers (future)
-  tuning.ts         ← panel schema for Tweakpane (future)
+  defaults.ts       ← extracted magic numbers
+  tuning.ts         ← panel schema for Tweakpane
+  renderers/        ← renderer-specific implementations (visual modules only)
+    pixi.ts           ← Pixi.js implementation
+```
+
+Logic modules use factory functions instead of renderers:
+
+```
+modules/logic/<module-name>/
+  index.ts          ← factory function + types + public API
+  defaults.ts       ← default config values
+  tuning.ts         ← panel schema for Tweakpane
 ```
 
 ## Where to put new modules
