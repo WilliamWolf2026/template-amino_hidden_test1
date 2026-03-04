@@ -1,5 +1,5 @@
 import { Container, Sprite } from 'pixi.js';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../../utils/atlasHelper';
 import {
   type CharacterType,

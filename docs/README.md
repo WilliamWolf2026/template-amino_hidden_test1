@@ -260,7 +260,7 @@ CLAUDE.md loaded (system prompt)
 | **CLAUDE.md → ai/rules/** | "consult `ai/rules/`" instruction | Claude name-matches your activity to rule files (e.g. code review → `review.mdc`, UI work → `ui.mdc`) |
 | **CLAUDE.md → docs/** | "consult `docs/`" instruction | Claude reads architecture/design docs as ground truth before making changes |
 | **CLAUDE.md → docs/factory/** | Slash command table | `/review`, `/commit`, `/debug` etc. load the corresponding workflow template |
-| **.claude/ → permissions** | Every edit attempt | `settings.local.json` gates what Claude can modify (`src/scaffold/` and `ai/` are read-only in restricted mode) |
+| **.claude/ → permissions** | Every edit attempt | `settings.local.json` gates what Claude can modify (`src/core/` and `ai/` are read-only in restricted mode) |
 
 ### Toggle Modes
 

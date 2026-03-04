@@ -55,7 +55,7 @@ localStorage.removeItem('tuning_game');
 Update `src/game/tuning/types.ts`:
 
 ```typescript
-import type { GameTuningBase } from '~/scaffold/systems/tuning/types';
+import type { GameTuningBase } from '~/core/systems/tuning/types';
 
 export interface MyGameTuning extends GameTuningBase {
   // Define your game's tunable parameters
@@ -123,7 +123,7 @@ export const gameConfig: GameConfig = {
 
 ### Step 6: Wire Tuning (Optional)
 
-Register live-updating paths in `src/scaffold/dev/tuningRegistry.ts`:
+Register live-updating paths in `src/core/dev/tuningRegistry.ts`:
 
 ```typescript
 const GAME_WIRED_PATHS = [
@@ -187,7 +187,7 @@ Viewport constraints are provided by the scaffold — no need to recreate:
 
 ```typescript
 // Already available from scaffold:
-import { VIEWPORT_MIN_WIDTH, SAFE_PADDING, MIN_TOUCH_TARGET } from '~/scaffold/config/viewport';
+import { VIEWPORT_MIN_WIDTH, SAFE_PADDING, MIN_TOUCH_TARGET } from '~/core/config/viewport';
 ```
 
 ### Recommended Constants
@@ -208,7 +208,7 @@ The `src/game/shared/` directory provides reusable Pixi components. Create game-
 ```typescript
 // src/game/[gamename]/core/MyCharacter.ts
 import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 export class MyCharacter extends CharacterSprite<'hero' | 'villain'> {
   constructor(type: 'hero' | 'villain', gpuLoader: PixiLoader, scale = 1) {
@@ -243,7 +243,7 @@ Create the audio structure before you have sounds:
 
 **1. Create `src/game/audio/sounds.ts`:**
 ```typescript
-import type { SoundDefinition } from '~/scaffold/systems/audio';
+import type { SoundDefinition } from '~/core/systems/audio';
 export type { SoundDefinition };
 
 // Define sounds as you add them to the game
@@ -257,8 +257,8 @@ export type { SoundDefinition };
 
 **2. Create `src/game/audio/manager.ts`:**
 ```typescript
-import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
-import { BaseAudioManager } from '~/scaffold/systems/audio';
+import type { AudioLoader } from '~/core/systems/assets/loaders/audio';
+import { BaseAudioManager } from '~/core/systems/audio';
 
 export class GameAudioManager extends BaseAudioManager {
   constructor(audioLoader: AudioLoader) {

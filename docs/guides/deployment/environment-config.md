@@ -10,7 +10,7 @@ The environment system provides automatic URL resolution and configuration based
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| **Scaffold** | `src/scaffold/config/` | Base CDN URLs, analytics (reusable across games) |
+| **Scaffold** | `src/core/config/` | Base CDN URLs, analytics (reusable across games) |
 | **Game** | `src/game/config/` | Game-specific paths, asset versions |
 
 ---
@@ -91,7 +91,7 @@ Full URLs always pass through unchanged:
 
 ## Configuration Files
 
-### Scaffold Config (`src/scaffold/config/environment.ts`)
+### Scaffold Config (`src/core/config/environment.ts`)
 
 Base configuration shared across all games:
 
@@ -148,7 +148,7 @@ const GAME_PATHS = {
 | `isLocal()` | `boolean` | Check if local development |
 | `isProduction()` | `boolean` | Check if production |
 
-### From `~/scaffold/config`
+### From `~/core/config`
 
 | Function | Returns | Description |
 |----------|---------|-------------|

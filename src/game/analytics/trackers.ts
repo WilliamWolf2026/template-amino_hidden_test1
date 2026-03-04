@@ -19,7 +19,7 @@ import {
   CityLinesContext,
   cutsceneSchema,
 } from "./index";
-import { getSessionElapsed } from "~/scaffold/lib/analytics";
+import { getSessionElapsed } from "~/core/lib/analytics";
 import { GAME_ID } from "~/game/config/identity";
 
 // ============================================================================

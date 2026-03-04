@@ -5,7 +5,7 @@
  * Uses the scaffold's versioned store pattern for safe persistence.
  */
 
-import { createVersionedStore } from '~/scaffold/utils/storage';
+import { createVersionedStore } from '~/core/utils/storage';
 
 // ============================================================================
 // Types

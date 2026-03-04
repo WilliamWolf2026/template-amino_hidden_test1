@@ -1,4 +1,4 @@
-import type { Manifest } from '~/scaffold/systems/assets';
+import type { Manifest } from '~/core/systems/assets';
 import { getCdnUrl, getLocalAssetPath } from '~/game/config';
 
 export const manifest: Manifest = {

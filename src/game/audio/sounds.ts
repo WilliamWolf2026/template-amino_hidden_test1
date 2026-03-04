@@ -6,7 +6,7 @@
  * Music uses music-warehouse-puzzle channel.
  */
 
-import type { SoundDefinition } from '~/scaffold/systems/audio';
+import type { SoundDefinition } from '~/core/systems/audio';
 
 export type { SoundDefinition };
 

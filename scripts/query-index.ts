@@ -4,6 +4,19 @@
  * Usage: npx tsx scripts/query-index.ts "review the sprite button"
  *        npx tsx scripts/query-index.ts "how do assets load" --type doc
  *        npx tsx scripts/query-index.ts "commit" --type command
+ *        npx tsx scripts/query-index.ts "puzzle solver" --type citylines-core
+ *        npx tsx scripts/query-index.ts "viewport config" --type scaffold-config
+ *        npx tsx scripts/query-index.ts "swipe detection" --type dispatch-core
+ *
+ * Types: rule, doc, command,
+ *        scaffold-system, scaffold-ui, scaffold-config, scaffold-dev, scaffold-lib, scaffold-util,
+ *        game-screen, game-component, game-controller, game-audio, game-service, game-config,
+ *        game-type, game-tuning, game-hook, game-analytics,
+ *        citylines-core, citylines-ui, citylines-data, citylines-type, citylines-service,
+ *        citylines-animation, citylines-system, citylines-controller, citylines-screen, citylines-util,
+ *        dispatch-core, dispatch-ui, dispatch-data, dispatch-type, dispatch-service,
+ *        dispatch-animation, dispatch-system, dispatch-controller, dispatch-screen, dispatch-util,
+ *        tuning, level
  */
 import { SemanticRouter, createOramaEmbedFn } from '@wolfgames/semantic-router'
 import { readFile } from 'node:fs/promises'
@@ -25,7 +38,8 @@ async function query() {
   const text = args.filter((_, i) => !skipIdxs.has(i) && !args[i].startsWith('--')).join(' ')
 
   if (!text) {
-    console.log('Usage: npx tsx scripts/query-index.ts "your query" [--type rule|doc|command]')
+    console.log('Usage: npx tsx scripts/query-index.ts "your query" [--type <type>]')
+    console.log('       Use partial type prefixes: scaffold-*, game-*, citylines-*, dispatch-*')
     process.exit(1)
   }
 
@@ -45,7 +59,7 @@ async function query() {
 
   for (const { route, score } of results) {
     const scoreStr = score.toFixed(4).padStart(8)
-    const typeStr = route.type.padEnd(7)
+    const typeStr = route.type.padEnd(22)
     console.log(`  ${scoreStr}  [${typeStr}]  ${route.name}`)
     console.log(`             ${route.path}`)
     if (route.description) {

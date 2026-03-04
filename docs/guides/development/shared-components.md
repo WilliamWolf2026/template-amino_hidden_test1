@@ -7,7 +7,7 @@ How to use, create, and document reusable game components in `src/game/shared/`.
 ## The Three Layers
 
 ```
-src/scaffold/          Platform infrastructure (DO NOT EDIT)
+src/core/          Platform infrastructure (DO NOT EDIT)
                        Hooks, providers, asset loading, audio base, viewport config
 
 src/game/shared/       Reusable game components (GENERIC)
@@ -31,7 +31,7 @@ Does it import game-specific constants (atlas names, fonts, sprite maps)?
     NO  → src/game/[gamename]/
 
 Is it a framework-level concern (asset loading, screen routing, audio engine)?
-  YES → src/scaffold/ (requires admin mode)
+  YES → src/core/ (requires admin mode)
 
 Everything else that's reusable across games:
   → src/game/shared/
@@ -283,7 +283,7 @@ For components that need a game wrapper:
 ```typescript
 // src/game/[gamename]/ui/MyComponent.ts
 import { SharedComponent } from '~/game/shared/components/SharedComponent';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';  // your atlas helper
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 

@@ -1,7 +1,7 @@
 import { Container, Sprite, Graphics } from 'pixi.js';
 import gsap from 'gsap';
 import type { Edge, GridPosition } from '../types';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 
 /** Highway exit - the target that landmarks must connect to */

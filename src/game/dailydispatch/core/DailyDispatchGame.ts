@@ -10,7 +10,7 @@ import { Block } from './Block';
 import { Dock } from './Dock';
 import { SwipeDetector, type SwipeEvent } from './SwipeDetector';
 import { getAtlasName } from '../utils/atlasHelper';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 /** Rotation (radians) to point the flash VFX in the swipe direction.
  *  The flash texture animates left→right, so 0 = right. */

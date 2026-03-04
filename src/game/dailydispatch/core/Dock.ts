@@ -5,7 +5,7 @@ import type { WallSide } from '../types/grid';
 import type { BlockColor } from '../types/block';
 import { GRID_SIZE } from '../types/grid';
 import { getAtlasName } from '../utils/atlasHelper';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 /**
  * Sprite frame naming convention for docks:

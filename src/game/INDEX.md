@@ -1,6 +1,6 @@
 # Game Index
 
-Game-specific code. Can import from `scaffold/` and `modules/`. Nothing outside `game/` should import from here.
+Game-specific code. Can import from `core/` and `modules/`. Nothing outside `game/` should import from here.
 
 ## Infrastructure (customize when forking)
 

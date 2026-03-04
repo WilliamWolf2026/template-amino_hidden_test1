@@ -98,7 +98,7 @@ app.tsx
 ## What Works Well
 
 ### 1. Clean Scaffold ↔ Game Boundary
-Game code imports from scaffold through hooks only. Out of 155 game files, only 44 import from `~/scaffold`, and those imports are limited to hooks and base classes. **This is the most important thing to preserve.**
+Game code imports from scaffold through hooks only. Out of 155 game files, only 44 import from `~/core`, and those imports are limited to hooks and base classes. **This is the most important thing to preserve.**
 
 ### 2. Progressive Asset Loading
 The phased loading system (boot → core → theme → audio → scene → defer) with `requestIdleCallback` for low-priority bundles is production-ready. CDN fallback to local is a nice resilience feature.
@@ -210,7 +210,7 @@ Manifest has no version hashes. Browser caching could serve stale assets after d
 **Goal:** Any game can plug into the scaffold without modifying scaffold or screens.
 
 ```typescript
-// Proposed: src/scaffold/systems/engine/types.ts
+// Proposed: src/core/systems/engine/types.ts
 interface GameEngine {
   id: string;
   init(container: HTMLElement, deps: GameDeps): Promise<void>;
@@ -474,7 +474,7 @@ Tier 4: On-Demand (load when needed, evict with LRU)
 
 ```
 Scaffold Team (1-2 devs)
-├─ Owns: src/scaffold/, build pipeline, CI/CD
+├─ Owns: src/core/, build pipeline, CI/CD
 ├─ Reviews: All scaffold changes
 ├─ Publishes: Scaffold versions with changelog
 └─ Maintains: Shared components library
@@ -495,7 +495,7 @@ Platform Team (1 dev, could overlap with scaffold)
 
 ```
 CODEOWNERS:
-  src/scaffold/         → @scaffold-team
+  src/core/         → @scaffold-team
   src/game/shared/      → @scaffold-team + @game-leads
   src/game/[gamename]/  → @game-team-[name]
   docs/scaffold/        → @scaffold-team
@@ -517,7 +517,7 @@ The `.claude/settings.restricted.json` pattern is a great foundation. Extend it:
 ```
 Game dev:  Can edit src/game/[their-game]/, docs/
 Lead dev:  Can edit src/game/*, docs/, public/
-Scaffold:  Can edit src/scaffold/, src/game/shared/
+Scaffold:  Can edit src/core/, src/game/shared/
 Admin:     Can edit everything
 ```
 

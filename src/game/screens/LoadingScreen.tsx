@@ -1,10 +1,10 @@
 import { onMount, createSignal, Show } from 'solid-js';
-import { useScreen } from '~/scaffold/systems/screens';
-import { useAssets } from '~/scaffold/systems/assets';
-import { useTuning, type ScaffoldTuning } from '~/scaffold';
-import { Spinner } from '~/scaffold/ui/Spinner';
-import { ProgressBar } from '~/scaffold/ui/ProgressBar';
-import { Logo } from '~/scaffold/ui/Logo';
+import { useScreen } from '~/core/systems/screens';
+import { useAssets } from '~/core/systems/assets';
+import { useTuning, type ScaffoldTuning } from '~/core';
+import { Spinner } from '~/core/ui/Spinner';
+import { ProgressBar } from '~/core/ui/ProgressBar';
+import { Logo } from '~/core/ui/Logo';
 import { hasChapterInProgress, startChapter } from '~/game/services/progress';
 import type { GameTuning } from '~/game/tuning';
 

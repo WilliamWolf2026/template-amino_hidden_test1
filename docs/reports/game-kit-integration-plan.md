@@ -59,8 +59,8 @@ Central analytics config and service. Game code imports from here.
 
 ```typescript
 import { GameKIT, GetAnalyticsServiceCommand } from '@wolfgames/game-kit';
-import { getEnvironment } from '~/scaffold/config';
-import { getEnvConfig } from '~/scaffold/config/environment';
+import { getEnvironment } from '~/core/config';
+import { getEnvConfig } from '~/core/config/environment';
 
 const envConfig = getEnvConfig();
 const environment = getEnvironment();
@@ -107,7 +107,7 @@ export function getSessionElapsed(): number {
 Replace `initPostHog()` with game-kit init.
 
 ```diff
-- import { initPostHog } from '~/scaffold/lib/posthog';
+- import { initPostHog } from '~/core/lib/posthog';
 + import { getAnalytics } from '~/game/analytics';
 
   onMount(async () => {
@@ -138,9 +138,9 @@ Remove redundant `posthog` field from `ScaffoldConfig` — `ENV_CONFIG` already 
 ### Current
 
 ```
-scaffoldConfig.posthog?.apiKey          (src/scaffold/config.ts)
+scaffoldConfig.posthog?.apiKey          (src/core/config.ts)
   → app.tsx reads key
-    → initPostHog(apiKey, apiHost)      (src/scaffold/lib/posthog.ts)
+    → initPostHog(apiKey, apiHost)      (src/core/lib/posthog.ts)
       → posthog.init()
         → errorReporter calls capture() directly
 ```
@@ -148,7 +148,7 @@ scaffoldConfig.posthog?.apiKey          (src/scaffold/config.ts)
 ### Planned (when game-kit analytics ships)
 
 ```
-ENV_CONFIG[env].posthog                 (src/scaffold/config/environment.ts)
+ENV_CONFIG[env].posthog                 (src/core/config/environment.ts)
   → game/analytics.ts reads config
     → GetAnalyticsServiceCommand(...)   (@wolfgames/game-kit)
       → game-kit calls posthog.init()

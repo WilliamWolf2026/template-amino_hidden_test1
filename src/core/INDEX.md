@@ -1,4 +1,4 @@
-# Scaffold Index
+# Core Index
 
 Framework shell — providers, hooks, systems, dev tools. No deps on `modules/` or `game/`.
 
@@ -19,7 +19,7 @@ Framework shell — providers, hooks, systems, dev tools. No deps on `modules/` 
 | Sound definitions & utils | systems/audio/types.ts, utils.ts | |
 | Tuning / runtime config state | systems/tuning/context.tsx | `useTuning()` |
 | Tuning loader (localStorage, deep merge) | systems/tuning/loader.ts | |
-| Scaffold tuning types & defaults | systems/tuning/types.ts | |
+| Core tuning types & defaults | systems/tuning/types.ts | |
 | Pause overlay, pause state, keyboard | systems/pause/context.tsx | `usePause()` |
 | Error boundary, crash recovery | systems/errors/boundary.tsx | |
 | Error reporter (Sentry) | systems/errors/reporter.ts | |
@@ -31,7 +31,7 @@ Framework shell — providers, hooks, systems, dev tools. No deps on `modules/` 
 
 | Intent | Path |
 |--------|------|
-| Scaffold config (engine type, debug) | config.ts |
+| Core config (engine type, debug) | config.ts |
 | Environment detection (local/prod/CDN) | config/environment.ts |
 | Viewport mode from URL params | config/viewport.ts |
 

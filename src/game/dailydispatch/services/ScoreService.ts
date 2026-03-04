@@ -6,7 +6,7 @@
  * including eraser bonuses.
  */
 
-import { createVersionedStore } from '~/scaffold/utils/storage';
+import { createVersionedStore } from '~/core/utils/storage';
 
 // ============================================================================
 // Types

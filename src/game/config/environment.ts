@@ -8,12 +8,12 @@ import {
   getCdnBaseUrl,
   isLocal,
   type Environment,
-} from "~/scaffold/config";
+} from "~/core/config";
 import { GAME_CDN_PATH, GAME_SLUG } from "./identity";
 
 // Re-export scaffold utilities
-export { getEnvironment, isLocal, isProduction } from "~/scaffold/config";
-export type { Environment } from "~/scaffold/config";
+export { getEnvironment, isLocal, isProduction } from "~/core/config";
+export type { Environment } from "~/core/config";
 
 /** Game-specific path configuration */
 const GAME_PATHS = {

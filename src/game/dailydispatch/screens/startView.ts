@@ -10,7 +10,7 @@
 
 import { createSignal } from 'solid-js';
 import { Application, Container, Sprite, Graphics } from 'pixi.js';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 // Character sprite created directly from atlas (no scaling wrapper)
 import { SpriteButton } from '~/game/dailydispatch/core/SpriteButton';
@@ -22,7 +22,7 @@ import { gameState } from '~/game/state';
 import { startChapter, getCurrentChapter } from '~/game/services/progress';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
-import type { ScaffoldTuning } from '~/scaffold';
+import type { ScaffoldTuning } from '~/core';
 
 /** Controller interface returned by setupDailyDispatchStartScreen */
 export interface StartScreenController {
@@ -34,7 +34,7 @@ export interface StartScreenController {
 
 /** Dependencies injected from the screen component */
 export interface StartScreenDeps {
-  goto: ReturnType<typeof import('~/scaffold/systems/screens').useScreen>['goto'];
+  goto: ReturnType<typeof import('~/core/systems/screens').useScreen>['goto'];
   coordinator: {
     getGpuLoader: () => unknown;
     loadBundle: (name: string) => Promise<void>;

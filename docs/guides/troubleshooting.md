@@ -89,7 +89,7 @@ public/assets/tiles_citylines_v1.png
 
 2. **Music disabled in settings**
    ```typescript
-   import { audioState } from '~/scaffold/systems/audio';
+   import { audioState } from '~/core/systems/audio';
 
    if (audioState.musicEnabled()) {
      manager.startGameMusic();
@@ -182,7 +182,7 @@ export const gameState = {
 **Solution:** Register in tuning registry:
 
 ```typescript
-// src/scaffold/dev/tuningRegistry.ts
+// src/core/dev/tuningRegistry.ts
 const GAME_WIRED_PATHS = [
   'grid.tileSize',  // Add your path
 ];

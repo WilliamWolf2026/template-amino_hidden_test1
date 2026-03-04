@@ -2,7 +2,7 @@ import { Container, Sprite, Graphics } from 'pixi.js';
 import gsap from 'gsap';
 import type { Edge, GridPosition, LandmarkType } from '../types';
 import { getLandmarkConfig } from '../data';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 
 /** Visual representation of a landmark on the grid */

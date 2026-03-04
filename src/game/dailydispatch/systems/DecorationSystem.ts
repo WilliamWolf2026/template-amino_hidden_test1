@@ -1,7 +1,7 @@
 import { Container, Sprite } from 'pixi.js';
 import type { GridPosition, GridSize, County } from '../types';
 import { posKey } from '../types';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 
 /** Available decoration sprites */

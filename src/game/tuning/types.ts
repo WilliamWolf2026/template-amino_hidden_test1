@@ -1,4 +1,4 @@
-import type { GameTuningBase } from '~/scaffold/systems/tuning/types';
+import type { GameTuningBase } from '~/core/systems/tuning/types';
 import type { GridSize } from '~/game/citylines/types/grid';
 
 // ============================================

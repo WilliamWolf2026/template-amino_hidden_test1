@@ -2,7 +2,7 @@ import { Container, Sprite } from 'pixi.js';
 import gsap from 'gsap';
 import type { Edge, GridPosition, RoadTileType } from '../types';
 import { EDGES } from '../types';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 
 /** Map tile type to sprite frames */

@@ -61,7 +61,7 @@ Define sounds using the scaffold's `SoundDefinition` type for type safety and ea
 
 ```typescript
 // src/game/audio/sounds.ts
-import type { SoundDefinition } from '~/scaffold/systems/audio';
+import type { SoundDefinition } from '~/core/systems/audio';
 export type { SoundDefinition };
 
 // UI Sounds
@@ -91,8 +91,8 @@ Extend `BaseAudioManager` from scaffold to create your game's audio manager.
 
 ```typescript
 // src/game/audio/manager.ts
-import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
-import { BaseAudioManager } from '~/scaffold/systems/audio';
+import type { AudioLoader } from '~/core/systems/assets/loaders/audio';
+import { BaseAudioManager } from '~/core/systems/audio';
 import {
   SOUND_BUTTON_CLICK,
   SOUND_TILE_ROTATE,
@@ -204,7 +204,7 @@ const handleStart = async () => {
 The scaffold provides reactive audio state:
 
 ```typescript
-import { audioState } from '~/scaffold/systems/audio';
+import { audioState } from '~/core/systems/audio';
 
 // React to music toggle
 createEffect(() => {

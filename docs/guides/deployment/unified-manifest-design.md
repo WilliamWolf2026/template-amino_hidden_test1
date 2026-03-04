@@ -393,5 +393,5 @@ interface LevelManifest {
 |------|---------|
 | `src/game/manifest.ts` | Asset bundle definitions (update paths) |
 | `src/game/citylines/types/section.ts` | Rename to `level.ts`, update interface |
-| `src/scaffold/systems/assets/` | Asset coordinator |
+| `src/core/systems/assets/` | Asset coordinator |
 | `docs/guides/asset-pipeline.md` | Asset creation guide |

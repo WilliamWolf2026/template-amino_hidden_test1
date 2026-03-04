@@ -1,5 +1,5 @@
 import { type Accessor } from 'solid-js';
-import { useManifest } from '~/scaffold/systems/manifest/context';
+import { useManifest } from '~/core/systems/manifest/context';
 import type { GameData } from '~/game/types/gameData';
 
 /**

@@ -1,9 +1,9 @@
 import { onMount, onCleanup } from 'solid-js';
 
-import { useAssets } from '~/scaffold/systems/assets';
-import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
-import { Logo } from '~/scaffold/ui/Logo';
-import { useAudio } from '~/scaffold/systems/audio';
+import { useAssets } from '~/core/systems/assets';
+import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/core';
+import { Logo } from '~/core/ui/Logo';
+import { useAudio } from '~/core/systems/audio';
 import { useAnalytics } from '~/game/setup/AnalyticsContext';
 
 import type { GameTuning } from '~/game/tuning';

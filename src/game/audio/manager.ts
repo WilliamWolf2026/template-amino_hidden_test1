@@ -1,5 +1,5 @@
-import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
-import { BaseAudioManager } from '~/scaffold/systems/audio';
+import type { AudioLoader } from '~/core/systems/assets/loaders/audio';
+import { BaseAudioManager } from '~/core/systems/audio';
 import {
   SOUND_BUTTON_CLICK,
   SOUND_BLOCK_SLIDE,

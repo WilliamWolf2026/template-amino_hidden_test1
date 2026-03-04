@@ -8,14 +8,14 @@
  */
 
 import { type } from "arktype";
-import { getEnvConfig, getEnvironment } from "~/scaffold";
-import { getGameKit } from "~/scaffold/lib/gameKit";
+import { getEnvConfig, getEnvironment } from "~/core";
+import { getGameKit } from "~/core/lib/gameKit";
 import {
   GetAnalyticsServiceCommand,
   getSessionElapsed,
   type PostHog,
-} from "~/scaffold/lib/analytics";
-import { baseParamsSet } from "~/scaffold/analytics/events";
+} from "~/core/lib/analytics";
+import { baseParamsSet } from "~/core/analytics/events";
 import { getUserData } from "~/game/setup/helper";
 import { GAME_ID } from "~/game/config/identity";
 

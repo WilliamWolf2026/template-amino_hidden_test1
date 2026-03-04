@@ -13,19 +13,19 @@ import {
   MobileViewport,
   useTuning,
   type ScaffoldTuning,
-} from '~/scaffold';
-import { initSentry } from '~/scaffold/lib/sentry';
-import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
+} from '~/core';
+import { initSentry } from '~/core/lib/sentry';
+import { getEnvironment, scaffoldConfig } from '~/core/config';
 import { gameConfig, manifest, defaultGameData } from '~/game';
-import { ManifestProvider } from '~/scaffold/systems/manifest/context';
+import { ManifestProvider } from '~/core/systems/manifest/context';
 import { GAME_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
-import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
+import { getViewportModeFromUrl } from '~/core/config/viewport';
 import { clearProgress } from '~/game/services/progress';
 import './app.css';
-import { IS_DEV_ENV } from './scaffold/dev/env';
+import { IS_DEV_ENV } from './core/dev/env';
 import { AnalyticsProvider, useAnalytics } from '~/game/setup/AnalyticsContext';
 import { FeatureFlagProvider } from '~/game/setup/FeatureFlagContext';
-import { ViewportToggle } from '~/scaffold/ui/ViewportToggle';
+import { ViewportToggle } from '~/core/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();

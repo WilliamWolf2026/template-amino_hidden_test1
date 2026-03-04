@@ -7,7 +7,7 @@ import { RoadTile } from './RoadTile';
 import { posKey } from '../types';
 import { DecorationSystem } from '../systems';
 import { getAtlasName } from '../utils/atlasHelper';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import type { NineSliceConfig, LevelTransitionConfig } from '~/game/tuning';
 import {
   createLevelCompletionController,

@@ -1,5 +1,5 @@
 import { type JSX, splitProps } from 'solid-js';
-import { useAssets } from '~/scaffold/systems/assets';
+import { useAssets } from '~/core/systems/assets';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';

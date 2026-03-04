@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import gsap from 'gsap';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '~/game/dailydispatch/utils/atlasHelper';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 

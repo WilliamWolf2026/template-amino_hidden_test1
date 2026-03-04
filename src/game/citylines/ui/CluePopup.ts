@@ -1,5 +1,5 @@
 import { AvatarPopup } from '~/modules/prefabs/avatar-popup';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../utils/atlasHelper';
 import { CHARACTER_SPRITES, CHARACTER_BASE_SIZE } from './companion/CompanionConfig';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';

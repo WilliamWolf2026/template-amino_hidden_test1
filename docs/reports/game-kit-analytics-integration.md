@@ -8,7 +8,7 @@ Analysis of `@wolfgames/game-kit` PostHog analytics vs the current scaffold Post
 
 ### What exists today
 
-The scaffold has a minimal PostHog wrapper in `src/scaffold/lib/posthog.ts` (45 lines):
+The scaffold has a minimal PostHog wrapper in `src/core/lib/posthog.ts` (45 lines):
 
 ```
 initPostHog(apiKey, apiHost)  →  lazy import('posthog-js'), call posthog.init()
@@ -31,8 +31,8 @@ setPersonProperties(props)    →  posthog.people.set()
 ### Config flow
 
 ```
-scaffoldConfig.posthog.apiKey  (src/scaffold/config.ts — hardcoded, currently commented out)
-ENV_CONFIG[env].posthog        (src/scaffold/config/environment.ts — per-environment)
+scaffoldConfig.posthog.apiKey  (src/core/config.ts — hardcoded, currently commented out)
+ENV_CONFIG[env].posthog        (src/core/config/environment.ts — per-environment)
   → app.tsx reads scaffoldConfig.posthog?.apiKey
   → calls initPostHog() in onMount
 ```

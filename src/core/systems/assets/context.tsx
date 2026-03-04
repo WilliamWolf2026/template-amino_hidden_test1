@@ -1,7 +1,7 @@
 import { createContext, useContext, createSignal, type ParentProps } from 'solid-js';
 import { AssetCoordinator, type CoordinatorConfig } from './coordinator';
 import type { Manifest, ProgressCallback } from './types';
-import { useManifest } from '~/scaffold/systems/manifest/context';
+import { useManifest } from '~/core/systems/manifest/context';
 
 // Context shape
 interface AssetContextValue {

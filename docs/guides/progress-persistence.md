@@ -22,7 +22,7 @@ app.tsx                       <- Wire up reset progress button
 
 ## Step 1: Scaffold Storage Utilities
 
-The scaffold provides low-level storage utilities in `src/scaffold/utils/storage.ts`:
+The scaffold provides low-level storage utilities in `src/core/utils/storage.ts`:
 
 ```typescript
 // Basic get/set/remove
@@ -66,7 +66,7 @@ Create `src/game/services/progress.ts` with your game's progress structure.
 > - **Endless runner**: `highScore`, `coinsCollected`, `unlockedCharacters[]`
 
 ```typescript
-import { createVersionedStore } from '~/scaffold/utils/storage';
+import { createVersionedStore } from '~/core/utils/storage';
 
 // Define your progress data shape
 export interface CurrentChapter {
@@ -348,7 +348,7 @@ game.onGameEvent('levelComplete', () => {
 ### Update SettingsMenu Props
 
 ```typescript
-// src/scaffold/utils/SettingsMenu/SettingsMenu.tsx
+// src/core/utils/SettingsMenu/SettingsMenu.tsx
 export interface SettingsMenuProps {
   onResetProgress?: () => void;
 }

@@ -1,4 +1,4 @@
-import { useTuning, type ScaffoldTuning, type ViewportMode } from '~/scaffold';
+import { useTuning, type ScaffoldTuning, type ViewportMode } from '~/core';
 
 const MODES: ViewportMode[] = ['small', 'large', 'none'];
 

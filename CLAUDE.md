@@ -4,25 +4,25 @@
 
 ```
 src/
-  scaffold/   ← framework shell (providers, hooks, systems, dev tools) — DO NOT EDIT
+  core/   ← framework shell (providers, hooks, systems, dev tools) — DO NOT EDIT
   modules/    ← reusable building blocks (primitives, logic, prefabs)
   game/       ← game code (config, screens, proprietary game logic)
 ```
 
 **Dependency rules:**
 ```
-scaffold/  →  no deps on modules/ or game/
-modules/   →  can import from scaffold/
-game/      →  can import from scaffold/ + modules/
+core/  →  no deps on modules/ or game/
+modules/   →  can import from core/
+game/      →  can import from core/ + modules/
 app.tsx    →  can import from all three
 ```
 
 **Tier indexes:** Read the INDEX.md in each tier for intent → path routing:
-- `src/scaffold/INDEX.md` — what the framework provides
+- `src/core/INDEX.md` — what the framework provides
 - `src/modules/INDEX.md` — what modules exist + placement rules
 - `src/game/INDEX.md` — game contents + where to put new files
 
-**Doc index:** [docs/doc-index.md](docs/doc-index.md) — flat routing table for all docs & factory commands
+**Doc index:** [docs/INDEX.md](docs/INDEX.md) — flat routing table for all docs & factory commands
 
 ## Where to Put New Code
 
@@ -36,13 +36,13 @@ app.tsx    →  can import from all three
 | Game state signals | `src/game/state.ts` |
 | Game tuning values | `src/game/tuning/` |
 | Module configuration for a game | `src/game/setup/` |
-| Framework system / provider | `src/scaffold/systems/` (admin only) |
+| Framework system / provider | `src/core/systems/` (admin only) |
 
 ## Coding Standards & Docs
 
 Before making changes, consult the relevant files in:
 - `ai/rules/` — coding standards, review guidelines, JS/TS patterns, UI rules
-- `docs/doc-index.md` — find any doc by intent (read this first)
+- `docs/INDEX.md` — find any doc by intent (read this first)
 - `docs/` — game design, architecture, guides, animation patterns, asset pipeline
 
 ## Factory (Common Workflows)
@@ -69,7 +69,7 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 |--------|:----:|:----:|
 | `src/game/` | Yes | Yes |
 | `src/modules/` | Yes | Yes |
-| `src/scaffold/` | Yes | **No** |
+| `src/core/` | Yes | **No** |
 | `docs/` | Yes | Yes |
 | `public/levels/` | Yes | Yes |
 | `ai/` | Yes | **No** |
@@ -93,7 +93,7 @@ cp CLAUDE.lite.md CLAUDE.md                                      # Lite (no rule
 
 ```
 src/
-  scaffold/       # Framework shell — DO NOT EDIT
+  core/       # Framework shell — DO NOT EDIT
     systems/      # Assets, audio, screens, tuning, pause, errors, vfx, manifest
     config/       # Environment, viewport
     ui/           # Button, Spinner, Logo, MobileViewport, ViewportToggle
@@ -116,7 +116,7 @@ src/
     dailydispatch/ # DailyDispatch game mode
 docs/
   factory/        # Reusable commands
-  scaffold/       # Framework docs
+  core/       # Framework docs
   game/           # Game docs
   guides/         # How-to guides
 public/

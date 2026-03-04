@@ -1,6 +1,6 @@
 import { Container, Sprite, NineSliceSprite, Text, type TextStyle } from 'pixi.js';
 import gsap from 'gsap';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 /**
  * Configuration for creating a SpriteButton

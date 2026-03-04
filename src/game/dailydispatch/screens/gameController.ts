@@ -12,9 +12,9 @@ import { createEffect, createSignal } from 'solid-js';
 import { Application, Graphics, Container, Text } from 'pixi.js';
 import gsap from 'gsap';
 
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
-import type { AudioLoader } from '~/scaffold/systems/assets/loaders/audio';
-import { IS_DEV_ENV } from '~/scaffold/dev/env';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
+import type { AudioLoader } from '~/core/systems/assets/loaders/audio';
+import { IS_DEV_ENV } from '~/core/dev/env';
 
 import { DailyDispatchGame } from '~/game/dailydispatch/core/DailyDispatchGame';
 import { CompanionCharacter } from '~/game/dailydispatch/ui/companion/CompanionCharacter';
@@ -40,7 +40,7 @@ import { useGameData } from '~/game/hooks/useGameData';
 import { chapterRefToLevelManifest, getChapterIntroduction, getChapterByIndex } from '~/game/services/chapterLoader';
 import { initCatalog, getCatalog, setCatalogIndex, hasNextChapter, fetchNextChapter, fetchChapterAtIndex, findIndexByUid } from '~/game/services/chapterCatalog';
 
-import type { ScaffoldTuning } from '~/scaffold';
+import type { ScaffoldTuning } from '~/core';
 
 /** Controller interface returned by setupDailyDispatchGame */
 export interface GameScreenController {

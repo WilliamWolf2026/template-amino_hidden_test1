@@ -1,5 +1,5 @@
 import { lazy, type Component } from 'solid-js';
-import type { ViewportMode } from '~/scaffold/systems/tuning/types';
+import type { ViewportMode } from '~/core/systems/tuning/types';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 import { getServerStorageUrl } from './config/environment';

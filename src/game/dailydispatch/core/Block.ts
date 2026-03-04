@@ -4,7 +4,7 @@ import type { BlockState, BlockColor, BlockShape } from '../types/block';
 import type { GridPosition } from '../types/grid';
 import { SHAPES } from '../data/shapes';
 import { getAtlasName } from '../utils/atlasHelper';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 /** Sprite frame for each block color */
 function getPaletteFrame(color: BlockColor): string {

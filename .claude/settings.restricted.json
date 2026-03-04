@@ -24,8 +24,8 @@
       "Write(public/levels/**)"
     ],
     "deny": [
-      "Edit(src/scaffold/**)",
-      "Write(src/scaffold/**)",
+      "Edit(src/core/**)",
+      "Write(src/core/**)",
       "Edit(ai/**)",
       "Write(ai/**)"
     ]

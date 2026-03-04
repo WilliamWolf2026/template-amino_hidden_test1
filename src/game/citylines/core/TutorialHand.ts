@@ -1,7 +1,7 @@
 import { Container } from 'pixi.js';
 import gsap from 'gsap';
 import { getAtlasName } from '../utils/atlasHelper';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import type { TutorialHandTuning } from '~/game/tuning/types';
 
 /**

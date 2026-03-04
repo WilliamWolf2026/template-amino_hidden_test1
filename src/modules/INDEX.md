@@ -1,6 +1,6 @@
 # Modules Index
 
-Reusable building blocks + assembled prefabs. Can import from `scaffold/`. Never imports from `game/`.
+Reusable building blocks + assembled prefabs. Can import from `core/`. Never imports from `game/`.
 
 ## Primitives
 

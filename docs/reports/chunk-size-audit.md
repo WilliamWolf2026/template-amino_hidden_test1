@@ -71,9 +71,9 @@ Changes:
 **Main chunk: 874 KB / 264 KB gz → 101 KB / 34 KB gz**
 
 Changes:
-1. **Sentry → dynamic import** (-64 KB gz) — `src/scaffold/lib/sentry.ts` loads `@sentry/browser` via `await import()` only when DSN is configured and environment is enabled
-2. **PostHog → dynamic import** (-18 KB gz) — `src/scaffold/lib/posthog.ts` loads `posthog-js` via `await import()` only when API key is provided
-3. **Tweakpane → dynamic import** (-28 KB gz) — Both `src/scaffold/dev/TuningPanel.tsx` and `src/scaffold/dev/Tweakpane.tsx` load tweakpane via `await import()` inside `onMount`, dev-only
+1. **Sentry → dynamic import** (-64 KB gz) — `src/core/lib/sentry.ts` loads `@sentry/browser` via `await import()` only when DSN is configured and environment is enabled
+2. **PostHog → dynamic import** (-18 KB gz) — `src/core/lib/posthog.ts` loads `posthog-js` via `await import()` only when API key is provided
+3. **Tweakpane → dynamic import** (-28 KB gz) — Both `src/core/dev/TuningPanel.tsx` and `src/core/dev/Tweakpane.tsx` load tweakpane via `await import()` inside `onMount`, dev-only
 4. **Vendor chunk** (-6 KB gz) — Extracted earcut, eventemitter3, tiny-lru, parse-svg-path, @pixi/colord into a `vendor` chunk via `manualChunks`
 5. **Lazy game screens** (-96 KB gz) — StartScreen and GameScreen use Solid `lazy()` in `src/game/config.ts`, wrapped in `<Suspense>` in ScreenRenderer. This moves pixi.js core and all game-specific code out of the entry chunk
 
@@ -95,7 +95,7 @@ Changes:
 
 - solid-js (~10 KB gz) — UI framework, required everywhere
 - @solidjs/start + vinxi (~2 KB gz) — SPA bootstrap
-- src/scaffold (~15 KB gz) — providers, hooks, UI components
+- src/core (~15 KB gz) — providers, hooks, UI components
 - LoadingScreen (~2 KB gz) — no pixi dependency
 - ResultsScreen (~1 KB gz) — minimal UI
 - Shared game config/services (~4 KB gz)
@@ -115,10 +115,10 @@ Changes:
 
 - [app.config.ts](../../app.config.ts) — `manualChunks` configuration
 - [src/game/config.ts](../../src/game/config.ts) — `lazy()` screen definitions
-- [src/scaffold/systems/screens/context.tsx](../../src/scaffold/systems/screens/context.tsx) — `<Suspense>` in ScreenRenderer
-- [src/scaffold/lib/sentry.ts](../../src/scaffold/lib/sentry.ts) — Dynamic Sentry import
-- [src/scaffold/lib/posthog.ts](../../src/scaffold/lib/posthog.ts) — Dynamic PostHog import
-- [src/scaffold/dev/TuningPanel.tsx](../../src/scaffold/dev/TuningPanel.tsx) — Dynamic Tweakpane import
+- [src/core/systems/screens/context.tsx](../../src/core/systems/screens/context.tsx) — `<Suspense>` in ScreenRenderer
+- [src/core/lib/sentry.ts](../../src/core/lib/sentry.ts) — Dynamic Sentry import
+- [src/core/lib/posthog.ts](../../src/core/lib/posthog.ts) — Dynamic PostHog import
+- [src/core/dev/TuningPanel.tsx](../../src/core/dev/TuningPanel.tsx) — Dynamic Tweakpane import
 
 ---
 

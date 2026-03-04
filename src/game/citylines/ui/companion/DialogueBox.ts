@@ -1,5 +1,5 @@
 import { DialogueBox as SharedDialogueBox } from '~/modules/primitives/dialogue-box';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 import { getAtlasName } from '../../utils/atlasHelper';
 import { POSITIONING } from './CompanionConfig';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';

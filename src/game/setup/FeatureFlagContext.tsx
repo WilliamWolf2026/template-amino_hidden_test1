@@ -10,7 +10,7 @@ import {
 import { createStore } from "solid-js/store";
 import { getUserData } from "./helper";
 import { useAnalytics } from "./AnalyticsContext";
-import { type PostHog } from "~/scaffold/lib/analytics";
+import { type PostHog } from "~/core/lib/analytics";
 import { GAME_STORAGE_PREFIX } from "~/game/config/identity";
 
 // ============================================================================

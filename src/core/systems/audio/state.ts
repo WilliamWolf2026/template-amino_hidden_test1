@@ -1,5 +1,5 @@
 import { createSignal, createRoot } from 'solid-js';
-import { getStored, setStored } from '~/scaffold/utils/storage';
+import { getStored, setStored } from '~/core/utils/storage';
 
 // localStorage keys
 const STORAGE_KEYS = {

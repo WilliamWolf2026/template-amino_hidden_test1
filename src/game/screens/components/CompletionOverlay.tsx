@@ -16,7 +16,7 @@
 
 import { Show, onMount, onCleanup, createEffect } from 'solid-js';
 import gsap from 'gsap';
-import { Button } from '~/scaffold/ui';
+import { Button } from '~/core/ui';
 
 export interface CompletionOverlayProps {
   /** Whether overlay is visible */

@@ -19,21 +19,21 @@ import {
 } from "solid-js";
 import { type } from "arktype";
 import { getUserData } from "./helper";
-import { getEnvironment } from "~/scaffold/config";
+import { getEnvironment } from "~/core/config";
 import { GAME_ID, GAME_STORAGE_PREFIX } from "~/game/config/identity";
 import {
   getSessionElapsed,
   resetSessionTimer,
   cachePostHogInstance,
   type PostHog,
-} from "~/scaffold/lib/analytics";
+} from "~/core/lib/analytics";
 import {
   sessionStartSchema,
   sessionPauseSchema,
   sessionResumeSchema,
   audioSettingChangedSchema,
   errorCapturedSchema,
-} from "~/scaffold/analytics/events";
+} from "~/core/analytics/events";
 import {
   analyticsService,
   CityLinesContext,
@@ -53,11 +53,11 @@ import {
   trackStoryLinkClick,
   trackLandmarkConnected,
 } from "~/game/analytics/trackers";
-import { setPostHogInstance } from "~/scaffold/lib/posthog";
+import { setPostHogInstance } from "~/core/lib/posthog";
 import {
   connectSentryToPostHog,
   isSentryEnabled,
-} from "~/scaffold/lib/sentry";
+} from "~/core/lib/sentry";
 
 // ============================================================================
 // SHARED SESSION TRACKERS

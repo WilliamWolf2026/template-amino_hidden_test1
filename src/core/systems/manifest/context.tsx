@@ -7,7 +7,7 @@ import {
   onCleanup,
   type Accessor,
 } from 'solid-js';
-import type { Manifest } from '~/scaffold/systems/assets';
+import type { Manifest } from '~/core/systems/assets';
 
 /** Provider mode: standalone (default) or injected (embed/parent context) */
 export type ManifestMode = 'standalone' | 'injected';

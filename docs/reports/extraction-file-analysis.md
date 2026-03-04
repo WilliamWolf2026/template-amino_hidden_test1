@@ -1,6 +1,6 @@
 # Scaffold Extraction — File-by-File Analysis
 
-Comprehensive analysis of 17 files in `src/game/` that contain reusable code for extraction to `src/scaffold/`.
+Comprehensive analysis of 17 files in `src/game/` that contain reusable code for extraction to `src/core/`.
 
 ---
 
@@ -18,7 +18,7 @@ Interactive Pixi button component with 9-slice support, text labels, hover/press
 | Game imports | None |
 | Game coupling | Zero — fully generic |
 | Extraction effort | None — move as-is |
-| Target | `src/scaffold/components/pixi/SpriteButton.ts` |
+| Target | `src/core/components/pixi/SpriteButton.ts` |
 
 **API:**
 ```typescript
@@ -46,7 +46,7 @@ State machine: `playing → completing → complete`. Event-driven with configur
 | Game imports | None |
 | Game coupling | Zero — fully generic |
 | Extraction effort | None — move as-is |
-| Target | `src/scaffold/systems/game/LevelCompletionController.ts` |
+| Target | `src/core/systems/game/LevelCompletionController.ts` |
 
 **API:**
 ```typescript
@@ -77,7 +77,7 @@ Cardinal edge types, grid position, adjacency helpers.
 | Game imports | None |
 | Game coupling | Zero |
 | Extraction effort | None — move as-is |
-| Target | `src/scaffold/types/grid.ts` |
+| Target | `src/core/types/grid.ts` |
 
 **Exports:**
 - `Edge` type (`'north' | 'east' | 'south' | 'west'`)
@@ -102,7 +102,7 @@ Mobile viewport constraints, aspect ratio, safe padding, tile sizing calculation
 | Game imports | None |
 | Game coupling | Zero |
 | Extraction effort | None — move as-is |
-| Target | `src/scaffold/config/viewport.ts` |
+| Target | `src/core/config/viewport.ts` |
 
 **Exports:**
 - `VIEWPORT_MIN_WIDTH` (355), `VIEWPORT_MIN_HEIGHT` (473)
@@ -125,7 +125,7 @@ Generic priority queue data structure. Sort-on-push (simple, sufficient for smal
 | Game imports | None |
 | Game coupling | Zero |
 | Extraction effort | None — move as-is |
-| Target | `src/scaffold/utils/PriorityQueue.ts` |
+| Target | `src/core/utils/PriorityQueue.ts` |
 
 ---
 
@@ -143,7 +143,7 @@ Dijkstra's shortest-path algorithm with loop failsafe.
 | Game imports | `PriorityQueue` via game path |
 | Game coupling | Zero — import path only |
 | Extraction effort | Update import path |
-| Target | `src/scaffold/utils/Dijkstra.ts` |
+| Target | `src/core/utils/Dijkstra.ts` |
 
 ---
 
@@ -159,7 +159,7 @@ Deterministic seeded PRNG. Critical for reproducible procedural generation.
 | Game imports | None |
 | Game coupling | Zero |
 | Extraction effort | None — move as-is |
-| Target | `src/scaffold/utils/XoroShiro128Plus.ts` |
+| Target | `src/core/utils/XoroShiro128Plus.ts` |
 
 ---
 
@@ -175,7 +175,7 @@ Seeded procedural grid level generator with pathfinding, complexity (wriggle), a
 | Game imports | Only the above two via game paths |
 | Game coupling | Low — generates generic grid levels, not City Lines specific |
 | Extraction effort | Update import paths. Consider: the types (`Point`, `Level`, `LevelGeneratorConfig`, `ComplexityConfig`, `RotationConfig`) are fully generic. |
-| Target | `src/scaffold/systems/generation/LevelGenerator.ts` |
+| Target | `src/core/systems/generation/LevelGenerator.ts` |
 
 **What it does:** Given a seed, grid size, and exit count, generates entry/exit points, pathfinds roads between them, optionally adds wriggle complexity and tile rotations. Outputs a generic `Level` object.
 
@@ -195,7 +195,7 @@ Pixi-based progress bar with milestones, animated fill, label text.
 | Game imports | `GAME_FONT_FAMILY` from `~/game/config/fonts` |
 | Game coupling | **Font family** and optional `tileTheme` param |
 | Extraction effort | Accept `fontFamily` as constructor param instead of importing |
-| Target | `src/scaffold/components/pixi/ProgressBar.ts` |
+| Target | `src/core/components/pixi/ProgressBar.ts` |
 
 **Changes needed:**
 ```diff
@@ -225,7 +225,7 @@ Solid.js level completion celebration overlay with GSAP animations, keyboard acc
 | Game imports | None |
 | Game coupling | Zero — fully driven by props |
 | Extraction effort | Low — verify scaffold UI Button compatibility |
-| Target | `src/scaffold/ui/CompletionOverlay.tsx` |
+| Target | `src/core/ui/CompletionOverlay.tsx` |
 
 **Props are already generic:**
 ```typescript
@@ -252,7 +252,7 @@ Pixi 9-slice dialogue box with auto-sizing text.
 | Game imports | `GAME_FONT_FAMILY`, `getAtlasName()`, `CompanionConfig` positioning |
 | Game coupling | **Font**, **atlas helper**, **positioning constants** |
 | Extraction effort | Medium — parameterize font, atlas, and positioning |
-| Target | `src/scaffold/components/pixi/DialogueBox.ts` |
+| Target | `src/core/components/pixi/DialogueBox.ts` |
 
 **Changes needed:**
 - Accept `fontFamily`, `atlasName`, `spriteName` as constructor params
@@ -273,7 +273,7 @@ GSAP timeline factories: `animateSlideInFromRight`, `animateCompletionPopIn`, `a
 | Game imports | Type imports only (`CompanionCharacter`, `DialogueBox`) |
 | Game coupling | Low — operates on any Container-like objects via duck typing |
 | Extraction effort | Replace concrete types with `Container` or a minimal interface |
-| Target | `src/scaffold/animations/dialogueAnimations.ts` |
+| Target | `src/core/animations/dialogueAnimations.ts` |
 
 **Changes needed:**
 ```diff
@@ -306,7 +306,7 @@ Singleton game state with Solid.js signals: score, health, currentLevel, totalLe
 | Game imports | None |
 | Game coupling | Low — but the specific signals (score, health, level) are opinionated |
 | Extraction effort | Medium — make generic with `createGameState<T>()` |
-| Target | `src/scaffold/systems/state/gameState.ts` |
+| Target | `src/core/systems/state/gameState.ts` |
 
 **Consideration:** The current shape (score + health + level) is common but not universal. Could extract as a template/factory rather than a concrete type.
 
@@ -324,7 +324,7 @@ Simple sprite container with named character type mapping.
 | Game imports | `getAtlasName()` |
 | Game coupling | Hardcoded `CharacterType` enum (`paper_kid`, `news_hound`) and sprite mapping |
 | Extraction effort | Medium — parameterize character type registry and atlas |
-| Target | `src/scaffold/components/pixi/CharacterSprite.ts` |
+| Target | `src/core/components/pixi/CharacterSprite.ts` |
 
 **Changes needed:**
 ```diff
@@ -368,7 +368,7 @@ Pixi popup with circular character avatar + speech bubble. Auto-dismiss with GSA
 | Game imports | `getAtlasName()`, `CHARACTER_SPRITES`, `CHARACTER_BASE_SIZE`, `GAME_FONT_FAMILY` |
 | Game coupling | Medium — uses specific character sprite and font |
 | Extraction effort | Medium-High — parameterize character sprite, font, sizes |
-| Target | `src/scaffold/components/pixi/AvatarPopup.ts` |
+| Target | `src/core/components/pixi/AvatarPopup.ts` |
 
 ---
 
@@ -384,7 +384,7 @@ Loading screen with progress bar, spinner, logo. Routes to start or game based o
 | Game imports | `hasChapterInProgress()` from game services |
 | Game coupling | Routing logic (`hasChapterInProgress` → skip start screen) |
 | Extraction effort | Medium — inject routing decision as a callback/config |
-| Target | `src/scaffold/screens/LoadingScreen.tsx` |
+| Target | `src/core/screens/LoadingScreen.tsx` |
 
 **Changes needed:**
 ```diff
@@ -414,7 +414,7 @@ Loading screen with progress bar, spinner, logo. Routes to start or game based o
 
 ### Completed Extraction (2026-02-11)
 
-The following files were extracted to `src/game/shared/` (reusable game-level layer) or `src/scaffold/`:
+The following files were extracted to `src/game/shared/` (reusable game-level layer) or `src/core/`:
 
 ```
 Moved to scaffold:

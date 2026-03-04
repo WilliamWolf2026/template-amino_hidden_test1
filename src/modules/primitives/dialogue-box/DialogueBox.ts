@@ -1,5 +1,5 @@
 import { Container, NineSliceSprite, Text } from 'pixi.js';
-import type { PixiLoader } from '~/scaffold/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 /**
  * Positioning configuration for the dialogue box
