@@ -1,17 +1,17 @@
 import { onMount, onCleanup } from 'solid-js';
 
-import { useAssets } from '~/scaffold/systems/assets';
-import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/scaffold';
-import { Logo } from '~/scaffold/ui/Logo';
-import { useAudio } from '~/scaffold/systems/audio';
-import { useAnalytics } from '~/scaffold/systems/telemetry/AnalyticsContext';
+import { useAssets } from '~/core/systems/assets';
+import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/core';
+import { Logo } from '~/core/ui/Logo';
+import { useAudio } from '~/core/systems/audio';
+import { useAnalytics } from '~/game/setup/AnalyticsContext';
 
 import type { GameTuning } from '~/game/tuning';
-import { useGameData } from '~/game/hooks/useGameData';
+import { useGameData } from '~/game/screens/useGameData';
 import { gameState } from '~/game/state';
 
 // Game-specific controller — swap this import for a different game
-import { setupDailyDispatchGame } from '~/game/dailydispatch/screens/gameController';
+import { setupGame } from '~/game/mygame/screens/gameController';
 
 export default function GameScreen() {
   const { coordinator } = useAssets();
@@ -22,7 +22,7 @@ export default function GameScreen() {
   let containerRef: HTMLDivElement | undefined;
 
   // Setup game-specific controller (creates signals & effects in reactive context)
-  const controller = setupDailyDispatchGame({
+  const controller = setupGame({
     coordinator,
     tuning,
     audio,

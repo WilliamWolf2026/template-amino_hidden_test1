@@ -1,6 +1,6 @@
 import { Show } from 'solid-js';
-import { useScreen } from '~/scaffold/systems/screens';
-import { Button } from '~/scaffold/ui/Button';
+import { useScreen } from '~/core/systems/screens';
+import { Button } from '~/core/ui/Button';
 import { gameState } from '~/game/state';
 
 export function ResultsScreen() {

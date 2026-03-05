@@ -8,7 +8,7 @@ Configuration is split between scaffold-level settings (engine, integrations) an
 
 ## Scaffold Configuration
 
-Located at `src/scaffold/config.ts`:
+Located at `src/core/config.ts`:
 
 ```typescript
 export const scaffoldConfig = {
@@ -44,7 +44,7 @@ The scaffold supports multiple rendering engines:
 The engine choice affects which GPU loader is used:
 
 ```typescript
-// src/scaffold/systems/assets/loaders/gpu/index.ts
+// src/core/systems/assets/loaders/gpu/index.ts
 export function createGpuLoader(engine: Engine) {
   switch (engine) {
     case 'pixi': return new PixiLoader();
@@ -80,7 +80,7 @@ export const gameConfig = {
 Located at `src/game/manifest.ts`:
 
 ```typescript
-import type { Manifest } from '~/scaffold/systems/assets';
+import type { Manifest } from '~/core/systems/assets';
 
 export const manifest: Manifest = {
   cdnBase: '/assets',
@@ -173,7 +173,7 @@ const difficultyPresets = {
 Some settings can be adjusted at runtime:
 
 ```typescript
-import { usePause } from '~/scaffold/systems/pause';
+import { usePause } from '~/core/systems/pause';
 
 // Toggle debug mode
 scaffoldConfig.debug = true;
@@ -187,7 +187,7 @@ const { pause, resume } = usePause();
 In development, Tweakpane provides a UI for adjusting parameters:
 
 ```typescript
-import { Tweakpane } from '~/scaffold/dev';
+import { Tweakpane } from '~/core/dev';
 
 function DevTools() {
   return (

@@ -1,8 +1,8 @@
 # Scaffold Extraction Candidates Report
 
-> **Status (2026-02-11):** Partially completed. Key components moved to `src/game/shared/` instead of scaffold. See [extraction-file-analysis.md](extraction-file-analysis.md) for the updated status of all 17 files. Viewport moved to `src/scaffold/config/viewport.ts`.
+> **Status (2026-02-11):** Partially completed. Key components moved to `src/game/shared/` instead of scaffold. See [extraction-file-analysis.md](extraction-file-analysis.md) for the updated status of all 17 files. Viewport moved to `src/core/config/viewport.ts`.
 
-Analysis of components in `src/game/` that could be moved to `src/scaffold/` for reuse across games.
+Analysis of components in `src/game/` that could be moved to `src/core/` for reuse across games.
 
 ## Summary
 
@@ -21,7 +21,7 @@ Analysis of components in `src/game/` that could be moved to `src/scaffold/` for
 - **What:** Minimal state machine for level completion sequence with event-based architecture
 - **Why reusable:** 100% generic - no game-specific code, clean interface
 - **Changes needed:** None
-- **Target:** `src/scaffold/systems/game/LevelCompletionController.ts`
+- **Target:** `src/core/systems/game/LevelCompletionController.ts`
 
 ```typescript
 // Already generic interface:
@@ -39,14 +39,14 @@ interface LevelCompletionController {
 - **What:** Interactive Pixi button with hover/press animations, optional text, 9-slice support
 - **Why reusable:** Generic button pattern for any Pixi game
 - **Changes needed:** Remove hardcoded atlas references, make atlas name a parameter
-- **Target:** `src/scaffold/ui/SpriteButton.ts`
+- **Target:** `src/core/ui/SpriteButton.ts`
 
 ### 3. SeededRandom
 - **Location:** Inside `src/game/citylines/systems/DecorationSystem.ts`
 - **What:** Seeded pseudo-random number generator for reproducible results
 - **Why reusable:** Pure utility, useful for any game needing deterministic randomness
 - **Changes needed:** Extract to separate file
-- **Target:** `src/scaffold/utils/random.ts`
+- **Target:** `src/core/utils/random.ts`
 
 ```typescript
 // Extract this class:
@@ -63,14 +63,14 @@ class SeededRandom {
 - **What:** GSAP timeline factories for slide-in, pop-in, exit animations
 - **Why reusable:** Generic animation patterns for modals/dialogs
 - **Changes needed:** Rename to generic names, remove "Companion" references
-- **Target:** `src/scaffold/ui/animations/dialogueAnimations.ts`
+- **Target:** `src/core/ui/animations/dialogueAnimations.ts`
 
 ### 5. useDialogueState Hook
 - **Location:** `src/game/screens/hooks/useCompanionDialogue.ts`
 - **What:** Solid.js hook for dialogue open/close, message queue, display modes
 - **Why reusable:** Generic dialogue state management
 - **Changes needed:** Rename from `useCompanionDialogue` to `useDialogueState`
-- **Target:** `src/scaffold/systems/dialogue/useDialogueState.ts`
+- **Target:** `src/core/systems/dialogue/useDialogueState.ts`
 
 ---
 
@@ -81,7 +81,7 @@ class SeededRandom {
 - **What:** Animated progress bar with milestone dots, smooth fill animation
 - **Why reusable:** Generic progress visualization
 - **Changes needed:** Remove `tileTheme` parameter (game-specific), make colors fully parameterized
-- **Target:** `src/scaffold/ui/PixiProgressBar.ts`
+- **Target:** `src/core/ui/PixiProgressBar.ts`
 
 ### 7. Progress Service Pattern
 - **Location:** `src/game/services/progress.ts`
@@ -98,21 +98,21 @@ class SeededRandom {
 - **What:** Module-level state for current atlas name with theme switching
 - **Why reusable:** Generic pattern for multi-theme games
 - **Changes needed:** Generalize theme type from `'regular'|'fall'|'winter'`
-- **Target:** `src/scaffold/utils/atlasHelper.ts`
+- **Target:** `src/core/utils/atlasHelper.ts`
 
 ### 9. CompletionOverlay
 - **Location:** `src/game/screens/components/CompletionOverlay.tsx`
 - **What:** Level completion modal with celebration, GSAP entrance animation
 - **Why reusable:** Generic completion/celebration UI
 - **Changes needed:** Make title text configurable (not hardcoded "Level Complete!")
-- **Target:** `src/scaffold/ui/CompletionOverlay.tsx`
+- **Target:** `src/core/ui/CompletionOverlay.tsx`
 
 ### 10. DialogueBox
 - **Location:** `src/game/citylines/ui/companion/DialogueBox.ts`
 - **What:** 9-slice sprite dialogue box with responsive sizing
 - **Why reusable:** Generic dialogue container
 - **Changes needed:** Extract positioning logic to config parameter
-- **Target:** `src/scaffold/ui/DialogueBox.ts`
+- **Target:** `src/core/ui/DialogueBox.ts`
 
 ---
 
@@ -184,7 +184,7 @@ class SeededRandom {
 ## New Scaffold Structure (After Extraction)
 
 ```
-src/scaffold/
+src/core/
 ├── systems/
 │   ├── game/
 │   │   └── LevelCompletionController.ts  ← NEW

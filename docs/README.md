@@ -1,6 +1,6 @@
 # Documentation
 
-Welcome to the Game Production Scaffold documentation. This framework provides a clean separation between reusable scaffold systems and game-specific implementation.
+Welcome to the Game Production Framework documentation. This framework uses a 3-tier architecture separating reusable core systems, configurable modules, and game-specific implementation.
 
 **[Research Notes](https://www.notion.so/wolfgames/Shared-Game-Functionality-2cb4a33771998081a4f0ce48cf31128b)** - Ongoing research and design documents
 
@@ -11,34 +11,37 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      TECH STACK                             │
-│  Solid.js │ Pixi.js │ Phaser │ Three.js │ GSAP │ Howler     │
+│  Solid.js | Pixi.js | Phaser | Three.js | GSAP | Howler    │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
                     ┌─────────────────┐
-                    │     app.tsx     │
+                    │     app.tsx      │
                     └────────┬────────┘
                              │
-        ┌────────────────────┴────────────────────┐
-        ▼                                         ▼
-┌───────────────────┐                 ┌───────────────────┐
-│  SCAFFOLD         │                 │  GAME             │
-│  (Reusable)       │◄── hooks ────-──│  (CityLines)      │
-├───────────────────┤                 ├───────────────────┤
-│ Providers:        │                 │ Config:           │
-│  └─ Tuning        │                 │  └─ manifest.ts   │
-│  └─ Assets        │                 │  └─ config.ts     │
-│  └─ Screen        │                 │  └─ state.ts      │
-│  └─ Audio         │                 │                   │
-│                   │                 │ Screens:          │
-│ Systems:          │                 │  └─ Loading       │
-│  └─ AssetCoord    │                 │  └─ Start         │
-│  └─ ScreenMgr     │                 │  └─ Game          │
-│  └─ TuningState   │                 │  └─ Results       │
-│                   │                 │                   │
-│ UI: Button, etc.  │                 │ Core:             │
-│ Dev: TuningPanel  │                 │  └─ CityLinesGame │
-└───────────────────┘                 └───────────────────┘
+        ┌────────────────────┼────────────────────┐
+        ▼                    ▼                     ▼
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│  CORE             │ │  MODULES          │ │  GAME             │
+│  (Framework)      │ │  (Building Blocks)│ │  (Your Game)      │
+├───────────────────┤ ├───────────────────┤ ├───────────────────┤
+│ Providers:        │ │ Primitives:       │ │ Infrastructure:   │
+│  └─ Tuning        │ │  └─ SpriteButton  │ │  └─ config.ts     │
+│  └─ Assets        │ │  └─ DialogueBox   │ │  └─ state.ts      │
+│  └─ Screen        │ │  └─ ProgressBar   │ │  └─ tuning/       │
+│  └─ Audio         │ │  └─ CharacterSprite│ │  └─ setup/        │
+│  └─ Pause         │ │                   │ │                   │
+│                   │ │ Logic:            │ │ Screens:          │
+│ Systems:          │ │  └─ LevelComplete │ │  └─ Loading        │
+│  └─ AssetCoord    │ │  └─ Progress      │ │  └─ Start          │
+│  └─ ScreenMgr     │ │  └─ Catalog       │ │  └─ Game           │
+│  └─ TuningState   │ │  └─ Loader        │ │  └─ Results        │
+│                   │ │                   │ │                   │
+│ UI: Button, etc.  │ │ Prefabs:          │ │ Game Logic:       │
+│ Dev: TuningPanel  │ │  └─ AvatarPopup   │ │  └─ mygame/       │
+└───────────────────┘ └───────────────────┘ └───────────────────┘
+
+Dependency flow: core ← modules ← game
 ```
 
 ---
@@ -47,12 +50,13 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 
 | Section                                    | Description                    |
 | ------------------------------------------ | ------------------------------ |
-| [Scaffold Architecture](scaffold/architecture.md) | Reusable framework systems |
-| [Entry Points](scaffold/entry-points.md)   | How the app boots (server, client, root) |
-| [Context Map](scaffold/context-map.md)     | Node-edge relationship map for AI |
-| [Game Design Document](game/gdd.md)        | CityLines game design          |
+| [Core Architecture](core/architecture.md)  | Framework systems & diagrams   |
+| [Entry Points](core/entry-points.md)       | How the app boots              |
+| [Context Map](core/context-map.md)         | Node-edge relationship map for AI |
+| [Module System](modules/index.md)          | Primitives, logic, prefabs     |
+| [Game Design Document](game/gdd.md)        | Game design                    |
 | [Creating a New Game](guides/getting-started/new-game.md) | Step-by-step setup guide |
-| [Shared Components](guides/development/shared-components.md) | Reusable component catalog & guidelines |
+| [Shared Components](guides/development/shared-components.md) | Reusable component catalog |
 | [Debugging](guides/development/debugging.md) | Daily debugging reference    |
 | [Animation Cookbook](guides/development/animation-cookbook.md) | GSAP patterns |
 | [Asset Pipeline](guides/assets/asset-pipeline.md) | Sprites, fonts, and atlases |
@@ -66,46 +70,62 @@ Welcome to the Game Production Scaffold documentation. This framework provides a
 
 ---
 
-## Scaffold Framework
+## Core Framework
 
-The scaffold provides engine-agnostic systems that can power any game.
+The core provides engine-agnostic systems that can power any game.
 
 ### Architecture
 
-- **[Architecture Overview](scaffold/architecture.md)** - System overview, diagrams, and design patterns
-- **[Deep Dive](scaffold/deep-dive.md)** - Comprehensive technical documentation with data flow analysis
-- **[Context Map](scaffold/context-map.md)** - Node-edge relationship map for AI context engineering
-- **[Overview & Migration Guide](scaffold/scaffold-overview-and-migration.md)** - Complete scaffold inventory and game swap guide
+- **[Architecture Overview](core/architecture.md)** - System overview, diagrams, and design patterns
+- **[Deep Dive](core/deep-dive.md)** - Comprehensive technical documentation with data flow analysis
+- **[Context Map](core/context-map.md)** - Node-edge relationship map for AI context engineering
+- **[Overview & Migration Guide](core/scaffold-overview-and-migration.md)** - Complete inventory and game swap guide
 
 ### Systems
 
 | System                                 | Description                          | Hook          |
 | -------------------------------------- | ------------------------------------ | ------------- |
-| [Assets](scaffold/systems/assets.md)   | Engine-agnostic asset loading        | `useAssets()` |
-| [Screens](scaffold/systems/screens.md) | Screen state machine and transitions | `useScreen()` |
-| [Tuning](scaffold/systems/tuning.md)   | Live parameter adjustment            | `useTuning()` |
-| [Audio](scaffold/systems/audio.md)     | Howler.js audio management           | `useAudio()`  |
-| [State](scaffold/systems/state.md)     | Signal-based state management        | -             |
-| [Errors](scaffold/systems/errors.md)   | Layered error boundaries             | -             |
+| [Assets](core/systems/assets.md)      | Engine-agnostic asset loading        | `useAssets()` |
+| [Screens](core/systems/screens.md)    | Screen state machine and transitions | `useScreen()` |
+| [Tuning](core/systems/tuning.md)      | Live parameter adjustment            | `useTuning()` |
+| [Audio](core/systems/audio.md)        | Howler.js audio management           | `useAudio()`  |
+| [State](core/systems/state.md)        | Signal-based state management        | -             |
+| [Errors](core/systems/errors.md)      | Layered error boundaries             | -             |
 
 ### Components
 
-- [Tuning Panel](scaffold/components/tuning-panel.md) - Dev tools UI for live tuning
-- [Easing Picker](scaffold/components/easing-picker.md) - GSAP easing selector with previews
+- [Tuning Panel](core/components/tuning-panel.md) - Dev tools UI with 3-section color coding
+- [Easing Picker](core/components/easing-picker.md) - GSAP easing selector with previews
+
+---
+
+## Modules
+
+Reusable building blocks between the core framework and game-specific code.
+
+- **[Module System Overview](modules/index.md)** - Categories, structure, inventory
+- **[Writing a Module](modules/writing-a-module.md)** - Step-by-step guide
+
+### Categories
+
+| Category | Purpose | Examples |
+|----------|---------|----------|
+| Primitives | Single-purpose components | SpriteButton, DialogueBox, ProgressBar |
+| Logic | Pure logic, no rendering | LevelCompletion, Progress, Catalog, Loader |
+| Prefabs | Assembled from primitives | AvatarPopup |
 
 ---
 
 ## Game Layer
 
-Game-specific implementation using the scaffold.
+Game-specific implementation using core systems and modules.
 
-- **[Game Design Document](game/gdd.md)** - CityLines game design and mechanics
+- **[Game Design Document](game/gdd.md)** - Game design and mechanics
 - **[Chapter Generation](game/chapter-generation.md)** - Level generation system
-- **[Level Progression Report](game/level-progression-report.md)** - Difficulty curve analysis
 
 ### Creating a New Game
 
-See the **[New Game Guide](guides/getting-started/new-game.md)** for step-by-step instructions on creating a new game using this scaffold.
+See the **[New Game Guide](guides/getting-started/new-game.md)** for step-by-step instructions on creating a new game using this framework.
 
 ---
 
@@ -211,7 +231,7 @@ CLAUDE.md loaded (system prompt)
                         ┌──────────────────────────────────┐
                         │           CLAUDE.md              │
                         ├──────────────────────────────────┤
-                        │ • Quick Context (architecture)   │
+                        │ • Quick Context (3-tier arch)    │
                         │ • Coding Standards & Docs ─────────── trigger words
                         │ • Factory Commands (table) ────────── slash commands
                         │ • File Permissions               │
@@ -225,25 +245,29 @@ CLAUDE.md loaded (system prompt)
 │    READ-ONLY            │ │     EDITABLE     │ │   (workflow commands)    │
 ├─────────────────────────┤ ├──────────────────┤ ├──────────────────────────┤
 │                         │ │                  │ │                          │
-│ Always Active:          │ │ scaffold/        │ │ Research (no code):      │
+│ Always Active:          │ │ core/            │ │ Research (no code):      │
 │ ├─ agent-orchestrator   │ │ ├─ architecture  │ │ ├─ /research             │
 │ └─ please.mdc           │ │ ├─ context-map   │ │ ├─ /compare              │
 │                         │ │ └─ systems/      │ │ ├─ /report               │
 │ Activity-Matched:       │ │                  │ │ ├─ /audit                │
-│ ├─ review.mdc           │ │ game/            │ │ ├─ /review               │
-│ ├─ javascript.mdc       │ │ ├─ gdd           │ │ └─ /naming               │
-│ ├─ ui.mdc               │ │ └─ chapter-gen   │ │                          │
+│ ├─ review.mdc           │ │ modules/         │ │ ├─ /review               │
+│ ├─ javascript.mdc       │ │ ├─ index         │ │ └─ /naming               │
+│ ├─ ui.mdc               │ │ └─ writing guide │ │                          │
 │ ├─ tdd.mdc              │ │                  │ │ Action (changes code):   │
-│ ├─ task-creator.mdc     │ │ guides/          │ │ ├─ /debug                │
-│ ├─ productmanager.mdc   │ │ ├─ getting-started│ │ ├─ /plan                │
-│ ├─ requirements.mdc     │ │ ├─ development   │ │ ├─ /task                 │
-│ └─ log.mdc              │ │ ├─ assets        │ │ ├─ /commit               │
-│                         │ │ ├─ platform      │ │ └─ /update-docs          │
-│ Subdirectories:         │ │ └─ deployment    │ │                          │
-│ ├─ javascript/          │ │                  │ └──────────────────────────┘
-│ ├─ security/            │ │ patterns/        │
-│ └─ frameworks/          │ │ reports/         │
-└─────────────────────────┘ └──────────────────┘
+│ ├─ task-creator.mdc     │ │ game/            │ │ ├─ /debug                │
+│ ├─ productmanager.mdc   │ │ ├─ gdd           │ │ ├─ /plan                 │
+│ ├─ requirements.mdc     │ │ └─ chapter-gen   │ │ ├─ /task                 │
+│ └─ log.mdc              │ │                  │ │ ├─ /commit               │
+│                         │ │ guides/          │ │ └─ /update-docs          │
+│ Subdirectories:         │ │ ├─ getting-started│ │                          │
+│ ├─ javascript/          │ │ ├─ development   │ └──────────────────────────┘
+│ ├─ security/            │ │ ├─ assets        │
+│ └─ frameworks/          │ │ ├─ platform      │
+└─────────────────────────┘ │ └─ deployment    │
+                            │                  │
+                            │ patterns/        │
+                            │ reports/         │
+                            └──────────────────┘
                     ┌──────────────────────────────────┐
                     │        .claude/                   │
                     ├──────────────────────────────────┤
@@ -260,7 +284,7 @@ CLAUDE.md loaded (system prompt)
 | **CLAUDE.md → ai/rules/** | "consult `ai/rules/`" instruction | Claude name-matches your activity to rule files (e.g. code review → `review.mdc`, UI work → `ui.mdc`) |
 | **CLAUDE.md → docs/** | "consult `docs/`" instruction | Claude reads architecture/design docs as ground truth before making changes |
 | **CLAUDE.md → docs/factory/** | Slash command table | `/review`, `/commit`, `/debug` etc. load the corresponding workflow template |
-| **.claude/ → permissions** | Every edit attempt | `settings.local.json` gates what Claude can modify (`src/scaffold/` and `ai/` are read-only in restricted mode) |
+| **.claude/ → permissions** | Every edit attempt | `settings.local.json` gates what Claude can modify (`src/core/` and `ai/` are read-only in restricted mode) |
 
 ### Toggle Modes
 
@@ -269,7 +293,7 @@ CLAUDE.md loaded (system prompt)
 | Full context | `git checkout CLAUDE.md` | AI reads coding standards + docs before every change |
 | Lite context | `cp CLAUDE.lite.md CLAUDE.md` | Minimal prompt, no rule/doc lookups (faster) |
 | Admin permissions | `cp .claude/settings.admin.json .claude/settings.local.json` | Full edit access |
-| Restricted permissions | `cp .claude/settings.restricted.json .claude/settings.local.json` | Protects scaffold + ai/ |
+| Restricted permissions | `cp .claude/settings.restricted.json .claude/settings.local.json` | Protects core + ai/ |
 
 See [Claude Code Setup Guide](guides/claude-code-setup-prompt.md) for applying this pattern to a new repo.
 
@@ -284,3 +308,6 @@ Implementation reports from completed work are preserved in [archive/executed-pl
 
 ### CityLines Learnings
 Project-specific insights: [archive/citylines/citylines-learnings.md](archive/citylines/citylines-learnings.md)
+
+### Scaffold v1
+Original 2-tier architecture documentation: [archive/scaffold-v1/](archive/scaffold-v1/)

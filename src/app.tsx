@@ -1,4 +1,4 @@
-import { onMount, Show, Switch, Match, type JSX } from 'solid-js';
+import { onMount, Show, type JSX } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -10,22 +10,22 @@ import {
   SettingsMenu,
   TuningProvider,
   TuningPanel,
-  MobileViewport,
   useTuning,
   type ScaffoldTuning,
-} from '~/scaffold';
-import { initSentry } from '~/scaffold/lib/sentry';
-import { getEnvironment, scaffoldConfig } from '~/scaffold/config';
-import { gameConfig } from '~/game';
-import { ManifestProvider } from '~/scaffold/systems/manifest/context';
+} from '~/core';
+import { initSentry } from '~/core/lib/sentry';
+import { getEnvironment, scaffoldConfig } from '~/core/config';
+import { gameConfig, manifest, defaultGameData } from '~/game';
+import { ManifestProvider } from '~/core/systems/manifest/context';
 import { GAME_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
-import { getViewportModeFromUrl } from '~/scaffold/config/viewport';
-import { clearProgress } from '~/game/services/progress';
+import { getViewportModeFromUrl } from '~/core/config/viewport';
+// TODO: Wire up progress reset when new game implements progress service
+// import { clearProgress } from '~/game/services/progress';
 import './app.css';
-import { IS_DEV_ENV } from './scaffold/dev/env';
-import { AnalyticsProvider } from '~/scaffold/systems/telemetry/AnalyticsContext';
-import { FeatureFlagProvider } from '~/scaffold/systems/telemetry/FeatureFlagContext';
-import { ViewportToggle } from '~/game/shared/ui/ViewportToggle';
+import { IS_DEV_ENV } from './core/dev/env';
+import { AnalyticsProvider, useAnalytics } from '~/game/setup/AnalyticsContext';
+import { FeatureFlagProvider } from '~/game/setup/FeatureFlagContext';
+import { ViewportToggle } from '~/core/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlTheme = getThemeFromUrl();
@@ -35,39 +35,65 @@ const urlOverrides = urlTheme ? { 'theme.tileTheme': urlTheme } : undefined;
 
 /** Reset progress and reload the page */
 const handleResetProgress = () => {
-  clearProgress();
-  // Reload to show start screen (since progress is now cleared)
+  // TODO: Wire up clearProgress() when new game implements progress service
   window.location.reload();
 };
 
-/** Reads viewport mode from scaffold tuning and wraps children in the appropriate MobileViewport config */
+/** SettingsMenu wired with game analytics */
+function GameSettingsMenu() {
+  const { trackAudioSettingChanged } = useAnalytics();
+  return (
+    <SettingsMenu
+      onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined}
+      onAudioSettingChanged={trackAudioSettingChanged}
+    />
+  );
+}
+
+/**
+ * Reads viewport mode from scaffold tuning and wraps children in the appropriate viewport config.
+ * Uses reactive styles on a stable DOM tree so children are never destroyed when mode changes.
+ */
 function ViewportModeWrapper(props: { children: JSX.Element }) {
   const tuning = useTuning<ScaffoldTuning>();
   const mode = () => tuning.scaffold.viewport?.mode ?? 'small';
 
   onMount(() => {
-    // Apply game config default if tuning hasn't been customized yet
     if (gameConfig.defaultViewportMode && tuning.scaffold.viewport?.mode === 'small') {
       tuning.setScaffoldPath('viewport.mode', gameConfig.defaultViewportMode);
     }
-    // URL param overrides everything (session only, not persisted)
     if (urlViewportMode) {
       tuning.setScaffoldPath('viewport.mode', urlViewportMode);
     }
   });
 
+  const constrained = () => mode() !== 'none';
+  const maxW = () => mode() === 'large' ? 768 : 430;
+  const ar = 9 / 16;
+
   return (
-    <Switch fallback={<MobileViewport>{props.children}</MobileViewport>}>
-      <Match when={mode() === 'none'}>
-        <div class="fixed inset-0">{props.children}</div>
-      </Match>
-      <Match when={mode() === 'large'}>
-        <MobileViewport maxWidth={768}>{props.children}</MobileViewport>
-      </Match>
-      <Match when={mode() === 'small'}>
-        <MobileViewport>{props.children}</MobileViewport>
-      </Match>
-    </Switch>
+    <div
+      class="fixed inset-0"
+      classList={{ flex: constrained(), 'items-center': constrained(), 'justify-center': constrained() }}
+      style={{ "background-color": constrained() ? '#1a1a1a' : 'transparent' }}
+    >
+      <div
+        class="relative overflow-hidden"
+        style={constrained() ? {
+          width: `min(${maxW()}px, calc(100vh * ${ar}))`,
+          height: `min(100vh, calc(${maxW()}px / ${ar}))`,
+          "max-width": `${maxW()}px`,
+          "border-radius": "24px",
+          "box-shadow": "0 0 0 8px #333, 0 25px 50px -12px rgba(0,0,0,0.5)",
+          transform: "translateZ(0)",
+        } : {
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {props.children}
+      </div>
+    </div>
   );
 }
 
@@ -94,7 +120,7 @@ export default function App() {
             <ViewportModeWrapper>
               {/* Settings Menu - Top Right Corner */}
               <div class="fixed top-2 right-2 z-[9999]">
-                <SettingsMenu onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined} />
+                <GameSettingsMenu />
               </div>
               {/* Viewport Toggle - Top Left Corner (dev only) */}
               <Show when={IS_DEV_ENV}>
@@ -103,7 +129,7 @@ export default function App() {
                 </div>
               </Show>
               <PauseProvider>
-                <ManifestProvider>
+                <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
                   <AssetProvider config={{ engine: scaffoldConfig.engine }}>
                     <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
                       <ScreenRenderer screens={gameConfig.screens} />

@@ -1,11 +1,10 @@
 import { onMount, createSignal, Show } from 'solid-js';
-import { useScreen } from '~/scaffold/systems/screens';
-import { useAssets } from '~/scaffold/systems/assets';
-import { useTuning, type ScaffoldTuning } from '~/scaffold';
-import { Spinner } from '~/scaffold/ui/Spinner';
-import { ProgressBar } from '~/scaffold/ui/ProgressBar';
-import { Logo } from '~/scaffold/ui/Logo';
-import { hasChapterInProgress, startChapter } from '~/game/services/progress';
+import { useScreen } from '~/core/systems/screens';
+import { useAssets } from '~/core/systems/assets';
+import { useTuning, type ScaffoldTuning } from '~/core';
+import { Spinner } from '~/core/ui/Spinner';
+import { ProgressBar } from '~/core/ui/ProgressBar';
+import { Logo } from '~/core/ui/Logo';
 import type { GameTuning } from '~/game/tuning';
 
 export function LoadingScreen() {
@@ -23,60 +22,41 @@ export function LoadingScreen() {
 
   /** Check if we should skip the start screen and go straight to gameplay */
   const shouldSkipStartScreen = (): boolean => {
-    // Tuning panel checkbox
     if (tuning.game.devMode?.skipStartScreen) return true;
-    // URL param: ?screen=game
     const params = new URLSearchParams(window.location.search);
     return params.get('screen') === 'game';
   };
 
   onMount(async () => {
     try {
-      const resuming = hasChapterInProgress();
       const skipToGame = shouldSkipStartScreen();
 
-      // Phase weights differ based on path:
-      //   New game:  boot 0→5, theme 5→90, done 100
-      //   Resuming / skip:  boot 0→5, theme 5→45, gpu 45→55, core 55→60, audio 60→95, done 100
-      if (resuming || skipToGame) {
+      if (skipToGame) {
+        // Dev shortcut: skip start screen, load everything
         await loadBoot(phaseProgress(0, 5));
         await loadTheme(phaseProgress(5, 45));
         setThemeLoaded(true);
-
-        // Seed default progress when skipping with no saved chapter
-        if (skipToGame && !resuming) {
-          console.log('[LoadingScreen] Dev mode: skipping start screen, seeding default progress');
-          startChapter({
-            manifestUrl: '',
-            chapterId: 'default',
-            countyName: 'Dev County',
-            chapterLength: 10,
-          });
-        } else {
-          console.log('[LoadingScreen] Resuming saved progress, skipping start screen');
-        }
 
         unlockAudio();
         setProgress(45);
         await initGpu();
         setProgress(55);
         await loadCore(phaseProgress(55, 60));
-        // Load audio with graceful degradation
         try {
           await loadAudio(phaseProgress(60, 95));
         } catch (error) {
-          console.warn('Audio loading failed (assets may not exist yet):', error);
+          console.warn('Audio loading failed:', error);
         }
         setProgress(100);
         await new Promise((r) => setTimeout(r, 300));
         await goto('game');
       } else {
+        // Normal flow: load theme, go to start screen
         await loadBoot(phaseProgress(0, 5));
         await loadTheme(phaseProgress(5, 90));
         setProgress(100);
         setThemeLoaded(true);
 
-        // Brief pause to show completion
         await new Promise((r) => setTimeout(r, 500));
         await goto('start');
       }

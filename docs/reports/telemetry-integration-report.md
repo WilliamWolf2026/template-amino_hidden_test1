@@ -16,7 +16,7 @@ The `PauseProvider` only handles spacebar pause — it has **no awareness of tab
 
 **What exists:**
 ```
-src/scaffold/systems/pause/
+src/core/systems/pause/
 ├── state.ts      ← createSignal(false), pause/resume/toggle
 ├── keyboard.ts   ← Spacebar listener only
 └── context.tsx   ← PauseProvider wraps children
@@ -31,10 +31,10 @@ src/scaffold/systems/pause/
 | `window.focus` | User clicks back on the browser window | `session_resume` (resume_reason: `window_focus`) |
 | `window.beforeunload` | User closes tab or navigates away | `session_end` (session_end_reason: `user_close`) |
 
-**Implementation:** Add a visibility listener alongside the existing keyboard listener in `src/scaffold/systems/pause/`. This serves dual purpose — pausing game audio/animation AND firing telemetry events.
+**Implementation:** Add a visibility listener alongside the existing keyboard listener in `src/core/systems/pause/`. This serves dual purpose — pausing game audio/animation AND firing telemetry events.
 
 ```typescript
-// New file: src/scaffold/systems/pause/visibility.ts
+// New file: src/core/systems/pause/visibility.ts
 export function initVisibilityHandler(
   onPause: (reason: 'tab_hidden' | 'window_blur' | 'app_background') => void,
   onResume: (reason: 'tab_visible' | 'window_focus' | 'app_foreground') => void,
@@ -83,7 +83,7 @@ export function initVisibilityHandler(
 
 ### 3. Feature flag methods (MISSING)
 
-`src/scaffold/lib/posthog.ts` has `capture`, `identify`, `setPersonProperties` but no feature flag API.
+`src/core/lib/posthog.ts` has `capture`, `identify`, `setPersonProperties` but no feature flag API.
 
 **Need to add:**
 ```typescript
@@ -124,9 +124,9 @@ No `chapter_fail` path exists. The game currently has no way for a chapter to fa
 | Event | Fire when | Correct file | Currently wired? |
 |-------|----------|-------------|-----------------|
 | `session_start` | App mounts, PostHog initialized | `src/app.tsx` onMount | No |
-| `session_pause` | Tab hidden, window blur | **NEW:** `src/scaffold/systems/pause/visibility.ts` | No (file doesn't exist) |
-| `session_resume` | Tab visible, window focus | **NEW:** `src/scaffold/systems/pause/visibility.ts` | No (file doesn't exist) |
-| `session_end` | `beforeunload`, idle timeout | **NEW:** `src/scaffold/systems/pause/visibility.ts` + idle timer in `src/game/analytics/session.ts` | No |
+| `session_pause` | Tab hidden, window blur | **NEW:** `src/core/systems/pause/visibility.ts` | No (file doesn't exist) |
+| `session_resume` | Tab visible, window focus | **NEW:** `src/core/systems/pause/visibility.ts` | No (file doesn't exist) |
+| `session_end` | `beforeunload`, idle timeout | **NEW:** `src/core/systems/pause/visibility.ts` + idle timer in `src/game/analytics/session.ts` | No |
 
 **`session_start` hook point:**
 ```
@@ -212,7 +212,7 @@ LevelCompletionController fires 'completionStart'
 |-------|----------|-------------|-----------------|
 | `tile_rotated` | Player rotates a tile | `src/game/citylines/core/CityLinesGame.ts:295` → listened in `GameScreen.tsx:393` | No |
 | `landmark_connected` | Landmark connects to road network | `src/game/citylines/core/CityLinesGame.ts:639` → listened in `GameScreen.tsx:423` | No |
-| `audio_setting_changed` | Player toggles music/volume | `src/scaffold/utils/SettingsMenu/SettingsMenu.tsx:190-200` | No |
+| `audio_setting_changed` | Player toggles music/volume | `src/core/utils/SettingsMenu/SettingsMenu.tsx:190-200` | No |
 
 **Ticket says** `CityLinesGame.ts` for all three — **wrong for audio_setting_changed.** Audio settings are in the scaffold SettingsMenu component. CityLinesGame has no audio UI.
 
@@ -222,7 +222,7 @@ LevelCompletionController fires 'completionStart'
 
 | Requirement | Correct file | Currently exists? |
 |------------|-------------|------------------|
-| Fetch flags on session start | `src/scaffold/lib/posthog.ts` + `src/app.tsx` | No — no feature flag API in posthog.ts |
+| Fetch flags on session start | `src/core/lib/posthog.ts` + `src/app.tsx` | No — no feature flag API in posthog.ts |
 | `difficulty_curve_variant` | Game tuning / level generation | No |
 | `county_theming_enabled` | Theme config | No |
 | `clue_display_time` | CluePopup / LevelCompletionController | No |

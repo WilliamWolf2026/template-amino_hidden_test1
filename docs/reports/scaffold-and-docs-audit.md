@@ -131,9 +131,9 @@ After moves, `docs/reports/` would only contain process reports:
 
 ### Code extractions — COMPLETED (2026-02-11)
 
-Moved to `src/scaffold/`:
+Moved to `src/core/`:
 ```
-src/game/constants/viewport.ts → src/scaffold/config/viewport.ts
+src/game/constants/viewport.ts → src/core/config/viewport.ts
 ```
 
 Moved to `src/game/shared/` (reusable game-level layer):

@@ -1,0 +1,314 @@
+# Module System Overview
+
+Reusable building blocks that sit between core (framework) and game (specific).
+
+## Purpose
+
+Modules are self-contained, game-agnostic pieces of functionality that can be shared across projects. They depend on core but never import from game code. Games import and configure modules to suit their needs.
+
+```
+  core/                modules/               game/
+  (framework)          (reusable blocks)       (specific)
++-------------+     +------------------+     +-------------+
+|  Rendering  | <-- |  Sprite Button   | <-- |  City Lines |
+|  Audio      | <-- |  Dialogue Box    | <-- |  Screens    |
+|  Tuning     | <-- |  Progress Bar    | <-- |  Audio Mgr  |
+|  Assets     | <-- |  Level Complet.  | <-- |  Tuning     |
+|  Viewport   | <-- |  Avatar Popup    | <-- |  Gameplay   |
++-------------+     +------------------+     +-------------+
+     ^                      ^                      ^
+     |                      |                      |
+  DO NOT EDIT          SHARED LAYER            EDITABLE
+```
+
+**Dependency flow**: `core --> modules --> game` (left to right). A module may import from `~/core/` but never from `~/game/`. Game code imports from both `~/core/` and `~/modules/`.
+
+## Categories
+
+### Primitives
+
+Single-purpose, configurable components. No dependencies on other modules.
+
+Each primitive owns its rendering implementation (Pixi.js, with optional Phaser/Three.js variants) and exposes tuning parameters via a `tuning.ts` schema.
+
+| Module | What it does |
+|--------|-------------|
+| sprite-button | Pressable sprite with hover/press/exit animations |
+| dialogue-box | 9-slice speech bubble with text rendering |
+| character-sprite | Animated character from texture atlas |
+| progress-bar | Segmented progress with milestone markers |
+
+### Logic
+
+Pure logic, no rendering. Exposed as factory functions that games configure with their own types.
+
+| Module | What it does |
+|--------|-------------|
+| level-completion | State machine: playing -> completing -> complete |
+| progress | Save/load progress backed by localStorage |
+| catalog | Ordered content catalog with navigation |
+| loader | Fetch + transform content pipeline |
+
+### Prefabs
+
+Assembled from primitives and/or logic modules. Higher-level building blocks.
+
+| Module | What it does | Composed from |
+|--------|-------------|---------------|
+| avatar-popup | Circular avatar + dialogue + show/dismiss | character-sprite, dialogue-box |
+
+## Module Structure Convention
+
+### Visual modules (primitives, prefabs)
+
+```
+modules/<category>/<module-name>/
+  index.ts          -- public API (barrel export)
+  defaults.ts       -- extracted magic numbers
+  tuning.ts         -- panel schema for Tweakpane
+  renderers/        -- renderer-specific implementations
+    pixi.ts         -- Pixi.js implementation (default)
+    phaser.ts       -- Phaser implementation (optional)
+    three.ts        -- Three.js implementation (optional)
+```
+
+### Logic modules (factory functions)
+
+```
+modules/logic/<module-name>/
+  index.ts          -- factory function + types + public API
+  defaults.ts       -- default config values
+  tuning.ts         -- panel schema for Tweakpane
+```
+
+Logic modules export a `create*` factory function that the game code calls with its own configuration:
+
+```typescript
+// Game code configures a logic module
+import { createProgressService } from '~/modules/logic/progress';
+
+const progress = createProgressService<MyProgress>({
+  key: 'mygame_progress',
+  version: 1,
+  defaults: { version: 1, score: 0, level: 1 },
+});
+```
+
+## Current Inventory
+
+| Category | Module | Path | Has Tuning | Has Renderer |
+|----------|--------|------|:----------:|:------------:|
+| Primitives | sprite-button | `src/modules/primitives/sprite-button/` | Yes | Yes |
+| Primitives | dialogue-box | `src/modules/primitives/dialogue-box/` | Yes | Yes |
+| Primitives | character-sprite | `src/modules/primitives/character-sprite/` | Yes | Yes |
+| Primitives | progress-bar | `src/modules/primitives/progress-bar/` | Yes | Yes |
+| Logic | level-completion | `src/modules/logic/level-completion/` | Yes | No |
+| Logic | progress | `src/modules/logic/progress/` | No | No |
+| Logic | catalog | `src/modules/logic/catalog/` | No | No |
+| Logic | loader | `src/modules/logic/loader/` | No | No |
+| Prefabs | avatar-popup | `src/modules/prefabs/avatar-popup/` | Yes | Yes |
+
+## Factory Pattern Example
+
+The progress service demonstrates the factory pattern used by logic modules:
+
+```typescript
+// src/modules/logic/progress/index.ts
+
+export interface ProgressServiceConfig<T extends BaseProgress> {
+  key: string;           // localStorage key
+  version: number;       // schema version (bump to reset)
+  defaults: T;           // default progress state
+  validate?: (data: unknown) => boolean;
+}
+
+export function createProgressService<T extends BaseProgress>(
+  config: ProgressServiceConfig<T>
+): ProgressService<T> {
+  const store = createVersionedStore<T>({
+    key: config.key,
+    version: config.version,
+    defaults: config.defaults,
+    validate: config.validate,
+  });
+
+  return {
+    load: () => store.load(),
+    save: (data: T) => store.save(data),
+    clear: () => store.clear(),
+  };
+}
+```
+
+The game provides the generic type and configuration; the module provides the implementation.
+
+## How Modules Integrate with the Tuning Panel
+
+Any module that exports a `tuning.ts` file with the standard shape automatically appears in the **Modules** section (green) of the [Tuning Panel](../core/components/tuning-panel.md):
+
+```typescript
+// src/modules/primitives/sprite-button/tuning.ts
+import { SPRITE_BUTTON_DEFAULTS } from './defaults';
+
+export const spriteButtonTuning = {
+  name: 'Sprite Button',             // Display name in panel
+  defaults: SPRITE_BUTTON_DEFAULTS,  // Default values
+  schema: {                          // Tweakpane control definitions
+    hoverScale: { type: 'number', min: 1.0, max: 1.3, step: 0.01 },
+    pressScale: { type: 'number', min: 0.7, max: 1.0, step: 0.01 },
+    // ...
+  },
+} as const;
+```
+
+The panel auto-discovers these exports and renders a collapsible subfolder for each module. No manual registration is needed.
+
+## Placement Rules
+
+When deciding where to put new code:
+
+| Condition | Location |
+|-----------|----------|
+| Single-purpose visual component | `modules/primitives/` |
+| Pure logic, no rendering | `modules/logic/` |
+| Assembles multiple primitives/logic | `modules/prefabs/` |
+| Reusable across games | `modules/` (pick the right category) |
+| Game-specific, not reusable | `game/` (not a module) |
+| Framework-level, all games need it | `core/` (not a module) |
+
+## Multi-Renderer Architecture
+
+Visual modules separate **behavior** from **rendering**. Each module owns its defaults and tuning, while the `renderers/` folder provides engine-specific implementations.
+
+```
+                       ┌──────────────────────┐
+                       │   sprite-button/     │
+                       ├──────────────────────┤
+                       │  defaults.ts          │  ← Shared behavior constants
+                       │  tuning.ts            │  ← Shared tuning schema
+                       │  index.ts             │  ← Barrel (re-exports all)
+                       └──────────┬───────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              ▼                   ▼                    ▼
+     ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+     │  renderers/      │ │  renderers/      │ │  renderers/      │
+     │  pixi.ts         │ │  phaser.ts       │ │  three.ts        │
+     ├─────────────────┤ ├─────────────────┤ ├─────────────────┤
+     │ SpriteButton     │ │ PhaserSprite     │ │ ThreeSprite      │
+     │ extends          │ │ Button extends   │ │ Button extends   │
+     │ PIXI.Container   │ │ Phaser.GameObj   │ │ THREE.Group      │
+     └─────────────────┘ └─────────────────┘ └─────────────────┘
+```
+
+The game imports only the renderer it needs:
+
+```typescript
+// Pixi game (default)
+import { SpriteButton } from '~/modules/primitives/sprite-button';
+
+// Phaser game
+import { PhaserSpriteButton } from '~/modules/primitives/sprite-button';
+
+// Three.js game
+import { ThreeSpriteButton } from '~/modules/primitives/sprite-button';
+```
+
+All renderers share the same `defaults.ts` and `tuning.ts`, so behavior is consistent and tuning works regardless of engine.
+
+### Unity Analogy
+
+This pattern is similar to Unity's component model where behavior and rendering are separated:
+
+```
+Unity                           This Framework
+─────────────────               ──────────────────
+MonoBehaviour (script)     ←→   defaults.ts + tuning.ts (behavior)
+Renderer (MeshRenderer)    ←→   renderers/pixi.ts (visual)
+Inspector (properties)     ←→   TuningPanel (Tweakpane)
+Prefab (assembled)         ←→   prefabs/ (composed modules)
+ScriptableObject (data)    ←→   defaults.ts (extracted constants)
+```
+
+Key parallels:
+- **Inspector ↔ Tuning Panel**: Both let you tweak values at runtime without code changes
+- **Prefab ↔ Prefab Module**: Both assemble smaller pieces into reusable higher-level objects
+- **Renderer swap ↔ renderers/**: Both let you change the visual backend without touching logic
+- **ScriptableObject ↔ defaults.ts**: Both extract data/config from code into a separate, shareable location
+
+## Tuning Integration
+
+Every module can expose tunable parameters through a standard contract. The Tuning Panel (press backtick \`) auto-discovers these and renders them in color-coded sections:
+
+```
+┌──────────────────────────────────┐
+│  TUNING PANEL                     │
+├──────────────────────────────────┤
+│                                   │
+│  ┌─ CORE (cyan) ───────────────┐ │
+│  │  Viewport mode    [S] [L] [∞]│ │
+│  │  Transition speed  ───●──── │ │
+│  └─────────────────────────────┘ │
+│                                   │
+│  ┌─ MODULES (green) ───────────┐ │
+│  │  > Sprite Button             │ │
+│  │    hoverScale    ───●────── │ │
+│  │    pressScale    ──●─────── │ │
+│  │    pressDuration ─●──────── │ │
+│  │  > Dialogue Box              │ │
+│  │  > Progress Bar              │ │
+│  │  > Level Completion          │ │
+│  └─────────────────────────────┘ │
+│                                   │
+│  ┌─ GAME (orange) ─────────────┐ │
+│  │  > Theme                     │ │
+│  │  > Difficulty                │ │
+│  │  > Scoring                   │ │
+│  └─────────────────────────────┘ │
+└──────────────────────────────────┘
+```
+
+### How it works
+
+1. **Module exports** a `tuning.ts` with standard shape:
+
+```typescript
+export const spriteButtonTuning = {
+  name: 'Sprite Button',             // Display name in panel
+  defaults: SPRITE_BUTTON_DEFAULTS,  // Initial values from defaults.ts
+  schema: {                          // Tweakpane control definitions
+    hoverScale:  { type: 'number', min: 1.0, max: 1.3, step: 0.01 },
+    pressScale:  { type: 'number', min: 0.7, max: 1.0, step: 0.01 },
+  },
+} as const;
+```
+
+2. **Panel auto-discovers** tuning exports and creates collapsible folders per module
+3. **Changes flow** through Solid.js signals to the renderer in real time
+4. **Persisted** to localStorage so tuned values survive page reload
+
+No manual registration is needed. Export the tuning schema, and the panel picks it up.
+
+### Data flow
+
+```
+defaults.ts ──► tuning.ts (schema) ──► TuningPanel (UI)
+                                              │
+                                         user drags slider
+                                              │
+                                              ▼
+                                     Solid.js tuning store
+                                              │
+                                              ▼
+                                    renderer reads value
+                                    (e.g. hoverScale)
+                                              │
+                                              ▼
+                                      visual updates live
+```
+
+## Related Documentation
+
+- [Writing a Module](./writing-a-module.md) -- Step-by-step guide to creating a new module
+- [Tuning Panel](../core/components/tuning-panel.md) -- How the panel renders module tuning sections
+- [Module INDEX.md](../../src/modules/INDEX.md) -- Source-level module registry
