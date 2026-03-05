@@ -14,14 +14,14 @@
       "Read(src/**)",
       "Read(docs/**)",
       "Read(public/**)",
-      "Edit(docs/**)",
-      "Write(docs/**)",
       "Edit(src/game/**)",
       "Write(src/game/**)",
       "Edit(src/modules/**)",
       "Write(src/modules/**)",
-      "Edit(public/levels/**)",
-      "Write(public/levels/**)"
+      "Edit(docs/**)",
+      "Write(docs/**)",
+      "Edit(public/**)",
+      "Write(public/**)"
     ],
     "deny": [
       "Edit(src/core/**)",
