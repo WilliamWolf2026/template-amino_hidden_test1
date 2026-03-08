@@ -5,7 +5,9 @@
     "dev": "vite",
     "build": "vite build",
     "build:qa": "vite build --mode qa",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "biome check --write .",
+    "format:src": "biome check --write ./src"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
@@ -19,6 +21,7 @@
     "tweakpane": "^4.0.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.13",
     "@tailwindcss/vite": "^4.0.7",
     "@types/howler": "^2.2.12",
     "@wolfgames/semantic-router": "^0.1.2",
