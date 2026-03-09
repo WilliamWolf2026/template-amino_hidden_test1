@@ -70,12 +70,14 @@ test.describe('@unload-bundles', () => {
   });
 
   /**
-   * Memory behavior (no unload): measure heap after repeated full-page reloads.
-   * Assets are never unloaded, so we expect memory to grow as the game loads more.
-   * This establishes baseline behavior; no unloadBundle required.
+   * Memory behavior (no unload): play through all 12 levels then measure heap.
+   * Assets are never unloaded, so we expect memory to grow as the game loads each level.
    * Uses performance.memory.usedJSHeapSize (Chromium-only).
+   * SimpleGame1: Start → Play → Game (Flip x12) → Results.
    */
-  test('memory behavior: heap after repeated reloads (no unload, baseline)', async ({ page }) => {
+  test('memory behavior: heap after playing all 12 levels (no unload, baseline)', async ({ page }) => {
+    test.setTimeout(120_000); // 2 min for load + 12 levels
+
     const getHeapMb = () =>
       page.evaluate(() => {
         const mem = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory;
@@ -84,30 +86,68 @@ test.describe('@unload-bundles', () => {
 
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
 
-    const heapAfterFirstLoad = await getHeapMb();
-    if (heapAfterFirstLoad === 0) {
+    // Start screen: click Play
+    await page.getByRole('button', { name: 'Play' }).click();
+    await page.waitForTimeout(3000); // load atlas, core, audio and goto game
+
+    // Game screen: Pixi canvas is viewport-sized; Tweakpane uses 64x64 canvases. Find by size.
+    let pixiCanvasIndex = -1;
+    await expect
+      .poll(
+        async () => {
+          pixiCanvasIndex = await page.evaluate(() => {
+            const canvases = document.querySelectorAll('#app canvas');
+            for (let i = 0; i < canvases.length; i++) {
+              if ((canvases[i] as HTMLCanvasElement).width > 200) return i;
+            }
+            return -1;
+          });
+          return pixiCanvasIndex;
+        },
+        { timeout: 20000, intervals: [500, 1000, 1000] }
+      )
+      .toBeGreaterThanOrEqual(0);
+    const canvas = page.locator('#app canvas').nth(pixiCanvasIndex);
+    await expect(canvas).toBeVisible();
+    await page.waitForTimeout(1000);
+
+    const heapAtGameStart = await getHeapMb();
+    if (heapAtGameStart === 0) {
       test.skip(true, 'performance.memory not available (non-Chromium or disabled)');
       return;
     }
 
-    const numReloads = 5;
-    for (let i = 0; i < numReloads; i++) {
-      await page.reload();
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
+    // Flip button is at center, 80px from bottom in gameController
+    const flipButtonYOffsetFromBottom = 80;
+    for (let level = 0; level < 12; level++) {
+      const box = await canvas.boundingBox();
+      if (!box) throw new Error('Canvas not visible');
+      await canvas.click({
+        position: {
+          x: box.width / 2,
+          y: box.height - flipButtonYOffsetFromBottom,
+        },
+      });
+      await page.waitForTimeout(400); // let state/UI update between levels
     }
 
-    const heapAfterReloads = await getHeapMb();
-    const growthMb = heapAfterReloads - heapAfterFirstLoad;
-    const growthPercent = heapAfterFirstLoad > 0 ? (growthMb / heapAfterFirstLoad) * 100 : 0;
+    // Results screen
+    await expect(
+      page.getByText(/You finished all 12 levels!|Chapter Complete!/)
+    ).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1000);
 
-    // Without unload we expect memory to grow (or stay high). Only fail on catastrophic growth.
-    const maxGrowthMb = 150;
+    const heapAfterAllLevels = await getHeapMb();
+    const growthMb = heapAfterAllLevels - heapAtGameStart;
+    const growthPercent = heapAtGameStart > 0 ? (growthMb / heapAtGameStart) * 100 : 0;
+
+    // Without unload we expect memory to grow. Only fail on catastrophic growth.
+    const maxGrowthMb = 200;
     expect(
       growthMb,
-      `Heap after ${numReloads} reloads: ${heapAfterReloads.toFixed(1)} MB (was ${heapAfterFirstLoad.toFixed(1)} MB, +${growthMb.toFixed(1)} MB / +${growthPercent.toFixed(0)}%)`
+      `Heap after 12 levels: ${heapAfterAllLevels.toFixed(1)} MB (at game start: ${heapAtGameStart.toFixed(1)} MB, +${growthMb.toFixed(1)} MB / +${growthPercent.toFixed(0)}%)`
     ).toBeLessThan(maxGrowthMb);
   });
 });
