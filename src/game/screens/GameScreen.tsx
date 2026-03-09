@@ -7,13 +7,15 @@ import { useAudio } from '~/core/systems/audio';
 import { useAnalytics } from '~/game/setup/AnalyticsContext';
 
 import type { GameTuning } from '~/game/tuning';
+import { useScreen } from '~/core/systems/screens';
 import { useGameData } from '~/game/screens/useGameData';
 import { gameState } from '~/game/state';
 
 // Game-specific controller — swap this import for a different game
-import { setupGame } from '~/game/mygame/screens/gameController';
+import { setupGame } from '~/game/simplegame1/screens/gameController';
 
 export default function GameScreen() {
+  const { goto } = useScreen();
   const { coordinator } = useAssets();
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const audio = useAudio();
@@ -28,6 +30,7 @@ export default function GameScreen() {
     audio,
     gameData,
     analytics,
+    goto: (screen) => { void goto(screen); },
   });
 
   onMount(() => {

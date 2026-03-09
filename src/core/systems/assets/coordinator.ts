@@ -137,6 +137,11 @@ export class AssetCoordinator {
     await this.loadBundle(`scene-${name}`, onProgress);
   }
 
+  /** Returns names of all bundles currently loaded (for tests / tooling). */
+  getLoadedBundles(): string[] {
+    return this.manifest.bundles.filter((b) => this.isLoaded(b.name)).map((b) => b.name);
+  }
+
   // Check if bundle is loaded
   isLoaded(name: string): boolean {
     const bundle = this.manifest.bundles.find((b) => b.name === name);

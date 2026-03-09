@@ -23,7 +23,7 @@ export function ResultsScreen() {
     <div class="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-amber-950 to-black px-6">
       {/* Chapter Complete header */}
       <h1 class="text-3xl font-bold text-amber-300 mb-6">
-        Chapter Complete!
+        {headline ? 'Chapter Complete!' : 'You finished all 12 levels!'}
       </h1>
 
       {/* Story reveal card */}

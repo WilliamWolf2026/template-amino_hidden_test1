@@ -7,23 +7,24 @@ import { useAnalytics } from '~/game/setup/AnalyticsContext';
 import type { GameTuning } from '~/game/tuning';
 
 // Game-specific start screen — swap this import for a different game
-import { setupStartScreen } from '~/game/mygame/screens/startView';
+import { setupStartScreen } from '~/game/simplegame1/screens/startView';
 
 export default function StartScreen() {
   const { goto } = useScreen();
-  const { coordinator, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
+  const { coordinator, initGpu, unlockAudio, loadCore, loadAudio, loadBundle } = useAssets();
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const { trackGameStart } = useAnalytics();
   let containerRef: HTMLDivElement | undefined;
 
   // Setup game-specific start screen controller
   const startScreen = setupStartScreen({
-    goto,
+    goto: (screen) => { void goto(screen); },
     coordinator,
     initGpu,
     unlockAudio,
     loadCore,
     loadAudio,
+    loadBundle,
     tuning,
     analytics: { trackGameStart },
   });

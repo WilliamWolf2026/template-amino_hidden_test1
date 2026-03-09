@@ -1,4 +1,4 @@
-import { createContext, useContext, createSignal, type ParentProps } from 'solid-js';
+import { createContext, useContext, createSignal, onMount, onCleanup, type ParentProps } from 'solid-js';
 import { AssetCoordinator, type CoordinatorConfig } from './coordinator';
 import type { Manifest, ProgressCallback } from './types';
 import { useManifest } from '~/core/systems/manifest/context';
@@ -91,6 +91,18 @@ export function AssetProvider(props: AssetProviderProps) {
       coordinator.audio.unlock();
     },
   };
+
+  // Expose coordinator to window in dev so E2E can call getLoadedBundles / unloadBundle (real app, no mocks)
+  onMount(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      (window as unknown as { __scaffold__?: { coordinator: AssetCoordinator } }).__scaffold__ = { coordinator };
+    }
+  });
+  onCleanup(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined' && (window as unknown as { __scaffold__?: unknown }).__scaffold__) {
+      delete (window as unknown as { __scaffold__?: unknown }).__scaffold__;
+    }
+  });
 
   return (
     <AssetContext.Provider value={value}>

@@ -36,7 +36,7 @@ function createGameState(): GameState {
   const [score, setScore] = createSignal(0);
   const [health, setHealth] = createSignal(100);
   const [currentLevel, setCurrentLevel] = createSignal(1); // Start at 1 (1-based levels)
-  const [totalLevels, setTotalLevels] = createSignal(10);
+  const [totalLevels, setTotalLevels] = createSignal(12);
   const [storyHeadline, setStoryHeadline] = createSignal('');
   const [storyImageUrl, setStoryImageUrl] = createSignal('');
   const [storyArticleUrl, setStoryArticleUrl] = createSignal('');
@@ -68,7 +68,7 @@ function createGameState(): GameState {
       setScore(0);
       setHealth(100);
       setCurrentLevel(1);
-      setTotalLevels(10);
+      setTotalLevels(12);
       setStoryHeadline('');
       setStoryImageUrl('');
       setStoryArticleUrl('');
