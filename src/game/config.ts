@@ -28,13 +28,13 @@ export type { Environment } from '~/core/config';
 // ============================================================================
 
 /** Analytics event tag and GameKit project ID */
-export const GAME_ID = 'simplegame1';
+export const GAME_ID = 'mygame';
 
 /** URL-safe slug used in CDN paths, asset names, storage keys */
-export const GAME_SLUG = 'simplegame1';
+export const GAME_SLUG = 'mygame';
 
 /** Human-readable display name */
-export const GAME_NAME = 'Simple Game 1';
+export const GAME_NAME = 'My Game';
 
 /** CDN path segment for this game's assets and data */
 export const GAME_CDN_PATH = `games/${GAME_SLUG}/data`;
@@ -191,7 +191,6 @@ export const manifest: Manifest = {
   localBase: getLocalAssetPath(),
   bundles: [
     { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
-    { name: 'atlas-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] },
   ],
 };
 

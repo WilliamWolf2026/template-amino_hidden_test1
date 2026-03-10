@@ -21,6 +21,7 @@ interface StartScreenDeps {
   unlockAudio: () => void;
   loadCore: (onProgress?: (p: number) => void) => Promise<void>;
   loadAudio: (onProgress?: (p: number) => void) => Promise<void>;
+  loadBundle?: (name: string) => Promise<void>;
   tuning: { scaffold: ScaffoldTuning; game: GameTuning };
   analytics: { trackGameStart: () => void };
 }

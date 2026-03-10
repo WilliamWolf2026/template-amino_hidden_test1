@@ -1,5 +1,5 @@
 import { onMount, onCleanup } from 'solid-js';
-import { useScreen } from '~/core/systems/screens';
+import { useScreen, type ScreenId } from '~/core/systems/screens';
 import { useAssets } from '~/core/systems/assets';
 import { useTuning, type ScaffoldTuning } from '~/core';
 import { useAnalytics } from '~/game/setup/AnalyticsContext';
@@ -7,7 +7,7 @@ import { useAnalytics } from '~/game/setup/AnalyticsContext';
 import type { GameTuning } from '~/game/tuning';
 
 // Game-specific start screen — swap this import for a different game
-import { setupStartScreen } from '~/game/simplegame1/screens/startView';
+import { setupStartScreen } from '~/game/mygame/screens/startView';
 
 export default function StartScreen() {
   const { goto } = useScreen();
@@ -18,7 +18,7 @@ export default function StartScreen() {
 
   // Setup game-specific start screen controller
   const startScreen = setupStartScreen({
-    goto: (screen) => { void goto(screen); },
+    goto: (screen) => { void goto(screen as ScreenId); },
     coordinator,
     initGpu,
     unlockAudio,
