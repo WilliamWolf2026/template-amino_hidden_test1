@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
+    "@wolfgames/components": "file:../game-components",
     "@wolfgames/game-kit": "^0.0.41",
     "arktype": "^2.1.27",
     "gsap": "^3.14.2",

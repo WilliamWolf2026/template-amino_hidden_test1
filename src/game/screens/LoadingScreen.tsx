@@ -1,8 +1,8 @@
 import { onMount, createSignal, Show } from 'solid-js';
+import { Spinner } from '@wolfgames/components/solid';
 import { useScreen } from '~/core/systems/screens';
 import { useAssets } from '~/core/systems/assets';
 import { useTuning, type ScaffoldTuning } from '~/core';
-import { Spinner } from '~/core/ui/Spinner';
 import { ProgressBar } from '~/core/ui/ProgressBar';
 import { Logo } from '~/core/ui/Logo';
 import type { GameTuning } from '~/game/tuning';
@@ -71,7 +71,7 @@ export function LoadingScreen() {
     <div class="fixed inset-0 flex flex-col items-center justify-center bg-[#BCE083]">
       <Show when={error()} fallback={
         <>
-          <Spinner size="xl" />
+          <Spinner size="lg" class="w-24 h-24 text-gray-800" />
           <div class="mt-8 w-64">
             <ProgressBar progress={progress()} />
           </div>
