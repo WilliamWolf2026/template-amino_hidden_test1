@@ -12,6 +12,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { AssetCoordinator } from "../src/core/systems/assets/coordinator";
 import type { Manifest } from "../src/core/systems/assets/types";
+import { upgradeManifest } from "../src/core/systems/assets/types";
 
 const MINIMAL_MANIFEST: Manifest = {
   cdnBase: "https://example.com/assets/",
@@ -26,7 +27,7 @@ describe("Asset coordinator — existing contract", () => {
 
   beforeEach(() => {
     coordinator = new AssetCoordinator();
-    coordinator.init(MINIMAL_MANIFEST, { engine: "pixi" });
+    coordinator.init(upgradeManifest(MINIMAL_MANIFEST), { engine: "pixi" });
   });
 
   it("throws for unknown bundle name", async () => {
@@ -46,7 +47,7 @@ describe("Asset coordinator — unload (desired contract)", () => {
 
   beforeEach(() => {
     coordinator = new AssetCoordinator();
-    coordinator.init(MINIMAL_MANIFEST, { engine: "pixi" });
+    coordinator.init(upgradeManifest(MINIMAL_MANIFEST), { engine: "pixi" });
   });
 
   it("unloadBundle(name) exists on coordinator", () => {

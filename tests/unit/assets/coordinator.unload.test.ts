@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { AssetCoordinator } from "~/core/systems/assets/coordinator";
 import type { Manifest } from "~/core/systems/assets/types";
+import { upgradeManifest } from "~/core/systems/assets/types";
 
 /**
- * TDD: These tests define the desired unload API. They should FAIL until
- * unloadBundle/unloadScene are implemented in the coordinator and loaders.
+ * TDD: These tests define the desired unload API.
+ * Coordinator accepts CoreManifest (use upgradeManifest for legacy config).
  * Run: bun run test:run
  */
 
@@ -22,7 +23,7 @@ describe("AssetCoordinator unload (TDD — expect fail until implemented)", () =
 
   beforeEach(() => {
     coordinator = new AssetCoordinator();
-    coordinator.init(minimalManifest, { engine: "pixi" });
+    coordinator.init(upgradeManifest(minimalManifest), { engine: "pixi" });
   });
 
   it("has unloadBundle method", () => {
