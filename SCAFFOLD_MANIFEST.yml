@@ -1,0 +1,6 @@
+steps:
+  - run: npm init -y
+  - run: npm pkg set scripts.test="vitest run"
+  - run: npm pkg set scripts.release="release-it"
+  - run: npm install --save-dev vitest@latest release-it@latest
+  - run: npx aidd --cursor --force
