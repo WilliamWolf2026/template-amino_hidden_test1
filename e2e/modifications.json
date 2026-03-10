@@ -1,0 +1,14 @@
+{
+  "modifications": [
+    {
+      "id": "smoke",
+      "description": "Smoke: app loads and game shell is visible",
+      "grep": "@smoke"
+    },
+    {
+      "id": "unload-bundles",
+      "description": "Unloading bundles: unloadBundle / unloadScene at coordinator; Pixi/DOM/Audio loaders unload resources",
+      "grep": "@smoke|@unload-bundles"
+    }
+  ]
+}
