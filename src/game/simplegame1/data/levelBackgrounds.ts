@@ -3,6 +3,8 @@
  * Cycles through 4 atlas backgrounds for 12 levels.
  */
 
+export const ATLAS_BUNDLE = 'atlas-tiles-daily-dispatch';
+
 export const BACKGROUND_FRAMES = [
   'bg-closing_truck.png',
   'bg-closing_truck_b.png',
