@@ -11,7 +11,9 @@
     "evaluate": "bun run evaluation/run.ts",
     "evaluate:report": "bun run evaluation/compare.ts",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "check:assets": "bun run scripts/check-asset-naming.ts",
+    "check:manifest": "bun run scripts/check-manifest.ts"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
