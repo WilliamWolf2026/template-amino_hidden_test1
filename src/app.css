@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Safelist: @wolfgames/components Spinner applies these at runtime so Tailwind must include them */
+@source inline("animate-spin opacity-25 opacity-75 w-4 h-4 w-5 h-5 w-6 h-6");
+
 /* Local Baloo font - works on all devices */
 @font-face {
   font-family: 'Baloo';
