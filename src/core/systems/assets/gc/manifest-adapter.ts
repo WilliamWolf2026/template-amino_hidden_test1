@@ -37,6 +37,11 @@ function pathToAlias(path: string): string {
  * - scene-* -> gpu
  * - audio-* -> audio
  * We map theme-* -> boot-theme-* (dom), and unprefixed gpu bundles -> core-*
+ *
+ * NOTE: GC now also supports KIND_TO_LOADER routing (theme/data/fx handled
+ * natively). This rewriting could be simplified in a future pass — but it
+ * affects loadBoot/loadCore prefix queries in coordinator-wrapper, so keep
+ * the current mapping until those are updated too.
  */
 function scaffoldBundleNameToGc(name: string, target: 'dom' | 'gpu' | 'agnostic'): string {
   if (name.startsWith('boot-')) return name;
@@ -44,7 +49,6 @@ function scaffoldBundleNameToGc(name: string, target: 'dom' | 'gpu' | 'agnostic'
   if (name.startsWith('theme-')) return `boot-${name}`;
   if (target === 'gpu') return `core-${name}`;
   if (target === 'agnostic') {
-    // Theme and audio: theme -> dom, audio -> audio
     if (name.startsWith('audio-')) return name;
     return `boot-${name}`;
   }
@@ -87,7 +91,9 @@ export function scaffoldManifestToGc(scaffold: ScaffoldManifest): ManifestAdapte
       src: path,
     }));
 
-    const kind = b.kind ?? inferScaffoldKind(b.name);
+    const scaffoldKind = b.kind ?? inferScaffoldKind(b.name);
+    const nameWasRewritten = gcName !== b.name;
+    const kind = nameWasRewritten ? undefined : scaffoldKind;
     return { name: gcName, assets, ...(kind ? { kind } : {}) };
   });
 
