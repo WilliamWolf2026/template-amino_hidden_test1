@@ -1,5 +1,5 @@
 import { createContext, useContext, createSignal, onMount, onCleanup, type ParentProps } from 'solid-js';
-import type { CoordinatorConfig } from './coordinator';
+import type { CoordinatorConfig } from './coordinator.types';
 import type { ProgressCallback } from './types';
 import { useManifest } from '~/core/systems/manifest/context';
 import { createScaffoldCoordinatorFromGc, type ScaffoldCoordinatorFromGc } from './gc/coordinator-wrapper';

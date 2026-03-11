@@ -1,5 +1,5 @@
 export * from './types';
-export type { CoordinatorConfig } from './coordinator';
+export type { CoordinatorConfig } from './coordinator.types';
 export * from './context';
 export * from './loaders/dom';
 export * from './loaders/audio';

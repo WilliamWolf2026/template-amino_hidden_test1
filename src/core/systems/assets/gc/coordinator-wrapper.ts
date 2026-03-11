@@ -17,7 +17,7 @@ import type { Howl } from 'howler';
 import { scaffoldManifestToGc } from './manifest-adapter';
 import { createDomAdapter } from './dom-adapter';
 import type { Manifest as ScaffoldManifest } from '../types';
-import type { CoordinatorConfig } from '../coordinator';
+import type { CoordinatorConfig } from '../coordinator.types';
 import type { ProgressCallback } from '../types';
 
 export interface ScaffoldCoordinatorFromGc {
