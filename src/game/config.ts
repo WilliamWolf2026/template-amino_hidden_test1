@@ -28,13 +28,13 @@ export type { Environment } from '~/core/config';
 // ============================================================================
 
 /** Analytics event tag and GameKit project ID */
-export const GAME_ID = 'daily_dispatch';
+export const GAME_ID = 'mygame';
 
 /** URL-safe slug used in CDN paths, asset names, storage keys */
-export const GAME_SLUG = 'dailydispatch';
+export const GAME_SLUG = 'mygame';
 
 /** Human-readable display name */
-export const GAME_NAME = 'Daily Dispatch';
+export const GAME_NAME = 'My Game';
 
 /** CDN path segment for this game's assets and data */
 export const GAME_CDN_PATH = `games/${GAME_SLUG}/data`;
@@ -191,22 +191,6 @@ export const manifest: Manifest = {
   localBase: getLocalAssetPath(),
   bundles: [
     { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
-
-    { name: 'atlas-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] },
-    { name: 'atlas-tiles-citylines', assets: ['atlas-tiles-citylines.json'] },
-    { name: 'atlas-tiles-citylines-fall', assets: ['atlas-tiles-citylines-fall.json'] },
-    { name: 'atlas-tiles-citylines-winter', assets: ['atlas-tiles-citylines-winter.json'] },
-
-    { name: 'vfx-rotate', assets: ['vfx-rotate.json'] },
-    { name: 'vfx-blast', assets: ['vfx-blast.json'] },
-    { name: 'vfx-flash_fx_shape_04', assets: ['vfx-flash_fx_shape_04.json'] },
-    { name: 'vfx-mg_glow_09', assets: ['vfx-mg_glow_09.json'] },
-    { name: 'vfx-mg_noglow_01', assets: ['vfx-mg_noglow_01.json'] },
-
-    { name: 'audio-sfx-daily-dispatch', assets: ['sfx-daily-dispatch.json'] },
-    { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] },
-    { name: 'audio-music-citylines-1', assets: ['music-citylines-1.json'] },
-    { name: 'audio-music-warehouse-puzzle', assets: ['music-warehouse-puzzle.json'] },
   ],
 };
 

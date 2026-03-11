@@ -291,6 +291,7 @@ Previous game implementations preserved for reference:
 | Intent | Path |
 |--------|------|
 | Testing strategy | guides/testing/testing-strategy.md |
+| Scaffold evaluation test suite (before/after) | evaluation/README.md |
 | Save/load progress | guides/progress-persistence.md |
 | Common issues | guides/troubleshooting.md |
 

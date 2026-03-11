@@ -19,6 +19,8 @@ node_modules
 
 # Testing
 coverage
+evaluation-results
+evaluation/
 
 # Logs
 *.log

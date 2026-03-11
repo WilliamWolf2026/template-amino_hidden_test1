@@ -7,10 +7,15 @@
     "build:qa": "vite build --mode qa",
     "preview": "vite preview",
     "format": "biome check --write .",
-    "format:src": "biome check --write ./src"
+    "format:src": "biome check --write ./src",
+    "evaluate": "bun run evaluation/run.ts",
+    "evaluate:report": "bun run evaluation/compare.ts",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
+    "@wolfgames/components": "^0.0.1",
     "@wolfgames/game-kit": "^0.0.41",
     "arktype": "^2.1.27",
     "gsap": "^3.14.2",
@@ -21,6 +26,8 @@
     "tweakpane": "^4.0.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "vitest": "^2.1.0",
     "@biomejs/biome": "^2.3.13",
     "@tailwindcss/vite": "^4.0.7",
     "@types/howler": "^2.2.12",

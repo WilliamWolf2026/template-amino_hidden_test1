@@ -1,11 +1,14 @@
-import { createContext, useContext, createSignal, type ParentProps } from 'solid-js';
-import { AssetCoordinator, type CoordinatorConfig } from './coordinator';
-import type { Manifest, ProgressCallback } from './types';
+import { createContext, useContext, createSignal, onMount, onCleanup, type ParentProps } from 'solid-js';
+import type { CoordinatorConfig } from './coordinator.types';
+import type { ProgressCallback } from './types';
 import { useManifest } from '~/core/systems/manifest/context';
+import { createScaffoldCoordinatorFromGc, type ScaffoldCoordinatorFromGc } from './gc/coordinator-wrapper';
 
-// Context shape
+// Context shape (coordinator is GC-based wrapper from @wolfgames/components)
 interface AssetContextValue {
-  coordinator: AssetCoordinator;
+  coordinator: ScaffoldCoordinatorFromGc;
+  /** Reactive loading state from GC coordinator (loading/loaded/errors/progress) */
+  loadingState: () => ReturnType<ScaffoldCoordinatorFromGc['loadingState']>;
   ready: () => boolean;
   gpuReady: () => boolean;
   loading: () => boolean;
@@ -27,8 +30,7 @@ interface AssetProviderProps extends ParentProps {
 
 export function AssetProvider(props: AssetProviderProps) {
   const { manifest } = useManifest();
-  const coordinator = new AssetCoordinator();
-  coordinator.init(manifest(), props.config);
+  const coordinator = createScaffoldCoordinatorFromGc(manifest(), props.config);
 
   // Log asset source
   const cdnBase = manifest().cdnBase;
@@ -50,6 +52,7 @@ export function AssetProvider(props: AssetProviderProps) {
 
   const value: AssetContextValue = {
     coordinator,
+    loadingState: coordinator.loadingState,
 
     ready,
     gpuReady,
@@ -88,9 +91,21 @@ export function AssetProvider(props: AssetProviderProps) {
     },
 
     unlockAudio() {
-      coordinator.audio.unlock();
+      void coordinator.audio.unlock();
     },
   };
+
+  // Expose coordinator to window in dev so E2E can call getLoadedBundles (real app, no mocks)
+  onMount(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      (window as unknown as { __scaffold__?: { coordinator: ScaffoldCoordinatorFromGc } }).__scaffold__ = { coordinator };
+    }
+  });
+  onCleanup(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined' && (window as unknown as { __scaffold__?: unknown }).__scaffold__) {
+      delete (window as unknown as { __scaffold__?: unknown }).__scaffold__;
+    }
+  });
 
   return (
     <AssetContext.Provider value={value}>
@@ -110,4 +125,9 @@ export function useAssets() {
 // Direct access to coordinator for advanced usage
 export function useAssetCoordinator() {
   return useAssets().coordinator;
+}
+
+/** Reactive loading state from GC asset coordinator (use within AssetProvider) */
+export function useLoadingState() {
+  return useAssets().loadingState;
 }
