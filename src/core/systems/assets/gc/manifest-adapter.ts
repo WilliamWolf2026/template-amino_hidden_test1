@@ -3,8 +3,26 @@
  * bundle name mapping (scaffold uses theme-/atlas- etc., GC uses boot-/core-/audio-).
  */
 
-import type { Manifest as ScaffoldManifest, ManifestBundle } from '../types';
+import type { Manifest as ScaffoldManifest, ManifestBundle, BundleKind } from '../types';
 import type { Manifest as GcManifest, AssetDefinition, Bundle } from '@wolfgames/components/core';
+
+const SCAFFOLD_PREFIX_TO_KIND: Record<string, BundleKind> = {
+  'boot-': 'boot',
+  'theme-': 'theme',
+  'audio-': 'audio',
+  'data-': 'data',
+  'core-': 'core',
+  'scene-': 'scene',
+  'fx-': 'fx',
+  'defer-': 'defer',
+};
+
+function inferScaffoldKind(name: string): BundleKind | undefined {
+  for (const [prefix, kind] of Object.entries(SCAFFOLD_PREFIX_TO_KIND)) {
+    if (name.startsWith(prefix)) return kind;
+  }
+  return undefined;
+}
 
 /** Key from asset path (filename without extension) for use as alias */
 function pathToAlias(path: string): string {
@@ -69,7 +87,8 @@ export function scaffoldManifestToGc(scaffold: ScaffoldManifest): ManifestAdapte
       src: path,
     }));
 
-    return { name: gcName, assets };
+    const kind = b.kind ?? inferScaffoldKind(b.name);
+    return { name: gcName, assets, ...(kind ? { kind } : {}) };
   });
 
   const gcManifest: GcManifest = {

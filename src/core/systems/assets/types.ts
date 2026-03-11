@@ -1,11 +1,18 @@
 // Asset target types
 export type AssetTarget = 'dom' | 'gpu' | 'agnostic';
 
+/**
+ * Allowed bundle kinds — mirrors `BundleKind` from @wolfgames/components.
+ * When present, `kind` is the canonical classification; prefix can be derived from it.
+ */
+export type BundleKind = 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' | 'defer';
+
 // Manifest types
 export interface ManifestBundle {
   name: string;
   assets: string[];
-  target?: AssetTarget; // Optional override, otherwise inferred from prefix
+  target?: AssetTarget;
+  kind?: BundleKind;
 }
 
 export interface Manifest {

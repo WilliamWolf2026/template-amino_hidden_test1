@@ -177,12 +177,18 @@ If a new asset type doesn't fit existing categories:
 
 ## Validation
 
-Run the naming check command to validate assets:
+Asset filenames are validated against this convention by a script. Use it in CI or before committing new assets.
 
 ```bash
-# Check for non-conforming files (future implementation)
+# Check for non-conforming files (exits 1 if any invalid)
 bun run check:assets
+
+# Show suggested renames for invalid filenames
+bun run check:assets --suggest
 ```
+
+- **Machine-readable spec:** [naming-convention.schema.json](naming-convention.schema.json) — pattern regex, category list, packed-output patterns. Use this for tooling or generators.
+- **Manifest alignment:** See [Manifest contract](../../core/manifest-contract.md) for how raw and packed asset names map to manifest bundles and paths.
 
 ## Related
 

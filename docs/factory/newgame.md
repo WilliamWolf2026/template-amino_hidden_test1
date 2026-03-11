@@ -62,8 +62,9 @@ Replace `src/game/audio/`:
 
 Update your asset bundles for the new game:
 - Replace `public/assets/` with your game's sprites, fonts, images
-- Update manifest references to match new asset names
-- Keep font loading in `entry-client.tsx` — update font family/URL
+- Follow the [manifest contract](../../core/manifest-contract.md) and [asset naming convention](../../guides/assets/naming-convention.md)
+- Run `bun run check:assets` and `bun run check:manifest` to validate
+- Update manifest in `src/game/manifest.ts` to match new asset names; keep font loading in `entry-client.tsx` — update font family/URL
 
 ### Step 6: Screens
 

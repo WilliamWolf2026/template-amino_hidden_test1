@@ -9,7 +9,6 @@
 
 import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '~/core/systems/tuning/types';
-import type { Manifest } from '~/core/systems/assets';
 import {
   getEnvironment,
   getCdnBaseUrl,
@@ -186,13 +185,7 @@ export interface DialogueMessage {
 // MANIFEST
 // ============================================================================
 
-export const manifest: Manifest = {
-  cdnBase: getCdnUrl(),
-  localBase: getLocalAssetPath(),
-  bundles: [
-    { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
-  ],
-};
+export { manifest } from './manifest';
 
 // ============================================================================
 // SCREEN WIRING
