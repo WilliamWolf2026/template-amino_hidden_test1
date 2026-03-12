@@ -1,21 +1,13 @@
 /**
  * Asset manifest — single source for bundle list and paths.
- * Used by config.ts and by scripts/check-manifest.ts (no Solid/app deps).
- */
-
-import type { Manifest } from '~/core/systems/assets';
-import { getCdnBaseUrl } from '~/core/config';
-import { GAME_CDN_PATH } from './config';
-
-const LOCAL_ASSET_PATH = '/assets';
-
-function getCdnUrl(): string {
-  const baseUrl = getCdnBaseUrl();
-  if (!baseUrl) return LOCAL_ASSET_PATH;
-  return `${baseUrl}/${GAME_CDN_PATH}/assets`;
-}
-
-/**
+ *
+ * This file is intentionally free of runtime imports (no Solid.js, no ~/core)
+ * so it can be imported by CLI scripts (scripts/check-manifest.ts) running
+ * under plain Bun without the Vite/app dependency graph.
+ *
+ * cdnBase and localBase are static placeholders here. config.ts resolves the
+ * real CDN URL at runtime and patches cdnBase before handing to the asset system.
+ *
  * Bundle naming determines which loader handles the assets:
  *
  *   boot-*   → DOM only   — splash screen assets
@@ -36,26 +28,42 @@ function getCdnUrl(): string {
  * Example: { name: 'scene-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] }
  *   → gpuLoader.createSprite('scene-tiles-daily-dispatch', 'frame-name.png')
  */
+
+export const LOCAL_ASSET_PATH = '/assets';
+
+export interface ManifestBundle {
+  name: string;
+  assets: string[];
+  target?: 'dom' | 'gpu' | 'agnostic';
+  kind?: 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' | 'defer';
+}
+
+export interface Manifest {
+  cdnBase: string;
+  localBase?: string;
+  bundles: ManifestBundle[];
+}
+
 export const manifest: Manifest = {
-  cdnBase: getCdnUrl(),
+  cdnBase: LOCAL_ASSET_PATH,
   localBase: LOCAL_ASSET_PATH,
   bundles: [
     // DOM — branding logo shown on loading screen (pre-GPU)
     { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
 
-    // GPU — game spritesheets (Pixi)
-    { name: 'scene-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] },
-
-    // GPU — VFX spritesheets (Pixi)
-    // Bundle names must match [a-z][a-z0-9-]* (no underscores). Asset paths can differ.
-    { name: 'fx-rotate', assets: ['vfx-rotate.json'] },
-    { name: 'fx-blast', assets: ['vfx-blast.json'] },
-    { name: 'fx-flash-fx-shape-04', assets: ['vfx-flash_fx_shape_04.json'] },
-    { name: 'fx-mg-glow-09', assets: ['vfx-mg_glow_09.json'] },
-    { name: 'fx-mg-noglow-01', assets: ['vfx-mg_noglow_01.json'] },
-
-    // Audio — sound effects and music (Howler)
-    { name: 'audio-sfx-daily-dispatch', assets: ['sfx-daily-dispatch.json'] },
-    { name: 'audio-music-warehouse-puzzle', assets: ['music-warehouse-puzzle.json'] },
+    // When adding bundles for your game, use the appropriate prefix:
+    //
+    //   scene-*  → GPU spritesheets, backgrounds, tiles
+    //   core-*   → GPU in-game UI atlases
+    //   fx-*     → GPU particles, effects, VFX
+    //   audio-*  → Howler sound effects and music
+    //   data-*   → JSON config files
+    //   boot-*   → DOM pre-engine splash assets
+    //
+    // Examples:
+    //   { name: 'scene-tiles-mygame', assets: ['atlas-tiles-mygame.json'] },
+    //   { name: 'fx-blast', assets: ['vfx-blast.json'] },
+    //   { name: 'audio-sfx-mygame', assets: ['sfx-mygame.json'] },
+    //   { name: 'audio-music-mygame', assets: ['music-mygame.json'] },
   ],
 };

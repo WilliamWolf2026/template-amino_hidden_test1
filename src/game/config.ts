@@ -185,7 +185,13 @@ export interface DialogueMessage {
 // MANIFEST
 // ============================================================================
 
-export { manifest } from './manifest';
+import { manifest as _manifest } from './manifest';
+import type { Manifest } from '~/core/systems/assets';
+
+export const manifest: Manifest = {
+  ..._manifest,
+  cdnBase: getCdnUrl(),
+};
 
 // ============================================================================
 // SCREEN WIRING
