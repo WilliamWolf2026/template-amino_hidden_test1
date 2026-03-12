@@ -90,6 +90,20 @@ export function createScaffoldCoordinatorFromGc(
   const scaffoldNamesByPrefix = (prefix: string): string[] =>
     scaffoldManifest.bundles.filter((b) => b.name.startsWith(prefix)).map((b) => b.name);
 
+  const suppressPixiCacheWarnings = async <T>(fn: () => Promise<T>): Promise<T> => {
+    const origWarn = console.warn;
+    console.warn = (...args: unknown[]) => {
+      const msg = args.map(String).join(' ');
+      if (msg.includes('[Cache] already has key')) return;
+      origWarn.apply(console, args);
+    };
+    try {
+      return await fn();
+    } finally {
+      console.warn = origWarn;
+    }
+  };
+
   const loadWithProgress = async (
     gcNames: string[],
     onProgress?: ProgressCallback
@@ -99,14 +113,14 @@ export function createScaffoldCoordinatorFromGc(
       return;
     }
     onProgress?.(0);
-    await coordinator.loadBundles(gcNames);
+    await suppressPixiCacheWarnings(() => coordinator.loadBundles(gcNames));
     onProgress?.(1);
   };
 
   const loadBundle = async (name: string, onProgress?: ProgressCallback): Promise<void> => {
     const gcName = scaffoldToGc.get(name) ?? name;
     onProgress?.(0);
-    await coordinator.loadBundle(gcName);
+    await suppressPixiCacheWarnings(() => coordinator.loadBundle(gcName));
     onProgress?.(1);
   };
 
