@@ -4,6 +4,7 @@
  */
 
 import type { Manifest as ScaffoldManifest, ManifestBundle, BundleKind } from '../types';
+import { inferAssetType } from '../types';
 import type { Manifest as GcManifest, AssetDefinition, Bundle } from '@wolfgames/components/core';
 
 const SCAFFOLD_PREFIX_TO_KIND: Record<string, BundleKind> = {
@@ -36,32 +37,76 @@ function pathToAlias(path: string): string {
  * - core-* -> gpu
  * - scene-* -> gpu
  * - audio-* -> audio
- * We map theme-* -> boot-theme-* (dom), and unprefixed gpu bundles -> core-*
  *
- * NOTE: GC now also supports KIND_TO_LOADER routing (theme/data/fx handled
- * natively). This rewriting could be simplified in a future pass — but it
- * affects loadBoot/loadCore prefix queries in coordinator-wrapper, so keep
- * the current mapping until those are updated too.
+ * Explicit `target` on a ManifestBundle overrides the default prefix routing.
+ * For example `{ name: 'theme-atlas', target: 'gpu' }` routes to core-theme-atlas
+ * instead of the default boot-theme-atlas (dom).
  */
 function scaffoldBundleNameToGc(name: string, target: 'dom' | 'gpu' | 'agnostic'): string {
-  if (name.startsWith('boot-')) return name;
-  if (name.startsWith('core-') || name.startsWith('scene-') || name.startsWith('audio-')) return name;
-  if (name.startsWith('theme-')) return `boot-${name}`;
-  if (target === 'gpu') return `core-${name}`;
-  if (target === 'agnostic') {
-    if (name.startsWith('audio-')) return name;
-    return `boot-${name}`;
+  // audio-* always stays audio-* (dedicated loader, no dom/gpu ambiguity)
+  if (name.startsWith('audio-')) return name;
+
+  // Prefixes that already map 1:1 to GC LOADER_PREFIXES — pass through
+  // unless explicit target disagrees
+  if (name.startsWith('boot-')) {
+    if (target === 'gpu') return name.replace(/^boot-/, 'core-');
+    return name;
   }
+  if (name.startsWith('core-') || name.startsWith('scene-')) {
+    if (target === 'dom') return name.replace(/^(?:core|scene)-/, 'boot-');
+    return name;
+  }
+
+  // All other prefixes (theme-, data-, fx-, defer-, custom):
+  // route based on resolved target
+  if (target === 'gpu') return `core-${name}`;
   return `boot-${name}`;
 }
 
+/** Maps explicit kind → target so `kind` can override prefix-based inference. */
+const KIND_TO_TARGET: Partial<Record<BundleKind, 'dom' | 'gpu' | 'agnostic'>> = {
+  boot: 'dom',
+  theme: 'agnostic',
+  audio: 'agnostic',
+  data: 'agnostic',
+  core: 'gpu',
+  scene: 'gpu',
+  fx: 'gpu',
+  // defer omitted — it's a loading strategy, not a content type
+};
+
 function getBundleTarget(bundle: ManifestBundle): 'dom' | 'gpu' | 'agnostic' {
+  // 1. Explicit target always wins
   if (bundle.target) return bundle.target;
+  // 2. Explicit kind overrides prefix inference
+  if (bundle.kind) {
+    const fromKind = KIND_TO_TARGET[bundle.kind];
+    if (fromKind) return fromKind;
+  }
+  // 3. Fall back to prefix inference
   if (bundle.name.startsWith('boot-')) return 'dom';
   if (bundle.name.startsWith('theme-')) return 'agnostic';
   if (bundle.name.startsWith('audio-')) return 'agnostic';
   if (bundle.name.startsWith('data-')) return 'agnostic';
   return 'gpu';
+}
+
+/** Asset types that require the GPU loader. */
+const GPU_ASSET_TYPES = new Set(['spritesheet', 'image']);
+
+/**
+ * Resolve an `agnostic` target to a concrete `dom` or `gpu` by inspecting the
+ * bundle's assets. If any asset requires GPU (spritesheet, image), the whole
+ * bundle is promoted to GPU so Pixi can use it. Bundles that only contain
+ * fonts, raw JSON data, or audio stay on DOM.
+ *
+ * To keep a spritesheet on DOM (e.g. CSS-sprite branding), set explicit
+ * `target: 'dom'` on the bundle — explicit target is checked before this
+ * function is ever called.
+ */
+function resolveAgnostic(bundle: ManifestBundle): 'dom' | 'gpu' {
+  const needsGpu = bundle.assets.some((p) => GPU_ASSET_TYPES.has(inferAssetType(p)));
+  return needsGpu ? 'gpu' : 'dom';
 }
 
 export interface ManifestAdapterResult {
@@ -81,7 +126,8 @@ export function scaffoldManifestToGc(scaffold: ScaffoldManifest): ManifestAdapte
   const gcToScaffold = new Map<string, string>();
 
   const bundles: Bundle[] = scaffold.bundles.map((b) => {
-    const target = getBundleTarget(b);
+    const raw = getBundleTarget(b);
+    const target = raw === 'agnostic' ? resolveAgnostic(b) : raw;
     const gcName = scaffoldBundleNameToGc(b.name, target);
     scaffoldToGc.set(b.name, gcName);
     gcToScaffold.set(gcName, b.name);
@@ -91,6 +137,9 @@ export function scaffoldManifestToGc(scaffold: ScaffoldManifest): ManifestAdapte
       src: path,
     }));
 
+    // Only forward kind when the name wasn't rewritten — GC's validator
+    // rejects kind/prefix mismatches. When name IS rewritten the target
+    // already determined the correct GC prefix, so kind is redundant.
     const scaffoldKind = b.kind ?? inferScaffoldKind(b.name);
     const nameWasRewritten = gcName !== b.name;
     const kind = nameWasRewritten ? undefined : scaffoldKind;
