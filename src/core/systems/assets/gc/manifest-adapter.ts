@@ -66,7 +66,7 @@ function scaffoldBundleNameToGc(name: string, target: 'dom' | 'gpu' | 'agnostic'
 /** Maps explicit kind → target so `kind` can override prefix-based inference. */
 const KIND_TO_TARGET: Partial<Record<BundleKind, 'dom' | 'gpu' | 'agnostic'>> = {
   boot: 'dom',
-  theme: 'agnostic',
+  theme: 'dom',
   audio: 'agnostic',
   data: 'agnostic',
   core: 'gpu',
@@ -85,7 +85,7 @@ function getBundleTarget(bundle: ManifestBundle): 'dom' | 'gpu' | 'agnostic' {
   }
   // 3. Fall back to prefix inference
   if (bundle.name.startsWith('boot-')) return 'dom';
-  if (bundle.name.startsWith('theme-')) return 'agnostic';
+  if (bundle.name.startsWith('theme-')) return 'dom';
   if (bundle.name.startsWith('audio-')) return 'agnostic';
   if (bundle.name.startsWith('data-')) return 'agnostic';
   return 'gpu';
@@ -132,8 +132,14 @@ export function scaffoldManifestToGc(scaffold: ScaffoldManifest): ManifestAdapte
     scaffoldToGc.set(b.name, gcName);
     gcToScaffold.set(gcName, b.name);
 
+    // GPU bundles: use scaffold bundle name as alias for single-asset bundles.
+    // This preserves the convention that game code uses bundle names for Pixi
+    // lookups (getTexture, createSprite, hasSheet). The old scaffold PixiLoader
+    // registered assets this way, and generators reproduce that pattern.
+    // DOM bundles: use path-derived alias (Logo and DOM consumers expect it).
+    const usesBundleNameAlias = target === 'gpu' && b.assets.length === 1;
     const assets: AssetDefinition[] = b.assets.map((path) => ({
-      alias: pathToAlias(path),
+      alias: usesBundleNameAlias ? b.name : pathToAlias(path),
       src: path,
     }));
 

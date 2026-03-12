@@ -152,7 +152,7 @@ export function createScaffoldCoordinatorFromGc(
         throw new Error('Only pixi engine is supported with game-components integration');
       }
       const loader = createPixiLoader();
-      loader.init(gcManifest);
+      // Skip manual init — coordinator.initLoader calls loader.init(manifest)
       coordinator.initLoader('gpu', loader);
       pixiLoader = loader;
     })();
