@@ -83,6 +83,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Intent | Path |
 |--------|------|
 | How asset loading works | core/systems/assets.md |
+| Manifest contract (bundle/path rules, validation) | core/manifest-contract.md |
 | How screen navigation works | core/systems/screens.md |
 | How tuning / live config works | core/systems/tuning.md |
 | How the audio engine works | core/systems/audio.md |
@@ -263,6 +264,8 @@ Previous game implementations preserved for reference:
 | Intent | Path |
 |--------|------|
 | Asset naming rules | guides/assets/naming-convention.md |
+| Asset naming schema (machine-readable) | guides/assets/naming-convention.schema.json |
+| Manifest JSON schema | schemas/manifest.schema.json |
 | Sprite atlas pipeline | guides/assets/asset-pipeline.md |
 | Audio sprites & music | guides/assets/audio-setup.md |
 | Cloud storage (UID assets) | guides/assets/uid-asset-storage.md |

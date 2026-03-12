@@ -105,7 +105,7 @@ bun run typecheck 2>&1 | head -40
 | `src/game/types/gameData.ts` | Replace with minimal skeleton |
 | `src/game/hooks/useGameData.ts` | Update types import |
 | `src/game/state.ts` | Clean if game-specific |
-| `src/game/manifest.ts` | Clean if game-specific |
+| `src/game/asset-manifest.ts` | Clean if game-specific |
 | `src/game/config.ts` | Clean if game-specific |
 | `src/game/audio/sounds.ts` | Clean if game-specific |
 | `src/game/_template/` | Create new |

@@ -76,6 +76,26 @@ src/game/
 - New Solid.js screen → `screens/`
 - Reusable across games? → Don't put it here, use `modules/`.
 
+## Asset Manifest — Bundle Prefix Rules
+
+The bundle name prefix determines which loader handles the assets:
+
+| Prefix | Loader | Use for |
+|--------|--------|---------|
+| `scene-*` | **GPU (Pixi)** | Game spritesheets, backgrounds, tiles, characters |
+| `core-*` | **GPU (Pixi)** | In-game UI atlases |
+| `theme-*` | DOM only | Branding/logo (loading screen, pre-GPU) |
+| `audio-*` | Howler | Sound effects, music |
+| `boot-*` | DOM only | Splash screen assets |
+
+**Game atlases MUST use `scene-*` or `core-*`.** Only these prefixes are registered with Pixi. Using `theme-*` for game sprites will fail — `createSprite` returns null.
+
+For single-asset bundles, the **bundle name IS the Pixi alias**:
+```
+{ name: 'scene-tiles', assets: ['atlas-tiles-daily-dispatch.json'] }
+→ gpuLoader.createSprite('scene-tiles', 'bg-gameboard.png')
+```
+
 ## Forking Checklist
 
 1. `config.ts` — change identity (GAME_ID, GAME_SLUG, GAME_NAME), environment URLs, manifest bundles

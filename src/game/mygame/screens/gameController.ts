@@ -38,7 +38,6 @@ export function setupGame(_deps: GameControllerDeps): GameController {
       console.log('[mygame] Game controller initialized');
       setAriaText('Gameplay Screen');
 
-      // Build gameplay screen UI
       wrapper = document.createElement('div');
       wrapper.style.cssText =
         'display:flex;align-items:center;justify-content:center;height:100%;';

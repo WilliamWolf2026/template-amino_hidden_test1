@@ -9,7 +9,7 @@ import type { GameTuning } from '~/game/tuning';
 
 export function LoadingScreen() {
   const { goto } = useScreen();
-  const { loadBoot, loadTheme, initGpu, unlockAudio, loadCore, loadAudio, loadBundle } = useAssets();
+  const { loadBoot, loadTheme, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const [progress, setProgress] = createSignal(0);
   const [themeLoaded, setThemeLoaded] = createSignal(false);
@@ -41,10 +41,9 @@ export function LoadingScreen() {
         setProgress(45);
         await initGpu();
         setProgress(55);
-        await loadBundle('atlas-tiles-daily-dispatch', phaseProgress(55, 60));
-        await loadCore(phaseProgress(60, 65));
+        await loadCore(phaseProgress(55, 60));
         try {
-          await loadAudio(phaseProgress(65, 95));
+          await loadAudio(phaseProgress(60, 95));
         } catch (error) {
           console.warn('Audio loading failed:', error);
         }

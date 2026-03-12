@@ -106,7 +106,7 @@ graph TB
     subgraph "Game Layer (CityLines / DailyDispatch)"
         direction TB
         GC[game/config.ts]
-        GM[game/manifest.ts]
+        GM[game/asset-manifest.ts]
         GS[game/state.ts]
         GT[game/tuning/]
 
@@ -401,7 +401,7 @@ function inferTarget(bundleName: string): AssetTarget {
 ### 3.5 Manifest Structure
 
 ```typescript
-// game/manifest.ts
+// game/asset-manifest.ts
 import type { Manifest } from '~/core/systems/assets';
 
 export const manifest: Manifest = {
@@ -1096,7 +1096,7 @@ The game provides configuration that core consumes via props and the provider st
 graph LR
     subgraph "Game Provides"
         GC["game/config.ts<br/>Screen components + options"]
-        GM["game/manifest.ts<br/>Asset manifest"]
+        GM["game/asset-manifest.ts<br/>Asset manifest"]
         GT["game/tuning/<br/>Config schema + defaults"]
         GD["game/data/<br/>Default game data"]
         GA["game/setup/<br/>AnalyticsProvider, FeatureFlagProvider"]
@@ -1761,7 +1761,7 @@ In development, a `ViewportToggle` button appears in the top-left corner allowin
 | Purpose | Core Location | Modules Location | Game Location |
 |---------|---------------|------------------|---------------|
 | Config | `core/config.ts` | -- | `game/config.ts` |
-| Assets | `core/systems/assets/` | -- | `game/manifest.ts` |
+| Assets | `core/systems/assets/` | -- | `game/asset-manifest.ts` |
 | Screens | `core/systems/screens/` | -- | `game/screens/` |
 | Tuning | `core/systems/tuning/` | `*/tuning.ts` per module | `game/tuning/` |
 | Manifest | `core/systems/manifest/` | -- | `game/data/` |
@@ -1797,7 +1797,7 @@ In development, a `ViewportToggle` button appears in the top-left corner allowin
 **New Game Feature:**
 - [ ] Add logic to `game/citylines/` or `game/dailydispatch/`
 - [ ] Add config to `game/tuning/types.ts` + defaults
-- [ ] Add assets to `game/manifest.ts`
+- [ ] Add assets to `game/asset-manifest.ts`
 - [ ] Update screens if needed
 - [ ] Wire analytics trackers in `game/analytics/trackers.ts`
 - [ ] Tuning bindings auto-generate from types (no manual binding needed)

@@ -45,7 +45,7 @@ public/assets/
 ### Registering in Manifest
 
 ```typescript
-// src/game/manifest.ts
+// src/game/asset-manifest.ts
 export const manifest: Manifest = {
   cdnBase: '/assets',
   bundles: [

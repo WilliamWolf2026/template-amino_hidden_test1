@@ -77,7 +77,7 @@ export const gameConfig = {
 
 ## Asset Manifest
 
-Located at `src/game/manifest.ts`:
+Located at `src/game/asset-manifest.ts`:
 
 ```typescript
 import type { Manifest } from '~/core/systems/assets';

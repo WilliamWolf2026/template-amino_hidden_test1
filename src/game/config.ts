@@ -9,7 +9,6 @@
 
 import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '~/core/systems/tuning/types';
-import type { Manifest } from '~/core/systems/assets';
 import {
   getEnvironment,
   getCdnBaseUrl,
@@ -186,12 +185,12 @@ export interface DialogueMessage {
 // MANIFEST
 // ============================================================================
 
+import { manifest as _manifest } from './asset-manifest';
+import type { Manifest } from '~/core/systems/assets';
+
 export const manifest: Manifest = {
+  ..._manifest,
   cdnBase: getCdnUrl(),
-  localBase: getLocalAssetPath(),
-  bundles: [
-    { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
-  ],
 };
 
 // ============================================================================

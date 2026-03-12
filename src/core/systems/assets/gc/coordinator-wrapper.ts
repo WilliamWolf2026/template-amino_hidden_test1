@@ -6,6 +6,7 @@
 import {
   createAssetCoordinator,
   createDomLoader,
+  validateManifest,
   type DomLoader as GcDomLoader,
   type HowlerLoader as GcHowlerLoader,
   type PixiLoader as GcPixiLoader,
@@ -55,6 +56,23 @@ export function createScaffoldCoordinatorFromGc(
 ): ScaffoldCoordinatorFromGc {
   const { gcManifest, scaffoldToGc, gcToScaffold } = scaffoldManifestToGc(scaffoldManifest);
 
+  // Validate the adapted manifest before handing to GC coordinator.
+  // createAssetCoordinator also validates internally, but checking here
+  // lets us surface errors referencing scaffold bundle names.
+  const validation = validateManifest(gcManifest);
+  if (!validation.valid) {
+    const summary = validation.errors
+      .map((e: { path: string; message: string }) => {
+        const scaffoldCtx = e.path.match(/bundles\[(\d+)\]/);
+        const hint = scaffoldCtx
+          ? ` (scaffold: "${gcManifest.bundles[Number(scaffoldCtx[1])]?.name}")`
+          : '';
+        return `  ${e.path}${hint}: ${e.message}`;
+      })
+      .join('\n');
+    throw new Error(`Invalid manifest after adaptation:\n${summary}`);
+  }
+
   const coordinator = createAssetCoordinator({
     manifest: gcManifest,
     loaders: {
@@ -72,6 +90,20 @@ export function createScaffoldCoordinatorFromGc(
   const scaffoldNamesByPrefix = (prefix: string): string[] =>
     scaffoldManifest.bundles.filter((b) => b.name.startsWith(prefix)).map((b) => b.name);
 
+  const suppressPixiCacheWarnings = async <T>(fn: () => Promise<T>): Promise<T> => {
+    const origWarn = console.warn;
+    console.warn = (...args: unknown[]) => {
+      const msg = args.map(String).join(' ');
+      if (msg.includes('[Cache] already has key')) return;
+      origWarn.apply(console, args);
+    };
+    try {
+      return await fn();
+    } finally {
+      console.warn = origWarn;
+    }
+  };
+
   const loadWithProgress = async (
     gcNames: string[],
     onProgress?: ProgressCallback
@@ -81,14 +113,14 @@ export function createScaffoldCoordinatorFromGc(
       return;
     }
     onProgress?.(0);
-    await coordinator.loadBundles(gcNames);
+    await suppressPixiCacheWarnings(() => coordinator.loadBundles(gcNames));
     onProgress?.(1);
   };
 
   const loadBundle = async (name: string, onProgress?: ProgressCallback): Promise<void> => {
     const gcName = scaffoldToGc.get(name) ?? name;
     onProgress?.(0);
-    await coordinator.loadBundle(gcName);
+    await suppressPixiCacheWarnings(() => coordinator.loadBundle(gcName));
     onProgress?.(1);
   };
 
@@ -134,7 +166,7 @@ export function createScaffoldCoordinatorFromGc(
         throw new Error('Only pixi engine is supported with game-components integration');
       }
       const loader = createPixiLoader();
-      loader.init(gcManifest);
+      // Skip manual init — coordinator.initLoader calls loader.init(manifest)
       coordinator.initLoader('gpu', loader);
       pixiLoader = loader;
     })();
