@@ -27,13 +27,13 @@ export type { Environment } from '~/core/config';
 // ============================================================================
 
 /** Analytics event tag and GameKit project ID */
-export const GAME_ID = 'daily_dispatch';
+export const GAME_ID = 'mygame';
 
 /** URL-safe slug used in CDN paths, asset names, storage keys */
-export const GAME_SLUG = 'dailydispatch';
+export const GAME_SLUG = 'mygame';
 
 /** Human-readable display name */
-export const GAME_NAME = 'Daily Dispatch';
+export const GAME_NAME = 'My Game';
 
 /** CDN path segment for this game's assets and data */
 export const GAME_CDN_PATH = `games/${GAME_SLUG}/data`;
