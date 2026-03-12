@@ -189,7 +189,7 @@ loading --> start --> game --> results
 | Add a new screen | `src/game/screens/` + `src/game/config.ts` |
 | Add a new sound | `src/game/audio/sounds.ts` + `manager.ts` |
 | Change game config | `src/game/tuning/types.ts` |
-| Add game assets | `src/game/manifest.ts` + `public/assets/` |
+| Add game assets | `src/game/asset-manifest.ts` + `public/assets/` |
 | Reusable primitives (SpriteButton, ProgressBar, etc.) | `src/modules/primitives/` |
 | Reusable prefabs (AvatarPopup, etc.) | `src/modules/prefabs/` |
 | Shared game logic (LevelCompletion, progress, etc.) | `src/modules/logic/` |

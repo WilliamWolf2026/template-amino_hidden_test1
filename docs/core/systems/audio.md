@@ -107,7 +107,7 @@ Format: `"name": [start_ms, duration_ms, loop?]`
 ### Bundle Registration
 
 ```typescript
-// src/game/manifest.ts
+// src/game/asset-manifest.ts
 {
   bundles: [
     { name: 'audio-sfx-citylines', assets: ['sfx-citylines.json'] }

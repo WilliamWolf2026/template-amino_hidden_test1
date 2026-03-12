@@ -63,7 +63,7 @@ async function loadManifest(): Promise<RawManifest> {
     const raw = readFileSync(path, "utf-8");
     return JSON.parse(raw) as RawManifest;
   }
-  const { manifest } = await import("../src/game/manifest.ts");
+  const { manifest } = await import("../src/game/asset-manifest.ts");
   return manifest as RawManifest;
 }
 

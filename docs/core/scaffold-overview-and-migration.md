@@ -328,7 +328,7 @@ When creating a new game, you **replace the entire `src/game/` folder** while ke
 | Keep (Never Touch) | Optionally Extend | Replace (Swap Out) |
 |--------------------|-------------------|-------------------|
 | `src/core/` | `src/modules/` | `src/game/config.ts` |
-| `index.html` (mostly) | | `src/game/manifest.ts` |
+| `index.html` (mostly) | | `src/game/asset-manifest.ts` |
 | `vite.config.ts` | | `src/game/state.ts` |
 | Build configuration | | `src/game/tuning/` |
 | | | `src/game/screens/` |
@@ -426,7 +426,7 @@ export const MY_GAME_DEFAULTS: MyGameTuning = {
 
 #### Step 6: Define Asset Manifest
 
-Create `src/game/manifest.ts`:
+Create `src/game/asset-manifest.ts`:
 
 ```typescript
 import type { ManifestBundle } from '~/core/systems/assets/types';
@@ -601,7 +601,7 @@ import { LevelCompletionController } from '~/modules/logic/level-completion';
 - [ ] Remove old game folders (`citylines/`, `dailydispatch/`, etc.)
 - [ ] Clear `localStorage.tuning_game`
 - [ ] Create `game/tuning/types.ts` with new schema
-- [ ] Create `game/manifest.ts` with asset bundles
+- [ ] Create `game/asset-manifest.ts` with asset bundles
 - [ ] Create `game/config.ts` with screen mappings
 - [ ] Create `game/state.ts` for game state
 - [ ] Create `game/index.ts` with public exports
@@ -663,7 +663,7 @@ import { LevelCompletionController } from '~/modules/logic/level-completion';
 | File | Required Export | Used By |
 |------|-----------------|---------|
 | `game/config.ts` | `gameConfig.screens` | ScreenProvider |
-| `game/manifest.ts` | `manifest: ManifestBundle[]` | ManifestProvider |
+| `game/asset-manifest.ts` | `manifest: ManifestBundle[]` | ManifestProvider |
 | `game/tuning/types.ts` | `interface extends GameTuningBase` | TuningProvider |
 | `game/tuning/types.ts` | `DEFAULTS` constant | TuningProvider |
 | `game/setup/AnalyticsContext.tsx` | `AnalyticsProvider` | app.tsx provider stack |

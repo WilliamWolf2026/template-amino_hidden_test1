@@ -185,7 +185,7 @@ export interface DialogueMessage {
 // MANIFEST
 // ============================================================================
 
-import { manifest as _manifest } from './manifest';
+import { manifest as _manifest } from './asset-manifest';
 import type { Manifest } from '~/core/systems/assets';
 
 export const manifest: Manifest = {
