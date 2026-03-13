@@ -17,7 +17,7 @@ import { initSentry } from '~/core/lib/sentry';
 import { getEnvironment, scaffoldConfig } from '~/core/config';
 import { gameConfig, manifest, defaultGameData } from '~/game';
 import { ManifestProvider } from '~/core/systems/manifest/context';
-import { GAME_DEFAULTS, getThemeFromUrl } from '~/game/tuning';
+import { GAME_DEFAULTS } from '~/game/tuning';
 import { getViewportModeFromUrl } from '~/core/config/viewport';
 // TODO: Wire up progress reset when new game implements progress service
 // import { clearProgress } from '~/game/services/progress';
@@ -28,10 +28,8 @@ import { FeatureFlagProvider } from '~/game/setup/FeatureFlagContext';
 import { ViewportToggle } from '~/core/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
-const urlTheme = getThemeFromUrl();
 const urlViewportMode = getViewportModeFromUrl();
 const environment = getEnvironment();
-const urlOverrides = urlTheme ? { 'theme.tileTheme': urlTheme } : undefined;
 
 /** Reset progress and reload the page */
 const handleResetProgress = () => {
@@ -111,7 +109,7 @@ export default function App() {
 
   return (
     <GlobalBoundary>
-      <TuningProvider gameDefaults={GAME_DEFAULTS} urlOverrides={urlOverrides}>
+      <TuningProvider gameDefaults={GAME_DEFAULTS}>
         <Show when={IS_DEV_ENV}>
           <TuningPanel />
         </Show>

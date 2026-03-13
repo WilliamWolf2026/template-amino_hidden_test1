@@ -22,7 +22,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 
 | Intent | Path |
 |--------|------|
-| Asset loading, coordination, preloading | src/core/systems/assets/coordinator.ts |
+| Asset loading, coordination, preloading | src/core/systems/assets/facade.ts |
 | Asset context provider, useAssets hook | src/core/systems/assets/context.tsx |
 | Asset type definitions | src/core/systems/assets/types.ts |
 | GPU texture loader (Pixi) | src/core/systems/assets/loaders/gpu/pixi.ts |
