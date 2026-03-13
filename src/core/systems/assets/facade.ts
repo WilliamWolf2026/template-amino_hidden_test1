@@ -104,45 +104,39 @@ export function createCoordinatorFacade(manifest: Manifest): AssetCoordinatorFac
   const bundlesByPrefix = (prefix: string): string[] =>
     manifest.bundles.filter((b) => b.name.startsWith(prefix)).map((b) => b.name);
 
-  const suppressPixiCacheWarnings = async <T>(fn: () => Promise<T>): Promise<T> => {
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      const msg = args.map(String).join(' ');
-      if (msg.includes('[Cache] already has key')) return;
-      origWarn.apply(console, args);
-    };
-    try {
-      return await fn();
-    } finally {
-      console.warn = origWarn;
-    }
-  };
+  const isLoaded = (name: string): boolean => coordinator.isLoaded(name);
+
+  /** Filter out already-loaded bundles before passing to coordinator. */
+  const pendingOnly = (names: string[]): string[] =>
+    names.filter((n) => !isLoaded(n));
 
   const loadWithProgress = async (
     names: string[],
     onProgress?: ProgressCallback
   ): Promise<void> => {
-    if (names.length === 0) { onProgress?.(1); return; }
+    const toLoad = pendingOnly(names);
+    if (toLoad.length === 0) { onProgress?.(1); return; }
     onProgress?.(0);
-    await suppressPixiCacheWarnings(() => coordinator.loadBundles(names));
+    await coordinator.loadBundles(toLoad);
     onProgress?.(1);
   };
 
   const loadBundle = async (name: string, onProgress?: ProgressCallback): Promise<void> => {
+    if (isLoaded(name)) { onProgress?.(1); return; }
     onProgress?.(0);
-    await suppressPixiCacheWarnings(() => coordinator.loadBundle(name));
+    await coordinator.loadBundle(name);
     onProgress?.(1);
   };
 
   const backgroundLoadBundle = async (name: string): Promise<void> => {
     if (isLoaded(name)) return;
-    await suppressPixiCacheWarnings(() => coordinator.loadBundle(name, { background: true }));
+    await coordinator.loadBundle(name, { background: true });
   };
 
   const preloadScene = async (sceneName: string): Promise<void> => {
     const names = bundlesByPrefix('scene-').filter((n) => n.includes(sceneName));
     const targets = names.length > 0 ? names : [`scene-${sceneName}`];
-    await Promise.all(targets.filter((n) => !isLoaded(n)).map(backgroundLoadBundle));
+    await Promise.all(pendingOnly(targets).map(backgroundLoadBundle));
   };
 
   const loadBoot = (onProgress?: ProgressCallback) =>
@@ -178,7 +172,6 @@ export function createCoordinatorFacade(manifest: Manifest): AssetCoordinatorFac
   };
 
   const getLoadedBundles = (): string[] => coordinator.loadingState.get().loaded;
-  const isLoaded = (name: string): boolean => coordinator.isLoaded(name);
 
   const unloadBundle = (name: string): void => coordinator.unloadBundle(name);
   const unloadBundles = (names: string[]): void => coordinator.unloadBundles(names);
