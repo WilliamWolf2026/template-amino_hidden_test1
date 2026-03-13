@@ -9,6 +9,7 @@
 
 import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '~/core/systems/tuning/types';
+import type { ScreenId, ScreenAssetConfig } from '~/core/systems/screens/types';
 import {
   getEnvironment,
   getCdnBaseUrl,
@@ -107,6 +108,9 @@ export interface GameConfig {
     game: Component;
     results: Component;
   };
+  /** Per-screen asset requirements. The screen manager loads required bundles
+   *  before showing the screen and background-loads optional bundles. */
+  screenAssets?: Partial<Record<ScreenId, ScreenAssetConfig>>;
   initialScreen: 'loading' | 'start' | 'game' | 'results';
   serverStorageUrl: string | null;
   defaultViewportMode?: ViewportMode;

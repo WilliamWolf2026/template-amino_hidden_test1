@@ -129,7 +129,7 @@ export default function App() {
               <PauseProvider>
                 <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
                   <AssetProvider config={{ engine: scaffoldConfig.engine }}>
-                    <ScreenProvider options={{ initialScreen: gameConfig.initialScreen }}>
+                    <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
                       <ScreenRenderer screens={gameConfig.screens} />
                     </ScreenProvider>
                   </AssetProvider>

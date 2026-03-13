@@ -11,6 +11,7 @@ import {
   validateManifest,
   type Manifest,
   type LoadingState,
+  type Signal,
   type DomLoader,
 } from '@wolfgames/components/core';
 import { createHowlerLoader } from '@wolfgames/components/howler';
@@ -44,6 +45,8 @@ async function getFrameURLFromSheet(
 
 export interface AssetCoordinatorFacade {
   loadBundle(name: string, onProgress?: ProgressCallback): Promise<void>;
+  backgroundLoadBundle(name: string): Promise<void>;
+  preloadScene(sceneName: string): Promise<void>;
   loadBoot(onProgress?: ProgressCallback): Promise<void>;
   loadCore(onProgress?: ProgressCallback): Promise<void>;
   loadTheme(onProgress?: ProgressCallback): Promise<void>;
@@ -57,6 +60,7 @@ export interface AssetCoordinatorFacade {
   unloadScene(sceneName: string): void;
   startBackgroundLoading(): Promise<void>;
   loadingState: () => LoadingState;
+  loadingStateSignal: Signal<LoadingState>;
   dom: {
     getFrameURL(sheetAlias: string, frameName: string): Promise<string>;
     get(alias: string): unknown;
@@ -130,6 +134,17 @@ export function createCoordinatorFacade(manifest: Manifest): AssetCoordinatorFac
     onProgress?.(1);
   };
 
+  const backgroundLoadBundle = async (name: string): Promise<void> => {
+    if (isLoaded(name)) return;
+    await suppressPixiCacheWarnings(() => coordinator.loadBundle(name, { background: true }));
+  };
+
+  const preloadScene = async (sceneName: string): Promise<void> => {
+    const names = bundlesByPrefix('scene-').filter((n) => n.includes(sceneName));
+    const targets = names.length > 0 ? names : [`scene-${sceneName}`];
+    await Promise.all(targets.filter((n) => !isLoaded(n)).map(backgroundLoadBundle));
+  };
+
   const loadBoot = (onProgress?: ProgressCallback) =>
     loadWithProgress(bundlesByPrefix('boot-'), onProgress);
 
@@ -187,6 +202,8 @@ export function createCoordinatorFacade(manifest: Manifest): AssetCoordinatorFac
 
   return {
     loadBundle,
+    backgroundLoadBundle,
+    preloadScene,
     loadBoot,
     loadCore,
     loadTheme,
@@ -200,6 +217,7 @@ export function createCoordinatorFacade(manifest: Manifest): AssetCoordinatorFac
     unloadScene,
     startBackgroundLoading,
     loadingState: coordinator.loadingState.get,
+    loadingStateSignal: coordinator.loadingState,
     dom: {
       async getFrameURL(sheetAlias: string, frameName: string): Promise<string> {
         return getFrameURLFromSheet(domLoader, sheetAlias, frameName);

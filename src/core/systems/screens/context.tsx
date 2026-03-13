@@ -1,8 +1,9 @@
 import { createContext, useContext, type ParentProps, Show, Suspense } from 'solid-js';
 import { createScreenManager, type ScreenManager, type ScreenManagerOptions } from './manager';
-import type { ScreenId } from './types';
+import type { ScreenId, ScreenAssetConfig } from './types';
 import { ScreenBoundary } from '../errors/boundary';
 import { errorReporter } from '../errors/reporter';
+import { useAssets } from '../assets';
 
 const ScreenContext = createContext<ScreenManager>();
 
@@ -11,10 +12,46 @@ interface ScreenProviderProps extends ParentProps {
 }
 
 export function ScreenProvider(props: ScreenProviderProps) {
+  const assets = useAssets();
+
+  const getBundlesForScreen = (screen: ScreenId | null): string[] => {
+    if (!screen) return [];
+    const config = props.options?.screenAssets?.[screen];
+    if (!config) return [];
+    return [...(config.required ?? []), ...(config.optional ?? [])];
+  };
+
   const manager = createScreenManager({
     ...props.options,
+    onBeforeScreenChange: async (_from, _to, config) => {
+      if (!config) return;
+      if (config.required?.length) {
+        await Promise.all(
+          config.required
+            .filter((b) => !assets.coordinator.isLoaded(b))
+            .map((b) => assets.loadBundle(b)),
+        );
+      }
+      if (config.optional?.length) {
+        for (const name of config.optional) {
+          if (!assets.coordinator.isLoaded(name)) {
+            assets.backgroundLoadBundle(name);
+          }
+        }
+      }
+    },
     onScreenChange: (from, to) => {
       errorReporter.setScreen(to);
+
+      const fromBundles = getBundlesForScreen(from);
+      if (fromBundles.length > 0) {
+        const toBundles = new Set(getBundlesForScreen(to));
+        const toUnload = fromBundles.filter((b) => !toBundles.has(b));
+        if (toUnload.length > 0) {
+          assets.unloadBundles(toUnload);
+        }
+      }
+
       props.options?.onScreenChange?.(from, to);
     },
   });

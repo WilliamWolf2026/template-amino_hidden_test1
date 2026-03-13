@@ -1,11 +1,14 @@
 import { createSignal } from 'solid-js';
-import type { ScreenId, TransitionState, TransitionConfig } from './types';
+import type { ScreenId, ScreenAssetConfig, TransitionState, TransitionConfig } from './types';
 import { DEFAULT_TRANSITION } from './types';
 
 export interface ScreenManagerOptions {
   initialScreen?: ScreenId;
   transition?: TransitionConfig;
+  screenAssets?: Partial<Record<ScreenId, ScreenAssetConfig>>;
   onScreenChange?: (from: ScreenId | null, to: ScreenId) => void;
+  /** Called before transition to load required bundles. Awaited before screen switch. */
+  onBeforeScreenChange?: (from: ScreenId, to: ScreenId, config?: ScreenAssetConfig) => Promise<void>;
 }
 
 export function createScreenManager(options: ScreenManagerOptions = {}) {
@@ -38,9 +41,10 @@ export function createScreenManager(options: ScreenManagerOptions = {}) {
     screenData?: Record<string, unknown>
   ): Promise<void> {
     const { duration, type } = transitionConfig;
+    const assetConfig = options.screenAssets?.[to];
 
     if (type === 'none' || duration === 0) {
-      // Instant transition
+      await options.onBeforeScreenChange?.(from, to, assetConfig);
       setPrevious(from);
       setCurrent(to);
       if (screenData) setData(screenData);
@@ -51,6 +55,9 @@ export function createScreenManager(options: ScreenManagerOptions = {}) {
     // Transition out
     setTransition('out');
     await sleep(duration);
+
+    // Load required assets for target screen before switching
+    await options.onBeforeScreenChange?.(from, to, assetConfig);
 
     // Switch screen
     setPrevious(from);
