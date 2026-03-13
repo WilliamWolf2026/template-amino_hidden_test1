@@ -9,6 +9,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 
 | Intent | Path |
 |--------|------|
+| Design rationale, tier contracts, extension rules, anti-patterns | core/amino-architecture.md |
 | System architecture diagram | core/architecture.md |
 | Architecture mermaid map | core/architecture-map.md |
 | How the app boots, entry points, startup | core/entry-points.md |

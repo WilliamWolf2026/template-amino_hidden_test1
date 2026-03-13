@@ -1,5 +1,7 @@
 # Architecture Deep Dive
 
+> **Design authority**: For tier definitions, contracts, and extension rules, see [amino-architecture.md](amino-architecture.md). This document is the operational reference for how the systems work.
+
 A comprehensive guide to the 3-tier architecture: **core** (reusable platform), **modules** (shared building blocks), and **game** (specific implementation).
 
 ---
