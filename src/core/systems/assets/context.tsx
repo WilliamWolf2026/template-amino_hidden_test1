@@ -1,5 +1,5 @@
 import { createContext, useContext, createSignal, onMount, onCleanup } from 'solid-js';
-import type { ParentProps } from 'solid-js';
+import type { Accessor, ParentProps } from 'solid-js';
 import type { LoadingState } from '@wolfgames/components/core';
 import type { ProgressCallback } from './types';
 import { createCoordinatorFacade } from './facade';
@@ -8,11 +8,13 @@ import { useManifest } from '~/core/systems/manifest/context';
 
 interface AssetContextValue {
   coordinator: AssetCoordinatorFacade;
-  loadingState: () => LoadingState;
+  loadingState: Accessor<LoadingState>;
   ready: () => boolean;
   gpuReady: () => boolean;
   loading: () => boolean;
   loadBundle: (name: string, onProgress?: ProgressCallback) => Promise<void>;
+  backgroundLoadBundle: (name: string) => Promise<void>;
+  preloadScene: (name: string) => Promise<void>;
   loadBoot: (onProgress?: ProgressCallback) => Promise<void>;
   loadCore: (onProgress?: ProgressCallback) => Promise<void>;
   loadTheme: (onProgress?: ProgressCallback) => Promise<void>;
@@ -39,6 +41,11 @@ export function AssetProvider(props: AssetProviderProps) {
   const isRemote = cdnBase.startsWith('http');
   console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
 
+  const [solidLoadingState, setSolidLoadingState] = createSignal<LoadingState>(
+    coordinator.loadingStateSignal.get(),
+  );
+  const unsubLoadingState = coordinator.loadingStateSignal.subscribe(setSolidLoadingState);
+
   const [ready, setReady] = createSignal(false);
   const [gpuReady, setGpuReady] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
@@ -51,13 +58,19 @@ export function AssetProvider(props: AssetProviderProps) {
 
   const value: AssetContextValue = {
     coordinator,
-    loadingState: coordinator.loadingState,
+    loadingState: solidLoadingState,
     ready,
     gpuReady,
     loading,
 
     async loadBundle(name: string, onProgress?: ProgressCallback) {
       await wrapLoad(() => coordinator.loadBundle(name, onProgress));
+    },
+    backgroundLoadBundle(name: string) {
+      return coordinator.backgroundLoadBundle(name);
+    },
+    preloadScene(name: string) {
+      return coordinator.preloadScene(name);
     },
     async loadBoot(onProgress?: ProgressCallback) {
       await wrapLoad(async () => {
@@ -101,6 +114,7 @@ export function AssetProvider(props: AssetProviderProps) {
     }
   });
   onCleanup(() => {
+    unsubLoadingState();
     if (import.meta.env.DEV && typeof window !== 'undefined') {
       delete (window as unknown as Record<string, unknown>).__scaffold__;
     }
