@@ -8,6 +8,9 @@
  * cdnBase and localBase are static placeholders here. config.ts resolves the
  * real CDN URL at runtime and patches cdnBase before handing to the asset system.
  *
+ * Types are imported directly from @wolfgames/components/core — this is the
+ * single source of truth for the manifest schema.
+ *
  * Bundle naming determines which loader handles the assets:
  *
  *   boot-*   → DOM only   — splash screen assets
@@ -24,32 +27,24 @@
  * Bundle names must match [a-z][a-z0-9-]* — only lowercase, digits, hyphens.
  * NO underscores. Asset file paths can have underscores; bundle names cannot.
  *
- * The bundle name is also the Pixi asset alias for single-asset bundles.
- * Example: { name: 'scene-tiles-daily-dispatch', assets: ['atlas-tiles-daily-dispatch.json'] }
- *   → gpuLoader.createSprite('scene-tiles-daily-dispatch', 'frame-name.png')
+ * For single-asset GPU bundles, set alias = bundle name so Pixi lookups work:
+ *   { name: 'scene-tiles', assets: [{ alias: 'scene-tiles', src: 'atlas-tiles.json' }] }
+ *   → gpuLoader.createSprite('scene-tiles', 'frame-name.png')
  */
 
+import type { Manifest } from '@wolfgames/components/core';
+
 export const LOCAL_ASSET_PATH = '/assets';
-
-export interface ManifestBundle {
-  name: string;
-  assets: string[];
-  target?: 'dom' | 'gpu' | 'agnostic';
-  kind?: 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' | 'defer';
-}
-
-export interface Manifest {
-  cdnBase: string;
-  localBase?: string;
-  bundles: ManifestBundle[];
-}
 
 export const manifest: Manifest = {
   cdnBase: LOCAL_ASSET_PATH,
   localBase: LOCAL_ASSET_PATH,
   bundles: [
     // DOM — branding logo shown on loading screen (pre-GPU)
-    { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
+    {
+      name: 'theme-branding',
+      assets: [{ alias: 'atlas-branding-wolf', src: 'atlas-branding-wolf.json' }],
+    },
 
     // When adding bundles for your game, use the appropriate prefix:
     //
@@ -61,9 +56,9 @@ export const manifest: Manifest = {
     //   boot-*   → DOM pre-engine splash assets
     //
     // Examples:
-    //   { name: 'scene-tiles-mygame', assets: ['atlas-tiles-mygame.json'] },
-    //   { name: 'fx-blast', assets: ['vfx-blast.json'] },
-    //   { name: 'audio-sfx-mygame', assets: ['sfx-mygame.json'] },
-    //   { name: 'audio-music-mygame', assets: ['music-mygame.json'] },
+    //   { name: 'scene-tiles-mygame', assets: [{ alias: 'scene-tiles-mygame', src: 'atlas-tiles-mygame.json' }] },
+    //   { name: 'fx-blast', assets: [{ alias: 'fx-blast', src: 'vfx-blast.json' }] },
+    //   { name: 'audio-sfx-mygame', assets: [{ alias: 'audio-sfx-mygame', src: 'sfx-mygame.json' }] },
+    //   { name: 'audio-music-mygame', assets: [{ alias: 'audio-music-mygame', src: 'music-mygame.json' }] },
   ],
 };

@@ -1,25 +1,14 @@
-// Asset target types
-export type AssetTarget = 'dom' | 'gpu' | 'agnostic';
-
-/**
- * Allowed bundle kinds — mirrors `BundleKind` from @wolfgames/components.
- * When present, `kind` is the canonical classification; prefix can be derived from it.
- */
-export type BundleKind = 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' | 'defer';
-
-// Manifest types
-export interface ManifestBundle {
-  name: string;
-  assets: string[];
-  target?: AssetTarget;
-  kind?: BundleKind;
-}
-
-export interface Manifest {
-  cdnBase: string;
-  localBase?: string; // Fallback path if CDN fails
-  bundles: ManifestBundle[];
-}
+// Re-export manifest types from game-components (single source of truth)
+export type {
+  Manifest,
+  Bundle as ManifestBundle,
+  AssetDefinition,
+  BundleKind,
+  LoadingState,
+  BundleProgress,
+  LoaderAdapter,
+  LoaderType,
+} from '@wolfgames/components/core';
 
 // Spritesheet types (TexturePacker format)
 export interface SpriteFrame {
@@ -54,17 +43,6 @@ export interface LoadedAudioSprite {
   basePath: string;
 }
 
-// Asset types (inferred from file extension)
-export type AssetType = 'spritesheet' | 'image' | 'audio' | 'json' | 'font';
-
-export function inferAssetType(path: string): AssetType {
-  if (path.includes('audio/') && path.endsWith('.json')) return 'audio';
-  if (path.endsWith('.json')) return 'spritesheet';
-  if (path.match(/\.(png|jpg|jpeg|webp|gif|svg)$/i)) return 'image';
-  if (path.match(/\.(woff|woff2|ttf|otf)$/i)) return 'font';
-  return 'json';
-}
-
 // Raw image (single file, no spritesheet)
 export interface LoadedImage {
   image: ImageBitmap;
@@ -79,25 +57,3 @@ export interface LoadedJson<T = unknown> {
 
 // Progress callback (0.0 to 1.0)
 export type ProgressCallback = (progress: number) => void;
-
-// Loader interface
-export interface AssetLoader {
-  init(manifest: Manifest): void;
-  loadBundle(name: string, onProgress?: ProgressCallback): Promise<void>;
-  loadBundles(prefix: string): Promise<void>;
-  isLoaded(bundle: string): boolean;
-}
-
-// Infer target from bundle prefix
-export function inferTarget(bundleName: string): AssetTarget {
-  if (bundleName.startsWith('boot-')) return 'dom';
-  if (bundleName.startsWith('theme-')) return 'agnostic';
-  if (bundleName.startsWith('audio-')) return 'agnostic';
-  if (bundleName.startsWith('data-')) return 'agnostic';
-  return 'gpu';
-}
-
-// Get target for a bundle
-export function getBundleTarget(bundle: ManifestBundle): AssetTarget {
-  return bundle.target ?? inferTarget(bundle.name);
-}

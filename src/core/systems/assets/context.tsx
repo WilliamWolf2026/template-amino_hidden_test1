@@ -1,14 +1,14 @@
-import { createContext, useContext, createSignal, onMount, onCleanup, type ParentProps } from 'solid-js';
-import type { CoordinatorConfig } from './coordinator.types';
+import { createContext, useContext, createSignal, onMount, onCleanup } from 'solid-js';
+import type { ParentProps } from 'solid-js';
+import type { LoadingState } from '@wolfgames/components/core';
 import type { ProgressCallback } from './types';
+import { createCoordinatorFacade } from './facade';
+import type { AssetCoordinatorFacade } from './facade';
 import { useManifest } from '~/core/systems/manifest/context';
-import { createScaffoldCoordinatorFromGc, type ScaffoldCoordinatorFromGc } from './gc/coordinator-wrapper';
 
-// Context shape (coordinator is GC-based wrapper from @wolfgames/components)
 interface AssetContextValue {
-  coordinator: ScaffoldCoordinatorFromGc;
-  /** Reactive loading state from GC coordinator (loading/loaded/errors/progress) */
-  loadingState: () => ReturnType<ScaffoldCoordinatorFromGc['loadingState']>;
+  coordinator: AssetCoordinatorFacade;
+  loadingState: () => LoadingState;
   ready: () => boolean;
   gpuReady: () => boolean;
   loading: () => boolean;
@@ -20,19 +20,21 @@ interface AssetContextValue {
   loadScene: (name: string, onProgress?: ProgressCallback) => Promise<void>;
   initGpu: () => Promise<void>;
   unlockAudio: () => void;
+  unloadBundle: (name: string) => void;
+  unloadBundles: (names: string[]) => void;
+  unloadScene: (sceneName: string) => void;
 }
 
 const AssetContext = createContext<AssetContextValue>();
 
 interface AssetProviderProps extends ParentProps {
-  config: CoordinatorConfig;
+  config: { engine: string };
 }
 
 export function AssetProvider(props: AssetProviderProps) {
   const { manifest } = useManifest();
-  const coordinator = createScaffoldCoordinatorFromGc(manifest(), props.config);
+  const coordinator = createCoordinatorFacade(manifest());
 
-  // Log asset source
   const cdnBase = manifest().cdnBase;
   const isRemote = cdnBase.startsWith('http');
   console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
@@ -43,17 +45,13 @@ export function AssetProvider(props: AssetProviderProps) {
 
   const wrapLoad = async (fn: () => Promise<void>) => {
     setLoading(true);
-    try {
-      await fn();
-    } finally {
-      setLoading(false);
-    }
+    try { await fn(); }
+    finally { setLoading(false); }
   };
 
   const value: AssetContextValue = {
     coordinator,
     loadingState: coordinator.loadingState,
-
     ready,
     gpuReady,
     loading,
@@ -61,49 +59,50 @@ export function AssetProvider(props: AssetProviderProps) {
     async loadBundle(name: string, onProgress?: ProgressCallback) {
       await wrapLoad(() => coordinator.loadBundle(name, onProgress));
     },
-
     async loadBoot(onProgress?: ProgressCallback) {
       await wrapLoad(async () => {
         await coordinator.loadBoot(onProgress);
         setReady(true);
       });
     },
-
     async loadCore(onProgress?: ProgressCallback) {
       await wrapLoad(() => coordinator.loadCore(onProgress));
     },
-
     async loadTheme(onProgress?: ProgressCallback) {
       await wrapLoad(() => coordinator.loadTheme(onProgress));
     },
-
     async loadAudio(onProgress?: ProgressCallback) {
       await wrapLoad(() => coordinator.loadAudio(onProgress));
     },
-
     async loadScene(name: string, onProgress?: ProgressCallback) {
       await wrapLoad(() => coordinator.loadScene(name, onProgress));
     },
-
     async initGpu() {
       await coordinator.initGpu();
       setGpuReady(true);
     },
-
     unlockAudio() {
       void coordinator.audio.unlock();
     },
+    unloadBundle(name: string) {
+      coordinator.unloadBundle(name);
+    },
+    unloadBundles(names: string[]) {
+      coordinator.unloadBundles(names);
+    },
+    unloadScene(sceneName: string) {
+      coordinator.unloadScene(sceneName);
+    },
   };
 
-  // Expose coordinator to window in dev so E2E can call getLoadedBundles (real app, no mocks)
   onMount(() => {
     if (import.meta.env.DEV && typeof window !== 'undefined') {
-      (window as unknown as { __scaffold__?: { coordinator: ScaffoldCoordinatorFromGc } }).__scaffold__ = { coordinator };
+      (window as unknown as Record<string, unknown>).__scaffold__ = { coordinator };
     }
   });
   onCleanup(() => {
-    if (import.meta.env.DEV && typeof window !== 'undefined' && (window as unknown as { __scaffold__?: unknown }).__scaffold__) {
-      delete (window as unknown as { __scaffold__?: unknown }).__scaffold__;
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      delete (window as unknown as Record<string, unknown>).__scaffold__;
     }
   });
 
@@ -122,12 +121,12 @@ export function useAssets() {
   return context;
 }
 
-// Direct access to coordinator for advanced usage
 export function useAssetCoordinator() {
   return useAssets().coordinator;
 }
 
-/** Reactive loading state from GC asset coordinator (use within AssetProvider) */
 export function useLoadingState() {
   return useAssets().loadingState;
 }
+
+export type { AssetCoordinatorFacade } from './facade';
