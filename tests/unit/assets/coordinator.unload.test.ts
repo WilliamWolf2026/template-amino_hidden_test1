@@ -1,53 +1,88 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import {
-  createScaffoldCoordinatorFromGc,
-  type ScaffoldCoordinatorFromGc,
-} from "~/core/systems/assets/gc/coordinator-wrapper";
-import type { Manifest } from "~/core/systems/assets/types";
-
 /**
- * TDD: Unload API tests. GC wrapper does not implement unload yet — tests skipped until then.
+ * AssetCoordinator unload API tests.
+ *
+ * Tests unloadBundle / unloadBundles behavior using mock loaders.
  * Run: bun run test:run
  */
+
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createAssetCoordinator } from "@wolfgames/components/core";
+import type { Manifest, LoaderAdapter } from "@wolfgames/components/core";
+
+const createMockLoader = (): LoaderAdapter => ({
+  init: vi.fn(),
+  loadBundle: vi.fn(async () => {}),
+  get: vi.fn(() => null),
+  has: vi.fn(() => false),
+  unloadBundle: vi.fn(),
+  dispose: vi.fn(),
+});
 
 const minimalManifest: Manifest = {
   cdnBase: "/assets",
   localBase: "/assets",
   bundles: [
-    { name: "theme-branding", assets: ["atlas-branding-wolf.json"], target: "dom" },
-    { name: "scene-foo", assets: [], target: "dom" },
+    {
+      name: "theme-branding",
+      assets: [
+        { alias: "atlas-branding-wolf", src: "atlas-branding-wolf.json" },
+      ],
+    },
+    {
+      name: "scene-foo",
+      assets: [{ alias: "scene-foo", src: "scene-foo.json" }],
+    },
   ],
 };
 
-describe("AssetCoordinator unload (TDD — unload not yet on GC wrapper)", () => {
-  let coordinator: ScaffoldCoordinatorFromGc;
+describe("AssetCoordinator unload", () => {
+  let coordinator: ReturnType<typeof createAssetCoordinator>;
+  let domLoader: LoaderAdapter;
+  let gpuLoader: LoaderAdapter;
 
   beforeEach(() => {
-    coordinator = createScaffoldCoordinatorFromGc(minimalManifest, {
-      engine: "pixi",
+    domLoader = createMockLoader();
+    gpuLoader = createMockLoader();
+    coordinator = createAssetCoordinator({
+      manifest: minimalManifest,
+      loaders: { dom: domLoader, gpu: gpuLoader },
     });
   });
 
-  it.skip("has unloadBundle method (when implemented on GC wrapper)", () => {
+  it("has unloadBundle method", () => {
     expect(coordinator).toHaveProperty("unloadBundle");
-    expect(typeof (coordinator as { unloadBundle?: (n: string) => Promise<void> }).unloadBundle).toBe("function");
+    expect(typeof coordinator.unloadBundle).toBe("function");
   });
 
-  it.skip("has unloadScene method (when implemented on GC wrapper)", () => {
-    expect(coordinator).toHaveProperty("unloadScene");
-    expect(typeof (coordinator as { unloadScene?: (n: string) => Promise<void> }).unloadScene).toBe("function");
+  it("unloadBundle delegates to the loader and updates state", async () => {
+    await coordinator.loadBundle("theme-branding");
+    expect(coordinator.isLoaded("theme-branding")).toBe(true);
+
+    coordinator.unloadBundle("theme-branding");
+    expect(coordinator.isLoaded("theme-branding")).toBe(false);
+    expect(domLoader.unloadBundle).toHaveBeenCalledWith("theme-branding");
   });
 
-  it.skip("unloadBundle('unknown') is no-op and does not throw (when implemented)", async () => {
-    const coord = coordinator as { unloadBundle?: (n: string) => Promise<void> };
-    if (!coord.unloadBundle) throw new Error("unloadBundle not implemented");
-    await expect(coord.unloadBundle("unknown")).resolves.toBeUndefined();
+  it("unloadBundle('unknown') is a no-op and does not throw", () => {
+    expect(() => coordinator.unloadBundle("unknown")).not.toThrow();
   });
 
-  it.skip("unloadScene('foo') delegates to unloadBundle('scene-foo') (when implemented)", async () => {
-    const coord = coordinator as { unloadScene?: (n: string) => Promise<void>; unloadBundle?: (n: string) => Promise<void> };
-    if (!coord.unloadScene || !coord.unloadBundle) throw new Error("unload not implemented");
-    // Delegation is implementation detail; when we add unload we can spy and assert
-    await coord.unloadScene("foo");
+  it("unloadBundles unloads multiple bundles", async () => {
+    await coordinator.loadBundle("theme-branding");
+    await coordinator.loadBundle("scene-foo");
+
+    coordinator.unloadBundles(["theme-branding", "scene-foo"]);
+
+    expect(coordinator.isLoaded("theme-branding")).toBe(false);
+    expect(coordinator.isLoaded("scene-foo")).toBe(false);
+  });
+
+  it("re-loading a previously unloaded bundle works", async () => {
+    await coordinator.loadBundle("theme-branding");
+    coordinator.unloadBundle("theme-branding");
+    expect(coordinator.isLoaded("theme-branding")).toBe(false);
+
+    await coordinator.loadBundle("theme-branding");
+    expect(coordinator.isLoaded("theme-branding")).toBe(true);
   });
 });

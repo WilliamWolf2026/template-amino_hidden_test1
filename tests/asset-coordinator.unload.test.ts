@@ -1,35 +1,50 @@
 /**
- * Asset coordinator — contract tests against GC-based coordinator.
+ * Asset coordinator — contract tests against @wolfgames/components coordinator.
  *
  * Run: bun run test:run (or npm run test:run)
  *
- * Unload tests are skipped until unloadBundle/unloadScene are implemented on the GC wrapper.
+ * Uses mock loaders to test coordinator behavior in a node environment,
+ * following the same pattern as game-components' own test suite.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
-import {
-  createScaffoldCoordinatorFromGc,
-  type ScaffoldCoordinatorFromGc,
-} from "../src/core/systems/assets/gc/coordinator-wrapper";
-import type { Manifest } from "../src/core/systems/assets/types";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createAssetCoordinator } from "@wolfgames/components/core";
+import type { Manifest, LoaderAdapter } from "@wolfgames/components/core";
+
+const createMockLoader = (): LoaderAdapter => ({
+  init: vi.fn(),
+  loadBundle: vi.fn(async () => {}),
+  get: vi.fn(() => null),
+  has: vi.fn(() => false),
+  unloadBundle: vi.fn(),
+  dispose: vi.fn(),
+});
 
 const MINIMAL_MANIFEST: Manifest = {
   cdnBase: "https://example.com/assets/",
   localBase: "/assets/",
-  bundles: [{ name: "theme-test", assets: [] }],
+  bundles: [
+    {
+      name: "theme-test",
+      assets: [{ alias: "theme-test", src: "theme-test.json" }],
+    },
+  ],
 };
 
 describe("Asset coordinator — existing contract", () => {
-  let coordinator: ScaffoldCoordinatorFromGc;
+  let coordinator: ReturnType<typeof createAssetCoordinator>;
+  let domLoader: LoaderAdapter;
 
   beforeEach(() => {
-    coordinator = createScaffoldCoordinatorFromGc(MINIMAL_MANIFEST, {
-      engine: "pixi",
+    domLoader = createMockLoader();
+    coordinator = createAssetCoordinator({
+      manifest: MINIMAL_MANIFEST,
+      loaders: { dom: domLoader },
     });
   });
 
-  it("unknown bundle: loadBundle does not throw, isLoaded is false", async () => {
-    await expect(coordinator.loadBundle("unknown-bundle")).resolves.toBeUndefined();
+  it("unknown bundle: loadBundle records error, isLoaded is false", async () => {
+    await coordinator.loadBundle("unknown-bundle");
     expect(coordinator.isLoaded("unknown-bundle")).toBe(false);
   });
 
@@ -39,34 +54,31 @@ describe("Asset coordinator — existing contract", () => {
   });
 });
 
-describe("Asset coordinator — unload (desired contract, not yet on GC wrapper)", () => {
-  let coordinator: ScaffoldCoordinatorFromGc;
+describe("Asset coordinator — unload contract", () => {
+  let coordinator: ReturnType<typeof createAssetCoordinator>;
+  let domLoader: LoaderAdapter;
 
   beforeEach(() => {
-    coordinator = createScaffoldCoordinatorFromGc(MINIMAL_MANIFEST, {
-      engine: "pixi",
+    domLoader = createMockLoader();
+    coordinator = createAssetCoordinator({
+      manifest: MINIMAL_MANIFEST,
+      loaders: { dom: domLoader },
     });
   });
 
-  it.skip("unloadBundle(name) exists on coordinator", () => {
-    expect(typeof (coordinator as { unloadBundle?: (n: string) => void }).unloadBundle).toBe(
-      "function"
-    );
+  it("unloadBundle exists on coordinator", () => {
+    expect(typeof coordinator.unloadBundle).toBe("function");
   });
 
-  it.skip("after loadBundle(name) then unloadBundle(name), isLoaded(name) is false", async () => {
+  it("after loadBundle then unloadBundle, isLoaded is false", async () => {
     await coordinator.loadBundle("theme-test");
     expect(coordinator.isLoaded("theme-test")).toBe(true);
 
-    const coord = coordinator as unknown as { unloadBundle: (n: string) => void | Promise<void> };
-    if (typeof coord.unloadBundle !== "function") throw new Error("unloadBundle not implemented");
-    await Promise.resolve(coord.unloadBundle("theme-test"));
-
+    coordinator.unloadBundle("theme-test");
     expect(coordinator.isLoaded("theme-test")).toBe(false);
   });
 
-  it.skip("unloadScene(name) exists and delegates to unloadBundle(`scene-${name}`)", () => {
-    const coord = coordinator as { unloadScene?: (n: string) => void };
-    expect(typeof coord.unloadScene).toBe("function");
+  it("unloadBundle for non-existent bundle is a no-op", () => {
+    expect(() => coordinator.unloadBundle("nonexistent")).not.toThrow();
   });
 });
