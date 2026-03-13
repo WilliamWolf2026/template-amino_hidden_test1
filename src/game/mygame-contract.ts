@@ -1,0 +1,64 @@
+/**
+ * mygame Contract
+ *
+ * Defines the exact interfaces that `mygame/` must export.
+ * When an LLM generates a new game, it must satisfy these types.
+ *
+ * `mygame/index.ts` must export:
+ *   - setupGame: (deps: GameControllerDeps) => GameController
+ *   - setupStartScreen: (deps: StartScreenDeps) => StartScreenController
+ */
+
+import type { AssetCoordinatorFacade } from '~/core/systems/assets';
+import type { ScaffoldTuning } from '~/core/systems/tuning/types';
+import type { GameTuningBase } from '~/core/systems/tuning/types';
+
+// ---------------------------------------------------------------------------
+// Game Controller (used by GameScreen.tsx)
+// ---------------------------------------------------------------------------
+
+export interface GameControllerDeps {
+  coordinator: AssetCoordinatorFacade;
+  tuning: { scaffold: ScaffoldTuning; game: GameTuningBase };
+  audio: unknown;
+  gameData: unknown;
+  analytics: unknown;
+}
+
+export interface GameController {
+  /** Mount the game into a container div (Pixi canvas, DOM, etc.) */
+  init: (container: HTMLDivElement) => void;
+  /** Tear down the game and release resources */
+  destroy: () => void;
+  /** Reactive accessibility text for screen readers */
+  ariaText: () => string;
+}
+
+export type SetupGame = (deps: GameControllerDeps) => GameController;
+
+// ---------------------------------------------------------------------------
+// Start Screen Controller (used by StartScreen.tsx)
+// ---------------------------------------------------------------------------
+
+export interface StartScreenDeps {
+  goto: (screen: string) => void;
+  coordinator: AssetCoordinatorFacade;
+  initGpu: () => Promise<void>;
+  unlockAudio: () => void;
+  loadCore: (onProgress?: (p: number) => void) => Promise<void>;
+  loadAudio: (onProgress?: (p: number) => void) => Promise<void>;
+  loadBundle?: (name: string, onProgress?: (p: number) => void) => Promise<void>;
+  tuning: { scaffold: ScaffoldTuning; game: GameTuningBase };
+  analytics: { trackGameStart: () => void };
+}
+
+export interface StartScreenController {
+  /** Mount the start screen into a container div */
+  init: (container: HTMLDivElement) => void;
+  /** Tear down the start screen */
+  destroy: () => void;
+  /** Background color for the screen wrapper */
+  backgroundColor: string;
+}
+
+export type SetupStartScreen = (deps: StartScreenDeps) => StartScreenController;

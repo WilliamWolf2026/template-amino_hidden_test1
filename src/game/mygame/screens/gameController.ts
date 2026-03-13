@@ -11,25 +11,13 @@
  */
 
 import { createSignal } from 'solid-js';
-import type { AssetCoordinator } from '~/core/systems/assets';
-import type { ScaffoldTuning } from '~/core';
-import type { GameTuning } from '~/game/tuning';
+import type {
+  GameControllerDeps,
+  GameController,
+  SetupGame,
+} from '~/game/mygame-contract';
 
-interface GameControllerDeps {
-  coordinator: AssetCoordinator;
-  tuning: { scaffold: ScaffoldTuning; game: GameTuning };
-  audio: unknown;
-  gameData: unknown;
-  analytics: unknown;
-}
-
-interface GameController {
-  init: (container: HTMLDivElement) => void;
-  destroy: () => void;
-  ariaText: () => string;
-}
-
-export function setupGame(_deps: GameControllerDeps): GameController {
+export const setupGame: SetupGame = (_deps: GameControllerDeps): GameController => {
   const [ariaText, setAriaText] = createSignal('Game loading...');
   let wrapper: HTMLDivElement | null = null;
 

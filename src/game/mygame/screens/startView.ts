@@ -10,29 +10,13 @@
  * 3. Return cleanup
  */
 
-import type { AssetCoordinator } from '~/core/systems/assets';
-import type { ScaffoldTuning } from '~/core';
-import type { GameTuning } from '~/game/tuning';
+import type {
+  StartScreenDeps,
+  StartScreenController,
+  SetupStartScreen,
+} from '~/game/mygame-contract';
 
-interface StartScreenDeps {
-  goto: (screen: string) => void;
-  coordinator: AssetCoordinator;
-  initGpu: () => Promise<void>;
-  unlockAudio: () => void;
-  loadCore: (onProgress?: (p: number) => void) => Promise<void>;
-  loadAudio: (onProgress?: (p: number) => void) => Promise<void>;
-  loadBundle?: (name: string, onProgress?: (p: number) => void) => Promise<void>;
-  tuning: { scaffold: ScaffoldTuning; game: GameTuning };
-  analytics: { trackGameStart: () => void };
-}
-
-interface StartScreenController {
-  init: (container: HTMLDivElement) => void;
-  destroy: () => void;
-  backgroundColor: string;
-}
-
-export function setupStartScreen(deps: StartScreenDeps): StartScreenController {
+export const setupStartScreen: SetupStartScreen = (deps: StartScreenDeps): StartScreenController => {
   let wrapper: HTMLDivElement | null = null;
 
   return {
