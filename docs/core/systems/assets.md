@@ -243,3 +243,91 @@ GameScreen
     ├── loadScene('gameplay') ──► GpuLoader (scene-gameplay)
     └── startBackgroundLoading() ──► defer-*, fx-*
 ```
+
+## Progress Tracking
+
+The coordinator exposes a reactive `LoadingState` that provides real-time per-bundle progress:
+
+```typescript
+interface LoadingState {
+  loading: string[];          // bundles currently loading (foreground)
+  loaded: string[];           // bundles that finished loading
+  errors: Record<string, Error>;
+  bundleProgress: Record<string, number>; // 0–1 per in-flight bundle
+  backgroundLoading: string[];            // bundles loading in background
+}
+```
+
+Each loader (Pixi, DOM, Howler) reports progress via an `onProgress` callback passed by the coordinator. The `LoadingScreen` derives its progress bar from this state:
+
+```
+progress = (loaded_count + sum_of_in_flight_progress) / total_target_bundles × 100
+```
+
+### Accessing Loading State
+
+```typescript
+import { useLoadingState } from '~/core/systems/assets';
+
+function MyComponent() {
+  const loadingState = useLoadingState(); // Accessor<LoadingState>
+
+  // Reactive — triggers re-renders when bundles load
+  const isLoading = () => loadingState().loading.length > 0;
+  const bundlePct = () => loadingState().bundleProgress['scene-game'] ?? 0;
+}
+```
+
+### Error Handling
+
+Failed bundles appear in `loadingState().errors`. The `LoadingScreen` displays per-bundle errors and offers a retry button that re-invokes `loadBundle` for each failed bundle.
+
+## Unloading & Memory Lifecycle
+
+### Automatic Unloading on Screen Transitions
+
+When the screen manager transitions from screen A to screen B, bundles owned by A but not by B are automatically unloaded. Ownership is determined by the `screenAssets` config in `src/game/config.ts`:
+
+```typescript
+screenAssets: {
+  start: { required: ['theme-branding'] },
+  game:  { required: ['scene-game', 'core-sprites'], optional: ['fx-particles'] },
+}
+```
+
+```
+Transition: game → results
+  game owns:    [scene-game, core-sprites, fx-particles]
+  results owns: []
+  unloaded:     [scene-game, core-sprites, fx-particles]
+
+Transition: game → start
+  game owns:    [scene-game, core-sprites, fx-particles]
+  start owns:   [theme-branding]
+  unloaded:     [scene-game, core-sprites, fx-particles]  (no overlap)
+```
+
+Shared bundles (present in both screens) are preserved — only bundles exclusive to the outgoing screen are released.
+
+### What Unloading Does
+
+| Loader | Cleanup |
+|--------|---------|
+| GpuLoader (Pixi) | `Assets.unloadBundle(name)` — destroys textures and releases GPU memory |
+| DomLoader | Clears cached image bitmaps, data URLs, and font entries |
+| AudioLoader (Howler) | Calls `Howl.unload()` on each sound in the bundle |
+
+### Manual Unloading
+
+For screens not covered by `screenAssets` or for fine-grained control:
+
+```typescript
+const { unloadBundles } = useAssets();
+
+// Unload specific bundles
+unloadBundles(['scene-gameplay', 'fx-particles']);
+```
+
+### Background Loading
+
+Bundles loaded via `backgroundLoadBundle()` or listed in `screenAssets.optional` load without blocking screen transitions. They appear in `loadingState().backgroundLoading` while in flight.

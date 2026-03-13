@@ -20,6 +20,34 @@
     }
   },
   "$defs": {
+    "AssetDefinition": {
+      "type": "object",
+      "required": ["alias", "src"],
+      "properties": {
+        "alias": {
+          "type": "string",
+          "description": "Unique identifier for this asset across all bundles"
+        },
+        "src": {
+          "type": "string",
+          "description": "Path relative to cdnBase; no leading slash, no .., no absolute URLs"
+        },
+        "data": {
+          "type": "object",
+          "description": "Optional loader-specific data (e.g., spritesheet JSON metadata)"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["image", "json", "spritesheet", "audioSprite"],
+          "description": "Content type hint. When omitted, the loader infers type from file extension or bundle kind."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Freeform tags for filtering, grouping, or generation metadata"
+        }
+      }
+    },
     "ManifestBundle": {
       "type": "object",
       "required": ["name", "assets"],
@@ -31,13 +59,8 @@
         },
         "assets": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Paths relative to cdnBase; no leading slash, no .., no absolute URLs"
-        },
-        "target": {
-          "type": "string",
-          "enum": ["dom", "gpu", "agnostic"],
-          "description": "Optional loader target override; otherwise inferred from bundle name prefix"
+          "items": { "$ref": "#/$defs/AssetDefinition" },
+          "description": "Asset definitions within this bundle"
         },
         "kind": {
           "type": "string",

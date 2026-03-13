@@ -84,12 +84,41 @@ interface Manifest {
 
 interface ManifestBundle {
   name: string;         // unique, prefer reserved prefix + kebab-name
-  assets: string[];     // paths relative to cdnBase/localBase
-  target?: 'dom' | 'gpu' | 'agnostic';  // optional loader target override
+  assets: AssetDefinition[];
   kind?: BundleKind;    // optional semantic classification (see §1.2)
 }
 
+interface AssetDefinition {
+  alias: string;        // unique across all bundles
+  src: string;          // path relative to cdnBase/localBase
+  data?: Record<string, unknown>;  // optional loader-specific data
+  type?: AssetType;     // content type hint (see §3.1)
+  tags?: string[];      // freeform tags for filtering/generation metadata
+}
+
+type AssetType = 'image' | 'json' | 'spritesheet' | 'audioSprite';
 type BundleKind = 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' | 'defer';
+```
+
+### 3.1 `AssetDefinition.type` (prompt-friendly)
+
+When generating manifests, the `type` field lets generation tooling specify intent explicitly rather than relying on file-extension inference:
+
+| `type`        | Use case                                    | Example `src`          |
+|---------------|---------------------------------------------|------------------------|
+| `image`       | Single raster/vector image                  | `bg-city.png`          |
+| `json`        | Generic JSON data                           | `levels/chapter-1.json`|
+| `spritesheet` | TexturePacker atlas (JSON + image pair)      | `atlas-ui-buttons.json`|
+| `audioSprite` | Howler audio sprite (JSON + audio files)     | `sfx-gameplay.json`    |
+
+When `type` is omitted, loaders infer type from file extension and bundle kind (existing behavior).
+
+### 3.2 `AssetDefinition.tags`
+
+Freeform string tags for filtering, grouping, or generation metadata. The runtime does not interpret tags; they are available for tooling, queries, and LLM prompts.
+
+```json
+{ "alias": "atlas-tiles", "src": "atlas-tiles.json", "type": "spritesheet", "tags": ["gameplay", "essential"] }
 ```
 
 ---
@@ -101,7 +130,47 @@ type BundleKind = 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' 
   "cdnBase": "/assets",
   "localBase": "/assets",
   "bundles": [
-    { "name": "theme-branding", "assets": ["atlas-branding-wolf.json"] }
+    {
+      "name": "theme-branding",
+      "assets": [
+        { "alias": "atlas-branding-wolf", "src": "atlas-branding-wolf.json" }
+      ]
+    }
+  ]
+}
+```
+
+### 4.1 Example with prompt-friendly metadata
+
+```json
+{
+  "cdnBase": "/assets",
+  "bundles": [
+    {
+      "name": "boot-loading",
+      "assets": [
+        { "alias": "spinner", "src": "spinner.png", "type": "image" }
+      ]
+    },
+    {
+      "name": "audio-sfx",
+      "kind": "audio",
+      "assets": [
+        {
+          "alias": "sfx-gameplay",
+          "src": "sfx-gameplay.json",
+          "type": "audioSprite",
+          "tags": ["gameplay", "essential"]
+        }
+      ]
+    },
+    {
+      "name": "scene-game",
+      "assets": [
+        { "alias": "atlas-tiles", "src": "atlas-tiles.json", "type": "spritesheet", "tags": ["gameplay"] },
+        { "alias": "atlas-ui", "src": "atlas-ui.json", "type": "spritesheet", "tags": ["ui"] }
+      ]
+    }
   ]
 }
 ```
