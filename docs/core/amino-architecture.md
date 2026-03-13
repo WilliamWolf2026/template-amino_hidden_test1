@@ -141,37 +141,33 @@ The contract flow between tiers:
 
 A game is valid if and only if it provides all of these exports for `app.tsx`:
 
-| Export | File | Type |
-|--------|------|------|
-| `gameConfig.screens` | `game/config.ts` | `Record<ScreenId, Component>` |
-| `gameConfig.initialScreen` | `game/config.ts` | `ScreenId` |
-| `manifest` | `game/config.ts` | `Manifest` |
-| `defaultGameData` | `game/index.ts` | `unknown` |
-| `gameConfig.serverStorageUrl` | `game/config.ts` | `string \| null` |
-| `GAME_DEFAULTS` | `game/tuning/` | extends `GameTuningBase` |
-| `AnalyticsProvider` | `game/setup/AnalyticsContext.tsx` | `ParentComponent` |
-| `FeatureFlagProvider` | `game/setup/FeatureFlagContext.tsx` | `ParentComponent` |
+- **`gameConfig.screens`** — `game/config.ts` → `Record<ScreenId, Component>` — maps screen IDs to lazy-loaded Solid components
+- **`gameConfig.initialScreen`** — `game/config.ts` → `ScreenId` — which screen to show first
+- **`manifest`** — `game/config.ts` → `Manifest` — asset bundle definitions for the game
+- **`defaultGameData`** — `game/index.ts` → `unknown` — initial game state shape
+- **`gameConfig.serverStorageUrl`** — `game/config.ts` → `string | null` — CDN/storage base URL
+- **`GAME_DEFAULTS`** — `game/tuning/` → extends `GameTuningBase` — game tuning schema + defaults
+- **`AnalyticsProvider`** — `game/setup/AnalyticsContext.tsx` → `ParentComponent` — PostHog wrapper
+- **`FeatureFlagProvider`** — `game/setup/FeatureFlagContext.tsx` → `ParentComponent` — feature flag wrapper
 
 ### 3B: Core → Game (what core guarantees)
 
-| Hook | Available below | Purpose |
-|------|----------------|---------|
-| `useTuning<S, G>()` | `TuningProvider` | Reactive scaffold + game config stores with persistence |
-| `useManifest()` | `ManifestProvider` | Game data resolution (postMessage > CDN > local) |
-| `useAssets()` | `AssetProvider` | Asset loading, GPU init, audio unlock |
-| `useScreen()` | `ScreenProvider` | Screen navigation with transitions |
-| `usePause()` | `PauseProvider` | Global pause state (spacebar, visibility) |
-| `useAudio()` | Singleton fallback | Volume/mute settings with localStorage persistence |
+Every hook is available to any component rendered below its provider:
+
+- **`useTuning<S, G>()`** — below `TuningProvider` · Reactive scaffold + game config stores with persistence
+- **`useManifest()`** — below `ManifestProvider` · Game data resolution (postMessage > CDN > local)
+- **`useAssets()`** — below `AssetProvider` · Asset loading, GPU init, audio unlock
+- **`useScreen()`** — below `ScreenProvider` · Screen navigation with transitions
+- **`usePause()`** — below `PauseProvider` · Global pause state (spacebar, visibility)
+- **`useAudio()`** — singleton fallback · Volume/mute settings with localStorage persistence
 
 Core also guarantees: error isolation via `GlobalBoundary`, tuning persistence (URL > runtime > localStorage > JSON > defaults), and screen transition animations.
 
 ### 3C: Modules → Game (what modules guarantee)
 
-| Category | Contract |
-|----------|----------|
-| **Primitives** | `PIXI.Container` subclass, config-driven, no hardcoded game values |
-| **Logic** | `create*()` factory returning typed interface, generic type params |
-| **Prefabs** | Same as primitives, may compose other primitives internally |
+- **Primitives** — `PIXI.Container` subclass, config-driven, no hardcoded game values
+- **Logic** — `create*()` factory returning typed interface, generic type params
+- **Prefabs** — same as primitives, may compose other primitives internally
 
 ---
 
