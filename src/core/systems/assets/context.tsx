@@ -1,4 +1,4 @@
-import { createContext, useContext, createSignal, onMount, onCleanup } from 'solid-js';
+import { createContext, useContext, createSignal, onCleanup } from 'solid-js';
 import type { Accessor, ParentProps } from 'solid-js';
 import type { LoadingState } from '@wolfgames/components/core';
 import type { ProgressCallback } from './types';
@@ -11,7 +11,6 @@ interface AssetContextValue {
   loadingState: Accessor<LoadingState>;
   ready: () => boolean;
   gpuReady: () => boolean;
-  loading: () => boolean;
   loadBundle: (name: string, onProgress?: ProgressCallback) => Promise<void>;
   backgroundLoadBundle: (name: string) => Promise<void>;
   preloadScene: (name: string) => Promise<void>;
@@ -35,89 +34,53 @@ interface AssetProviderProps extends ParentProps {
 
 export function AssetProvider(props: AssetProviderProps) {
   const { manifest } = useManifest();
-  const coordinator = createCoordinatorFacade(manifest());
+  const facade = createCoordinatorFacade(manifest());
 
   const cdnBase = manifest().cdnBase;
   const isRemote = cdnBase.startsWith('http');
   console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
 
   const [solidLoadingState, setSolidLoadingState] = createSignal<LoadingState>(
-    coordinator.loadingStateSignal.get(),
+    facade.loadingStateSignal.get(),
   );
-  const unsubLoadingState = coordinator.loadingStateSignal.subscribe(setSolidLoadingState);
+  const unsubLoadingState = facade.loadingStateSignal.subscribe(setSolidLoadingState);
 
   const [ready, setReady] = createSignal(false);
   const [gpuReady, setGpuReady] = createSignal(false);
-  const [loading, setLoading] = createSignal(false);
-
-  const wrapLoad = async (fn: () => Promise<void>) => {
-    setLoading(true);
-    try { await fn(); }
-    finally { setLoading(false); }
-  };
 
   const value: AssetContextValue = {
-    coordinator,
+    coordinator: facade,
     loadingState: solidLoadingState,
     ready,
     gpuReady,
-    loading,
 
-    async loadBundle(name: string, onProgress?: ProgressCallback) {
-      await wrapLoad(() => coordinator.loadBundle(name, onProgress));
+    loadBundle: (name, onProgress?) => facade.loadBundle(name, onProgress),
+    backgroundLoadBundle: (name) => facade.backgroundLoadBundle(name),
+    preloadScene: (name) => facade.preloadScene(name),
+
+    async loadBoot(onProgress?) {
+      await facade.loadBoot(onProgress);
+      setReady(true);
     },
-    backgroundLoadBundle(name: string) {
-      return coordinator.backgroundLoadBundle(name);
-    },
-    preloadScene(name: string) {
-      return coordinator.preloadScene(name);
-    },
-    async loadBoot(onProgress?: ProgressCallback) {
-      await wrapLoad(async () => {
-        await coordinator.loadBoot(onProgress);
-        setReady(true);
-      });
-    },
-    async loadCore(onProgress?: ProgressCallback) {
-      await wrapLoad(() => coordinator.loadCore(onProgress));
-    },
-    async loadTheme(onProgress?: ProgressCallback) {
-      await wrapLoad(() => coordinator.loadTheme(onProgress));
-    },
-    async loadAudio(onProgress?: ProgressCallback) {
-      await wrapLoad(() => coordinator.loadAudio(onProgress));
-    },
-    async loadScene(name: string, onProgress?: ProgressCallback) {
-      await wrapLoad(() => coordinator.loadScene(name, onProgress));
-    },
+    loadCore: (onProgress?) => facade.loadCore(onProgress),
+    loadTheme: (onProgress?) => facade.loadTheme(onProgress),
+    loadAudio: (onProgress?) => facade.loadAudio(onProgress),
+    loadScene: (name, onProgress?) => facade.loadScene(name, onProgress),
+
     async initGpu() {
-      await coordinator.initGpu();
+      await facade.initGpu();
       setGpuReady(true);
     },
     unlockAudio() {
-      void coordinator.audio.unlock();
+      void facade.audio.unlock();
     },
-    unloadBundle(name: string) {
-      coordinator.unloadBundle(name);
-    },
-    unloadBundles(names: string[]) {
-      coordinator.unloadBundles(names);
-    },
-    unloadScene(sceneName: string) {
-      coordinator.unloadScene(sceneName);
-    },
+    unloadBundle: (name) => facade.unloadBundle(name),
+    unloadBundles: (names) => facade.unloadBundles(names),
+    unloadScene: (sceneName) => facade.unloadScene(sceneName),
   };
 
-  onMount(() => {
-    if (import.meta.env.DEV && typeof window !== 'undefined') {
-      (window as unknown as Record<string, unknown>).__scaffold__ = { coordinator };
-    }
-  });
   onCleanup(() => {
     unsubLoadingState();
-    if (import.meta.env.DEV && typeof window !== 'undefined') {
-      delete (window as unknown as Record<string, unknown>).__scaffold__;
-    }
   });
 
   return (
