@@ -111,69 +111,67 @@ Modules are organized into three categories:
 
 ## 3. Cross-Tier Contracts
 
+The contract flow between tiers:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                          app.tsx (wiring layer)                  │
+│                                                                  │
+│   Game PROVIDES ──────────────────────► Core CONSUMES            │
+│   • gameConfig.screens                  → ScreenRenderer         │
+│   • manifest                            → ManifestProvider       │
+│   • GAME_DEFAULTS                       → TuningProvider         │
+│   • AnalyticsProvider                   → provider stack         │
+│   • FeatureFlagProvider                 → provider stack         │
+│                                                                  │
+│   Core GUARANTEES ────────────────────► Game USES                │
+│   • useTuning() useAssets()             ← any screen component   │
+│   • useScreen() usePause()              ← any screen component   │
+│   • useAudio() useManifest()            ← any screen component   │
+│   • Error isolation, persistence        ← automatic              │
+│                                                                  │
+│   Modules GUARANTEE ──────────────────► Game USES                │
+│   • Primitives: PIXI.Container + config ← game/<mode>/ code     │
+│   • Logic: create*() factories          ← game/services/         │
+│   • Prefabs: composed containers        ← game/<mode>/ code     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
 ### 3A: Game → Core (what game must provide)
 
-These are the files and exports that `app.tsx` imports from `game/` to configure core providers. A game is valid if and only if it provides all of these.
+A game is valid if and only if it provides all of these exports for `app.tsx`:
 
-| Contract | File | Required Export | Consumed By | Type Constraint |
-|----------|------|-----------------|-------------|-----------------|
-| Screen registry | `game/config.ts` | `gameConfig.screens` | `ScreenRenderer` | `Record<ScreenId, Component>` |
-| Initial screen | `game/config.ts` | `gameConfig.initialScreen` | `ScreenProvider` | `ScreenId` |
-| Asset manifest | `game/config.ts` | `manifest` | `ManifestProvider` | `Manifest` (from `~/core/systems/assets`) |
-| Default game data | `game/index.ts` | `defaultGameData` | `ManifestProvider` | `unknown` (game-specific shape) |
-| Server storage URL | `game/config.ts` | `gameConfig.serverStorageUrl` | `ManifestProvider` | `string \| null` |
-| Game tuning defaults | `game/tuning/` | `GAME_DEFAULTS` | `TuningProvider` | Extends `GameTuningBase` (`{ version: string }`) |
-| Analytics provider | `game/setup/AnalyticsContext.tsx` | `AnalyticsProvider` | `app.tsx` provider stack | `ParentComponent` |
-| Feature flag provider | `game/setup/FeatureFlagContext.tsx` | `FeatureFlagProvider` | `app.tsx` provider stack | `ParentComponent` |
-| Viewport mode (optional) | `game/config.ts` | `gameConfig.defaultViewportMode` | `ViewportModeWrapper` | `ViewportMode \| undefined` |
+| Export | File | Type |
+|--------|------|------|
+| `gameConfig.screens` | `game/config.ts` | `Record<ScreenId, Component>` |
+| `gameConfig.initialScreen` | `game/config.ts` | `ScreenId` |
+| `manifest` | `game/config.ts` | `Manifest` |
+| `defaultGameData` | `game/index.ts` | `unknown` |
+| `gameConfig.serverStorageUrl` | `game/config.ts` | `string \| null` |
+| `GAME_DEFAULTS` | `game/tuning/` | extends `GameTuningBase` |
+| `AnalyticsProvider` | `game/setup/AnalyticsContext.tsx` | `ParentComponent` |
+| `FeatureFlagProvider` | `game/setup/FeatureFlagContext.tsx` | `ParentComponent` |
 
 ### 3B: Core → Game (what core guarantees)
 
-These are the hooks and behaviors that game code can rely on being available within the provider tree.
+| Hook | Available below | Purpose |
+|------|----------------|---------|
+| `useTuning<S, G>()` | `TuningProvider` | Reactive scaffold + game config stores with persistence |
+| `useManifest()` | `ManifestProvider` | Game data resolution (postMessage > CDN > local) |
+| `useAssets()` | `AssetProvider` | Asset loading, GPU init, audio unlock |
+| `useScreen()` | `ScreenProvider` | Screen navigation with transitions |
+| `usePause()` | `PauseProvider` | Global pause state (spacebar, visibility) |
+| `useAudio()` | Singleton fallback | Volume/mute settings with localStorage persistence |
 
-**Hook availability guarantees:**
-
-| Hook | Guaranteed Available | Returns | Contract |
-|------|---------------------|---------|----------|
-| `useTuning<S, G>()` | Below `TuningProvider` | `TuningState<S, G>` | Reactive stores for scaffold and game config. `scaffold` store always has `ScaffoldTuning` shape. `game` store shape is determined by the game's `GAME_DEFAULTS`. Includes `setScaffoldPath`, `setGamePath`, `load`, `save`, `reset`. |
-| `useManifest()` | Below `ManifestProvider` | `ManifestContextValue` | Reactive accessors for `manifest()`, `gameData()`, `mode()`. Resolves data from postMessage > CDN > local defaults. |
-| `useAssets()` | Below `AssetProvider` | `AssetContextValue` | Asset coordinator with `loadBoot`, `loadCore`, `loadTheme`, `loadAudio`, `loadScene`, `loadBundle`, `initGpu`, `unlockAudio`. Reactive `ready()`, `gpuReady()`, `loading()` signals. |
-| `useScreen()` | Below `ScreenProvider` | `ScreenContext` | `current()`, `previous()`, `transition()`, `data()` accessors. `goto(screenId, data?)` and `back()` navigation. |
-| `usePause()` | Below `PauseProvider` | `PauseState` | `paused()` accessor, `setPaused(bool)`, `togglePause()`. Falls back to singleton if used outside provider. |
-| `useAudio()` | Below `AudioProvider` (or singleton fallback) | `AudioState` | `volume()`, `musicEnabled()`, `ambientEnabled()`, `voEnabled()`. Toggle and set functions. Persists to localStorage. |
-
-**Behavioral guarantees:**
-
-| Guarantee | Description |
-|-----------|-------------|
-| **Error isolation** | `GlobalBoundary` catches all uncaught errors. Individual screen errors don't crash the entire app. Errors are reported to Sentry. |
-| **Pause state** | `usePause()` reflects global pause state. Spacebar toggles pause. Page visibility changes trigger pause. Components can react to `paused()` signal. |
-| **Audio persistence** | Audio volume/mute settings persist across sessions via localStorage. Keys: `app_master_volume`, `app_music_enabled`, `app_ambient_enabled`, `app_vo_enabled`. |
-| **Tuning persistence** | Scaffold and game tuning values persist via localStorage with fallback chain: URL overrides > runtime changes > localStorage > JSON config > defaults. |
-| **Screen transitions** | `goto()` handles fade/slide/none transitions. `back()` returns to previous screen. Screen data is passed via `data()` accessor. |
-| **Manifest resolution** | Data sources resolve in priority order: postMessage injection (embed mode) > CDN fetch > local defaults. |
+Core also guarantees: error isolation via `GlobalBoundary`, tuning persistence (URL > runtime > localStorage > JSON > defaults), and screen transition animations.
 
 ### 3C: Modules → Game (what modules guarantee)
 
-| Module Category | Contract |
-|----------------|----------|
-| **Visual primitives** | Always a class extending `PIXI.Container`. Constructable with a config object. Has sensible defaults in `defaults.ts`. Config accepts all game-specific values (atlas names, fonts, colors) as parameters — never hardcodes them. |
-| **Logic modules** | Always a `create*()` factory function. Returns a typed interface. Accepts game-specific types as generics (e.g., `createProgressService<T extends BaseProgress>`). No side effects at import time. |
-| **Prefabs** | Same contract as visual primitives, but may internally compose multiple primitives. Config object includes all needed sub-component configuration. |
-
-**Current module catalog:**
-
-| Module | Category | Factory/Class | Interface |
-|--------|----------|---------------|-----------|
-| `sprite-button` | Primitive | `new SpriteButton(config)` | `SpriteButtonConfig` — atlas, sprite, label, click handler, 9-slice |
-| `progress-bar` | Primitive | `new ProgressBar(config)` | `ProgressBarConfig` — width, height, font, theme color |
-| `dialogue-box` | Primitive | `new DialogueBox(config)` | `DialogueBoxConfig` — atlas, sprite, font, positioning |
-| `character-sprite` | Primitive | `new CharacterSprite(config)` | `CharacterSpriteConfig<T>` — type map, atlas, base size |
-| `avatar-popup` | Prefab | `new AvatarPopup(config)` | `AvatarPopupConfig` — character sprite, dialogue sprite, font |
-| `progress` | Logic | `createProgressService<T>(config)` | `ProgressService<T>` — `load()`, `save(data)`, `clear()` |
-| `catalog` | Logic | `createCatalogService<T>(config)` | `CatalogService<T>` — `init()`, `current()`, `next()` |
-| `loader` | Logic | `createContentLoader<S,T>(config)` | `ContentLoader<T>` — typed fetch + transform pipeline |
-| `level-completion` | Logic | `createLevelCompletionController(config)` | `LevelCompletionController` — state machine: playing → completing → complete |
+| Category | Contract |
+|----------|----------|
+| **Primitives** | `PIXI.Container` subclass, config-driven, no hardcoded game values |
+| **Logic** | `create*()` factory returning typed interface, generic type params |
+| **Prefabs** | Same as primitives, may compose other primitives internally |
 
 ---
 
