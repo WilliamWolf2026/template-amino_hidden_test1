@@ -74,6 +74,45 @@ git fetch scaffold
 git log $(node -e "console.log(require('./package.json').scaffold.syncedFrom)")..scaffold/main --oneline
 ```
 
+## Post-Sync Verification
+
+After syncing, run the verification script to confirm nothing broke:
+
+```bash
+bun run scaffold:verify
+```
+
+This runs typecheck, lint, and build sequentially. If any step fails, it stops and reports the error. Fix the issue, then re-run.
+
+## Rollback a Failed Sync
+
+If a sync introduced problems, revert it:
+
+```bash
+bun run scaffold:rollback
+```
+
+This reverts the sync commit (which is always the latest commit after a sync). It will refuse to act if the latest commit is not a scaffold sync commit.
+
+After rolling back, investigate the issue and coordinate with the scaffold team before re-syncing.
+
+## Drift Detection
+
+Check if your game has locally modified any scaffold-owned paths:
+
+```bash
+bun run scaffold:drift
+```
+
+This compares `src/core/`, `src/modules/`, and root configs against `scaffold/main`. If drift is found, it lists the modified files. Clean drift before syncing to avoid unexpected behavior.
+
+## Staying Up to Date
+
+The scaffold repo publishes [GitHub Releases](https://github.com/wolfgames/scaffold-production/releases) for each version. To get notified:
+
+- **Watch the repo** — GitHub sends email notifications for new releases
+- **Add the update-check workflow** — Copy `docs/core/scaffold-update-check.yml` into your game repo at `.github/workflows/scaffold-update-check.yml`. It runs weekly and opens an issue when a new scaffold version is available.
+
 ## Releasing a New Scaffold Version
 
 Run from the scaffold repo (not a game repo):
@@ -84,7 +123,7 @@ bun run scaffold:release minor   # 1.0.0 → 1.1.0
 bun run scaffold:release major   # 1.0.0 → 2.0.0
 ```
 
-This updates `scaffold.version` in `package.json`, creates a git tag (`scaffold-vX.Y.Z`), and prints push instructions. Major bumps also print a warning for downstream games.
+This updates `scaffold.version` in `package.json`, generates a `CHANGELOG.md` entry, creates a git tag (`scaffold-vX.Y.Z`), and prints push instructions. When the tag is pushed, a GitHub Release is created automatically. Major bumps also print a warning for downstream games.
 
 ## Troubleshooting
 

@@ -159,4 +159,5 @@ if (import.meta.main) {
   commitSync(shortHash, version, config.cwd);
 
   console.log(`[sync] Done! Scaffold synced to ${shortHash}`);
+  console.log("[sync] Run 'bun run scaffold:verify' to check for breakage.");
 }
