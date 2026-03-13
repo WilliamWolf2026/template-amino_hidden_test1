@@ -14,7 +14,7 @@ import {
   type ScaffoldTuning,
 } from '~/core';
 import { initSentry } from '~/core/lib/sentry';
-import { getEnvironment, scaffoldConfig } from '~/core/config';
+import { getEnvironment } from '~/core/config';
 import { gameConfig, manifest, defaultGameData } from '~/game';
 import { ManifestProvider } from '~/core/systems/manifest/context';
 import { GAME_DEFAULTS } from '~/game/tuning';
@@ -128,7 +128,7 @@ export default function App() {
               </Show>
               <PauseProvider>
                 <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
-                  <AssetProvider config={{ engine: scaffoldConfig.engine }}>
+                  <AssetProvider>
                     <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
                       <ScreenRenderer screens={gameConfig.screens} />
                     </ScreenProvider>

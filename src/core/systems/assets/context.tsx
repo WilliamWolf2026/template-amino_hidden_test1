@@ -1,6 +1,7 @@
-import { createContext, useContext, createSignal, onCleanup } from 'solid-js';
+import { createContext, useContext, createSignal } from 'solid-js';
 import type { Accessor, ParentProps } from 'solid-js';
 import type { LoadingState } from '@wolfgames/components/core';
+import { useSignal } from '@wolfgames/components/solid';
 import type { ProgressCallback } from './types';
 import { createCoordinatorFacade } from './facade';
 import type { AssetCoordinatorFacade } from './facade';
@@ -28,11 +29,7 @@ interface AssetContextValue {
 
 const AssetContext = createContext<AssetContextValue>();
 
-interface AssetProviderProps extends ParentProps {
-  config: { engine: string };
-}
-
-export function AssetProvider(props: AssetProviderProps) {
+export function AssetProvider(props: ParentProps) {
   const { manifest } = useManifest();
   const facade = createCoordinatorFacade(manifest());
 
@@ -40,17 +37,13 @@ export function AssetProvider(props: AssetProviderProps) {
   const isRemote = cdnBase.startsWith('http');
   console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
 
-  const [solidLoadingState, setSolidLoadingState] = createSignal<LoadingState>(
-    facade.loadingStateSignal.get(),
-  );
-  const unsubLoadingState = facade.loadingStateSignal.subscribe(setSolidLoadingState);
-
+  const loadingState = useSignal(facade.loadingStateSignal);
   const [ready, setReady] = createSignal(false);
   const [gpuReady, setGpuReady] = createSignal(false);
 
   const value: AssetContextValue = {
     coordinator: facade,
-    loadingState: solidLoadingState,
+    loadingState,
     ready,
     gpuReady,
 
@@ -78,10 +71,6 @@ export function AssetProvider(props: AssetProviderProps) {
     unloadBundles: (names) => facade.unloadBundles(names),
     unloadScene: (sceneName) => facade.unloadScene(sceneName),
   };
-
-  onCleanup(() => {
-    unsubLoadingState();
-  });
 
   return (
     <AssetContext.Provider value={value}>

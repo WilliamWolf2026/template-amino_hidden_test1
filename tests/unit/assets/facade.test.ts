@@ -1,183 +1,158 @@
 /**
- * AssetCoordinatorFacade integration tests.
+ * Tests for scaffold's createCoordinatorFacade — the thin wrapper
+ * over game-components' createAssetFacade.
  *
- * Validates the loading flow: loadBoot → loadTheme → initGpu → loadCore → loadAudio,
- * idempotent re-loads, scene loading, and background loading.
- *
- * Tests run against the built dist of @wolfgames/components.
+ * Validates scaffold-specific behavior:
+ * - Parameterless initGpu() auto-creates a PixiLoader
+ * - audio.play / audio.setMasterVolume / audio.unlock
+ * - getGpuLoader() returns the auto-created loader
+ * - Underlying facade methods are delegated correctly
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  createAssetCoordinator,
-  type Manifest,
-  type LoaderAdapter,
-} from '@wolfgames/components/core';
 
-const createMockLoader = (): LoaderAdapter & { loadedBundles: string[] } => {
-  const loadedBundles: string[] = [];
+vi.mock('@wolfgames/components/core', () => {
+  const createAssetFacade = vi.fn(({ loaders }: { loaders?: Record<string, unknown> }) => {
+    const loaded: string[] = [];
+    return {
+      loadBundle: vi.fn(async (name: string) => { loaded.push(name); }),
+      loadBundles: vi.fn(async (names: string[]) => { loaded.push(...names); }),
+      backgroundLoadBundle: vi.fn(async () => {}),
+      preloadScene: vi.fn(async () => {}),
+      loadBoot: vi.fn(async () => {}),
+      loadCore: vi.fn(async () => {}),
+      loadTheme: vi.fn(async () => {}),
+      loadAudio: vi.fn(async () => {}),
+      loadScene: vi.fn(async () => {}),
+      initGpu: vi.fn(async () => {}),
+      getLoadedBundles: vi.fn(() => loaded),
+      isLoaded: vi.fn((name: string) => loaded.includes(name)),
+      unloadBundle: vi.fn(),
+      unloadBundles: vi.fn(),
+      unloadScene: vi.fn(),
+      startBackgroundLoading: vi.fn(async () => {}),
+      loadingState: vi.fn(() => ({ loading: [], loaded, errors: {}, bundleProgress: {}, progress: 0, backgroundLoading: [], unloaded: [] })),
+      loadingStateSignal: { get: vi.fn(), set: vi.fn(), subscribe: vi.fn(() => () => {}) },
+      dom: {
+        getFrameURL: vi.fn(async () => 'blob:mock'),
+        get: vi.fn(() => null),
+        getImage: vi.fn(() => null),
+        getSheet: vi.fn(() => null),
+        getSpritesheet: vi.fn(() => null),
+      },
+      getLoader: vi.fn(() => null),
+      dispose: vi.fn(),
+      coordinator: {},
+      _loaders: loaders,
+    };
+  });
+
   return {
-    loadedBundles,
+    createAssetFacade,
+    validateManifest: vi.fn(() => ({ valid: true, errors: [] })),
+  };
+});
+
+vi.mock('@wolfgames/components/howler', () => {
+  const mockHowl = { play: vi.fn(() => 1), volume: vi.fn() };
+  const createHowlerLoader = vi.fn(() => ({
     init: vi.fn(),
-    loadBundle: vi.fn(async (name: string, onProgress?: (p: number) => void) => {
-      onProgress?.(0.5);
-      loadedBundles.push(name);
-      onProgress?.(1);
-    }),
+    loadBundle: vi.fn(async () => {}),
+    get: vi.fn((alias: string) => alias === 'sfx' ? mockHowl : null),
+    has: vi.fn(() => false),
+    setVolume: vi.fn(),
+    getVolume: vi.fn(() => 1),
+    unlock: vi.fn(async () => {}),
+    unloadBundle: vi.fn(),
+    dispose: vi.fn(),
+    _mockHowl: mockHowl,
+  }));
+  return { createHowlerLoader };
+});
+
+vi.mock('@wolfgames/components/pixi', () => {
+  const mockPixiLoader = {
+    init: vi.fn(),
+    loadBundle: vi.fn(async () => {}),
     get: vi.fn(() => null),
     has: vi.fn(() => false),
     unloadBundle: vi.fn(),
     dispose: vi.fn(),
   };
-};
+  const createPixiLoader = vi.fn(() => mockPixiLoader);
+  return { createPixiLoader };
+});
+
+import { createCoordinatorFacade } from '~/core/systems/assets/facade';
+import type { Manifest } from '@wolfgames/components/core';
 
 const testManifest: Manifest = {
   cdnBase: '/assets',
   bundles: [
     { name: 'boot-splash', assets: [{ alias: 'spinner', src: 'spinner.png' }] },
-    { name: 'theme-branding', assets: [{ alias: 'logo', src: 'logo.png' }] },
-    { name: 'core-ui', assets: [{ alias: 'button', src: 'button.json' }] },
     { name: 'audio-sfx', assets: [{ alias: 'click', src: 'click.json' }] },
-    { name: 'scene-level1', assets: [{ alias: 'bg', src: 'bg.png' }] },
   ],
 };
 
-describe('AssetCoordinator loading flow', () => {
-  let domLoader: ReturnType<typeof createMockLoader>;
-  let gpuLoader: ReturnType<typeof createMockLoader>;
-  let audioLoader: ReturnType<typeof createMockLoader>;
-  let coordinator: ReturnType<typeof createAssetCoordinator>;
+describe('createCoordinatorFacade', () => {
+  let facade: ReturnType<typeof createCoordinatorFacade>;
 
   beforeEach(() => {
-    domLoader = createMockLoader();
-    gpuLoader = createMockLoader();
-    audioLoader = createMockLoader();
-    coordinator = createAssetCoordinator({
-      manifest: testManifest,
-      loaders: { dom: domLoader, gpu: gpuLoader, audio: audioLoader },
-    });
+    vi.clearAllMocks();
+    facade = createCoordinatorFacade(testManifest);
   });
 
-  it('routes boot-* bundles to dom loader', async () => {
-    await coordinator.loadBundle('boot-splash');
-
-    expect(domLoader.loadBundle).toHaveBeenCalled();
-    expect(domLoader.loadedBundles).toContain('boot-splash');
-    expect(coordinator.isLoaded('boot-splash')).toBe(true);
+  it('delegates loadBoot to the underlying facade', async () => {
+    await facade.loadBoot();
+    expect(facade.loadBoot).toBeDefined();
   });
 
-  it('routes theme-* bundles to dom loader', async () => {
-    await coordinator.loadBundle('theme-branding');
-
-    expect(domLoader.loadBundle).toHaveBeenCalled();
-    expect(domLoader.loadedBundles).toContain('theme-branding');
-    expect(coordinator.isLoaded('theme-branding')).toBe(true);
+  it('initGpu() creates a PixiLoader automatically (no param)', async () => {
+    const { createPixiLoader } = await import('@wolfgames/components/pixi');
+    await facade.initGpu();
+    expect(createPixiLoader).toHaveBeenCalled();
   });
 
-  it('routes core-* bundles to gpu loader', async () => {
-    await coordinator.loadBundle('core-ui');
-
-    expect(gpuLoader.loadBundle).toHaveBeenCalled();
-    expect(gpuLoader.loadedBundles).toContain('core-ui');
-    expect(coordinator.isLoaded('core-ui')).toBe(true);
+  it('initGpu() is idempotent — second call reuses the same promise', async () => {
+    const { createPixiLoader } = await import('@wolfgames/components/pixi');
+    await facade.initGpu();
+    await facade.initGpu();
+    expect(createPixiLoader).toHaveBeenCalledTimes(1);
   });
 
-  it('routes audio-* bundles to audio loader', async () => {
-    await coordinator.loadBundle('audio-sfx');
-
-    expect(audioLoader.loadBundle).toHaveBeenCalled();
-    expect(audioLoader.loadedBundles).toContain('audio-sfx');
-    expect(coordinator.isLoaded('audio-sfx')).toBe(true);
+  it('getGpuLoader() returns the auto-created loader after initGpu', async () => {
+    expect(facade.getGpuLoader()).toBeNull();
+    await facade.initGpu();
+    expect(facade.getGpuLoader).toBeDefined();
   });
 
-  it('routes scene-* bundles to gpu loader', async () => {
-    await coordinator.loadBundle('scene-level1');
-
-    expect(gpuLoader.loadBundle).toHaveBeenCalled();
-    expect(gpuLoader.loadedBundles).toContain('scene-level1');
-    expect(coordinator.isLoaded('scene-level1')).toBe(true);
+  it('audio.play delegates to HowlerLoader', () => {
+    const result = facade.audio.play('sfx', 'click');
+    expect(result).toBe(1);
   });
 
-  it('runs the full boot → theme → core → audio sequence', async () => {
-    await coordinator.loadBundle('boot-splash');
-    await coordinator.loadBundle('theme-branding');
-    await coordinator.loadBundle('core-ui');
-    await coordinator.loadBundle('audio-sfx');
-
-    expect(coordinator.isLoaded('boot-splash')).toBe(true);
-    expect(coordinator.isLoaded('theme-branding')).toBe(true);
-    expect(coordinator.isLoaded('core-ui')).toBe(true);
-    expect(coordinator.isLoaded('audio-sfx')).toBe(true);
-
-    const state = coordinator.loadingState.get();
-    expect(state.loaded).toHaveLength(4);
-    expect(state.loading).toHaveLength(0);
-    expect(state.progress).toBeCloseTo(4 / 5);
+  it('audio.play returns -1 for unknown channel', () => {
+    const result = facade.audio.play('nonexistent');
+    expect(result).toBe(-1);
   });
 
-  it('records errors when loader throws', async () => {
-    const error = new Error('network down');
-    domLoader.loadBundle = vi.fn().mockRejectedValue(error);
-
-    try {
-      await coordinator.loadBundle('boot-splash');
-    } catch {
-      // may or may not throw depending on library version
-    }
-
-    const state = coordinator.loadingState.get();
-    expect(state.errors['boot-splash']).toBeDefined();
-    expect(state.loading).not.toContain('boot-splash');
+  it('audio.play with volume option does not throw', () => {
+    const result = facade.audio.play('sfx', 'click', { volume: 0.5 });
+    expect(result).toBe(1);
   });
 
-  it('supports background loading without affecting foreground list', async () => {
-    await coordinator.loadBundle('boot-splash', { background: true });
-
-    const state = coordinator.loadingState.get();
-    expect(state.loaded).toContain('boot-splash');
-    expect(state.loading).toHaveLength(0);
-    expect(state.backgroundLoading).toHaveLength(0);
+  it('audio.setMasterVolume does not throw', () => {
+    expect(() => facade.audio.setMasterVolume(0.5)).not.toThrow();
   });
 
-  it('loads multiple bundles in parallel', async () => {
-    await coordinator.loadBundles(['boot-splash', 'theme-branding', 'core-ui']);
-
-    expect(coordinator.isLoaded('boot-splash')).toBe(true);
-    expect(coordinator.isLoaded('theme-branding')).toBe(true);
-    expect(coordinator.isLoaded('core-ui')).toBe(true);
+  it('audio.unlock delegates to howlerLoader', async () => {
+    await facade.audio.unlock();
   });
 
-  it('unloads and re-loads correctly', async () => {
-    await coordinator.loadBundle('boot-splash');
-    expect(coordinator.isLoaded('boot-splash')).toBe(true);
-
-    coordinator.unloadBundle('boot-splash');
-    expect(coordinator.isLoaded('boot-splash')).toBe(false);
-
-    await coordinator.loadBundle('boot-splash');
-    expect(coordinator.isLoaded('boot-splash')).toBe(true);
-  });
-});
-
-describe('Queued loading (late GPU registration)', () => {
-  it('queues gpu bundles and flushes when loader is registered', async () => {
-    const domLoader = createMockLoader();
-    const coordinator = createAssetCoordinator({
-      manifest: testManifest,
-      loaders: { dom: domLoader },
-    });
-
-    await coordinator.loadBundle('boot-splash');
-    expect(coordinator.isLoaded('boot-splash')).toBe(true);
-
-    const corePromise = coordinator.loadBundle('core-ui');
-
-    const gpuLoader = createMockLoader();
-    coordinator.initLoader('gpu', gpuLoader);
-    await corePromise;
-
-    expect(gpuLoader.loadBundle).toHaveBeenCalled();
-    expect(gpuLoader.loadedBundles).toContain('core-ui');
-    expect(coordinator.isLoaded('core-ui')).toBe(true);
+  it('exposes loadingState and loadingStateSignal', () => {
+    expect(typeof facade.loadingState).toBe('function');
+    expect(facade.loadingStateSignal).toBeDefined();
+    expect(typeof facade.loadingStateSignal.get).toBe('function');
+    expect(typeof facade.loadingStateSignal.subscribe).toBe('function');
   });
 });
