@@ -1,13 +1,11 @@
 /**
- * Game Controller
+ * Game Controller — DOM mode template
  *
- * Creates and manages the Pixi.js game instance.
- * Called by screens/GameScreen.tsx — this is the bridge between Solid.js and Pixi.
+ * Called by screens/GameScreen.tsx — the bridge between Solid.js and your game.
  *
- * Implement your game logic here:
- * 1. Create a Pixi Application
- * 2. Build your scene graph
- * 3. Return signals and cleanup
+ * This template uses DOM elements (gameMode: 'dom') so it works without
+ * sprite assets. For a PixiJS game, set gameMode: 'pixi' and see the
+ * commented example below.
  */
 
 import { createSignal } from 'solid-js';
@@ -22,8 +20,9 @@ export const setupGame: SetupGame = (_deps: GameControllerDeps): GameController 
   let wrapper: HTMLDivElement | null = null;
 
   return {
+    gameMode: 'dom',
+
     init(container: HTMLDivElement) {
-      console.log('[mygame] Game controller initialized');
       setAriaText('Gameplay Screen');
 
       wrapper = document.createElement('div');
@@ -42,9 +41,57 @@ export const setupGame: SetupGame = (_deps: GameControllerDeps): GameController 
     destroy() {
       wrapper?.remove();
       wrapper = null;
-      console.log('[mygame] Game controller destroyed');
     },
 
     ariaText,
   };
-}
+};
+
+// ---------------------------------------------------------------------------
+// Pixi mode template (uncomment and replace the DOM version above):
+// ---------------------------------------------------------------------------
+//
+// import { Application, Graphics } from 'pixi.js';
+//
+// export const setupGame: SetupGame = (deps: GameControllerDeps): GameController => {
+//   const [ariaText, setAriaText] = createSignal('Game loading...');
+//   let app: Application | null = null;
+//
+//   return {
+//     gameMode: 'pixi',
+//
+//     init(container: HTMLDivElement) {
+//       setAriaText('Gameplay Screen');
+//
+//       app = new Application();
+//       void app.init({
+//         resizeTo: container,
+//         background: '#1a1a2e',
+//       }).then(() => {
+//         container.appendChild(app!.canvas as HTMLCanvasElement);
+//
+//         // Example: draw a simple rectangle
+//         const rect = new Graphics()
+//           .rect(0, 0, 100, 100)
+//           .fill(0x4a8c1c);
+//         rect.position.set(
+//           app!.screen.width / 2 - 50,
+//           app!.screen.height / 2 - 50,
+//         );
+//         app!.stage.addChild(rect);
+//
+//         // Example: game loop via ticker
+//         app!.ticker.add((ticker) => {
+//           rect.rotation += 0.01 * ticker.deltaTime;
+//         });
+//       });
+//     },
+//
+//     destroy() {
+//       app?.destroy(true, { children: true });
+//       app = null;
+//     },
+//
+//     ariaText,
+//   };
+// };

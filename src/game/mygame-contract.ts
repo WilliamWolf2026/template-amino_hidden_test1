@@ -7,11 +7,19 @@
  * `mygame/index.ts` must export:
  *   - setupGame: (deps: GameControllerDeps) => GameController
  *   - setupStartScreen: (deps: StartScreenDeps) => StartScreenController
+ *
+ * Game Mode:
+ *   - 'dom'  — DOM/CSS-only game. No GPU init needed, no scene or core bundles.
+ *              Use this when generating games without sprite assets.
+ *   - 'pixi' — PixiJS game. Requires initGpu(), expects core and scene bundles in
+ *              the asset manifest. Use this when sprite/atlas assets are available.
  */
 
 import type { AssetCoordinatorFacade } from '~/core/systems/assets';
 import type { ScaffoldTuning } from '~/core/systems/tuning/types';
 import type { GameTuningBase } from '~/core/systems/tuning/types';
+
+export type GameMode = 'dom' | 'pixi';
 
 // ---------------------------------------------------------------------------
 // Game Controller (used by GameScreen.tsx)
@@ -32,6 +40,12 @@ export interface GameController {
   destroy: () => void;
   /** Reactive accessibility text for screen readers */
   ariaText: () => string;
+  /**
+   * Rendering mode. When 'dom', the scaffold skips GPU init and core-* bundle
+   * loading. When 'pixi', the scaffold ensures GPU is initialised before mount.
+   * Defaults to 'dom' if omitted.
+   */
+  gameMode?: GameMode;
 }
 
 export type SetupGame = (deps: GameControllerDeps) => GameController;
