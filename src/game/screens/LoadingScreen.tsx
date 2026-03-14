@@ -1,10 +1,9 @@
 import { onMount, createMemo, Show } from 'solid-js';
-import { Spinner } from '@wolfgames/components/solid';
+import { Spinner, ProgressBar } from '@wolfgames/components/solid';
 import { useScreen } from '~/core/systems/screens';
 import { useAssets, useLoadingState } from '~/core/systems/assets';
 import { useManifest } from '~/core/systems/manifest/context';
 import { useTuning, type ScaffoldTuning } from '~/core';
-import { ProgressBar } from '~/core/ui/ProgressBar';
 import { Logo } from '~/core/ui/Logo';
 import type { GameTuning } from '~/game/tuning';
 

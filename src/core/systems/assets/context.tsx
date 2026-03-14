@@ -1,4 +1,4 @@
-import { createContext, useContext, createSignal } from 'solid-js';
+import { createContext, useContext } from 'solid-js';
 import type { Accessor, ParentProps } from 'solid-js';
 import type { LoadingState } from '@wolfgames/components/core';
 import { useSignal } from '@wolfgames/components/solid';
@@ -7,6 +7,17 @@ import { createCoordinatorFacade } from './facade';
 import type { AssetCoordinatorFacade } from './facade';
 import { useManifest } from '~/core/systems/manifest/context';
 
+/**
+ * Scaffold-specific asset context.
+ *
+ * Wraps game-components' AssetFacade (via createCoordinatorFacade) and adds
+ * scaffold concerns: auto-created PixiLoader, audio unlock convenience, and
+ * HowlerLoader-backed audio helpers.
+ *
+ * The facade's `ready` and `gpuReady` signals are managed by game-components
+ * (set after loadBoot/initGpu complete). This provider bridges them into
+ * Solid accessors so screens can react to phase completion.
+ */
 interface AssetContextValue {
   coordinator: AssetCoordinatorFacade;
   loadingState: Accessor<LoadingState>;
@@ -38,8 +49,8 @@ export function AssetProvider(props: ParentProps) {
   console.log(`[Assets] ${isRemote ? 'CDN' : 'Local'}: ${cdnBase}`);
 
   const loadingState = useSignal(facade.loadingStateSignal);
-  const [ready, setReady] = createSignal(false);
-  const [gpuReady, setGpuReady] = createSignal(false);
+  const ready = useSignal(facade.ready);
+  const gpuReady = useSignal(facade.gpuReady);
 
   const value: AssetContextValue = {
     coordinator: facade,
@@ -50,23 +61,13 @@ export function AssetProvider(props: ParentProps) {
     loadBundle: (name, onProgress?) => facade.loadBundle(name, onProgress),
     backgroundLoadBundle: (name) => facade.backgroundLoadBundle(name),
     preloadScene: (name) => facade.preloadScene(name),
-
-    async loadBoot(onProgress?) {
-      await facade.loadBoot(onProgress);
-      setReady(true);
-    },
+    loadBoot: (onProgress?) => facade.loadBoot(onProgress),
     loadCore: (onProgress?) => facade.loadCore(onProgress),
     loadTheme: (onProgress?) => facade.loadTheme(onProgress),
     loadAudio: (onProgress?) => facade.loadAudio(onProgress),
     loadScene: (name, onProgress?) => facade.loadScene(name, onProgress),
-
-    async initGpu() {
-      await facade.initGpu();
-      setGpuReady(true);
-    },
-    unlockAudio() {
-      void facade.audio.unlock();
-    },
+    initGpu: () => facade.initGpu(),
+    unlockAudio: () => void facade.audio.unlock(),
     unloadBundle: (name) => facade.unloadBundle(name),
     unloadBundles: (names) => facade.unloadBundles(names),
     unloadScene: (sceneName) => facade.unloadScene(sceneName),

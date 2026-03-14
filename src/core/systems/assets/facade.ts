@@ -20,6 +20,7 @@ export interface AssetCoordinatorFacade extends Omit<AssetFacade, 'initGpu'> {
   initGpu(): Promise<void>;
   audio: {
     play(channel: string, sprite?: string, opts?: { volume?: number }): number;
+    stop(channel: string, id?: number): void;
     setMasterVolume(volume: number): void;
     unlock(): Promise<void>;
   };
@@ -50,6 +51,9 @@ export function createCoordinatorFacade(manifest: Manifest): AssetCoordinatorFac
         if (!howl) return -1;
         if (opts?.volume != null) howl.volume(opts.volume);
         return howl.play(sprite);
+      },
+      stop(channel: string, id?: number): void {
+        howlerLoader.stop(channel, id);
       },
       setMasterVolume(volume: number): void {
         howlerLoader.setVolume(volume);

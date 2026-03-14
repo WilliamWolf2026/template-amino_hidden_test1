@@ -6,7 +6,7 @@
  *
  * Inherited from BaseAudioManager:
  * - playSound() / playRandomSound() — sound playback
- * - startMusic() / stopMusic() — music with fade
+ * - startMusic() / stopMusic() — music playback
  * - isMusicPlaying() — music state check
  */
 
