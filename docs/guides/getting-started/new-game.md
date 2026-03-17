@@ -77,18 +77,23 @@ export const MY_GAME_DEFAULTS: MyGameTuning = {
 
 ### Step 3: Update Asset Manifest
 
-Edit `src/game/manifest.ts` with your assets:
+Edit `src/game/asset-manifest.ts` with your bundles and paths. Follow the [manifest contract](../../core/manifest-contract.md): use reserved bundle prefixes (`theme-`, `audio-`, `core-`, `scene-`, etc.), relative paths, and allowed extensions.
 
 ```typescript
-export const manifest: AssetManifest = {
-  atlases: [
-    { name: 'my_sprites', path: '/atlases/my_sprites.json' },
-  ],
-  audio: [
-    { name: 'bgm', path: '/audio/music.mp3', type: 'music' },
+// In src/game/asset-manifest.ts — keep GAME_SLUG / GAME_CDN_PATH in sync with config.ts
+export const manifest: Manifest = {
+  cdnBase: getCdnUrl(),
+  localBase: LOCAL_ASSET_PATH,
+  bundles: [
+    { name: 'theme-branding', assets: ['atlas-branding-wolf.json'] },
+    { name: 'audio-sfx', assets: ['sfx-mygame.json'] },
   ],
 };
 ```
+
+- **Asset naming:** Place files in `public/assets/` following the [naming convention](../assets/naming-convention.md). Run `bun run check:assets` to validate; use `bun run check:assets --suggest` for rename suggestions.
+- **Manifest validation:** Run `bun run check:manifest` (optionally `--strict`) after changing bundles.
+- **Machine-readable specs:** [naming-convention.schema.json](../assets/naming-convention.schema.json), [manifest.schema.json](../../schemas/manifest.schema.json).
 
 ### Step 4: Create Your Screens
 
@@ -162,7 +167,7 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 | **Screens** | Loading, Start, Game, Results UI | `src/game/screens/` |
 | **Audio Manager** | Extends BaseAudioManager with game sounds | `src/game/audio/manager.ts` |
 | **Sound Definitions** | SoundDefinition constants for each sound | `src/game/audio/sounds.ts` |
-| **Asset Manifest** | List of atlases, audio, images to load | `src/game/manifest.ts` |
+| **Asset Manifest** | List of atlases, audio, images to load | `src/game/asset-manifest.ts` |
 | **Tuning Types** | Game-specific tunable parameters | `src/game/tuning/` |
 | **Game State** | Signals for score, level, progress | `src/game/state.ts` |
 | **Screen Config** | Screen mappings, initial screen, viewport default | `src/game/config.ts` |
@@ -341,7 +346,7 @@ Use this checklist when starting a new game:
 - [ ] Clear localStorage: `localStorage.removeItem('tuning_game')`
 - [ ] Create `src/game/[newgame]/` folder structure
 - [ ] Create `src/game/tuning/types.ts` with game defaults
-- [ ] Create `src/game/manifest.ts` with asset list
+- [ ] Create `src/game/asset-manifest.ts` with asset list (follow [manifest contract](../../core/manifest-contract.md); run `bun run check:manifest` and `bun run check:assets`)
 - [ ] Create `src/game/audio/sounds.ts` (empty skeleton)
 - [ ] Create `src/game/audio/manager.ts` (extends BaseAudioManager)
 - [ ] Create `src/game/audio/index.ts` (exports)

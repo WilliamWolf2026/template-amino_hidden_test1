@@ -14,6 +14,8 @@
     "test:run": "vitest run",
     "scaffold:sync": "bun run scripts/scaffold-sync.ts",
     "scaffold:release": "bun run scripts/scaffold-release.ts"
+    "check:assets": "bun run scripts/check-asset-naming.ts",
+    "check:manifest": "bun run scripts/check-manifest.ts"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",

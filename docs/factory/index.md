@@ -21,6 +21,7 @@ Reusable workflows for common development tasks.
 | `/update-docs` | Sync doc indexes with actual files | Yes |
 | `/deploy` | Deploy to QA/staging/production | Asks first |
 | `/newgame` | Setup checklist for forking to a new game | No |
+| `/newmodule` | Scaffold a new module in modules/ | Yes |
 
 ---
 
@@ -48,6 +49,7 @@ Reusable workflows for common development tasks.
 | `/deploy` | "Deploy this to staging" "Release to production" |
 | `/update-docs` | "Sync all index files" |
 | `/newgame` | "I'm starting a new game from this repo" |
+| `/newmodule` | "New module" "Create module" "Add module" "Scaffold module" |
 
 ---
 
@@ -74,7 +76,21 @@ docs/factory/
 ├── help.md
 ├── log.md
 ├── deploy.md
-└── newgame.md
+├── newgame.md
+├── newmodule.md
+└── templates/
+    └── modules/
+        ├── primitive.index.ts
+        ├── primitive.defaults.ts
+        ├── primitive.tuning.ts
+        ├── primitive.renderer.pixi.ts
+        ├── logic.index.ts
+        ├── logic.defaults.ts
+        ├── logic.tuning.ts
+        ├── prefab.index.ts
+        ├── prefab.defaults.ts
+        ├── prefab.tuning.ts
+        └── prefab.renderer.pixi.ts
 ```
 
 ---

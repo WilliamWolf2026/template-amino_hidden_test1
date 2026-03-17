@@ -21,7 +21,7 @@ interface StartScreenDeps {
   unlockAudio: () => void;
   loadCore: (onProgress?: (p: number) => void) => Promise<void>;
   loadAudio: (onProgress?: (p: number) => void) => Promise<void>;
-  loadBundle?: (name: string) => Promise<void>;
+  loadBundle?: (name: string, onProgress?: (p: number) => void) => Promise<void>;
   tuning: { scaffold: ScaffoldTuning; game: GameTuning };
   analytics: { trackGameStart: () => void };
 }
@@ -41,7 +41,6 @@ export function setupStartScreen(deps: StartScreenDeps): StartScreenController {
     init(container: HTMLDivElement) {
       console.log('[mygame] Start screen initialized');
 
-      // Build start screen UI
       wrapper = document.createElement('div');
       wrapper.style.cssText =
         'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:24px;';

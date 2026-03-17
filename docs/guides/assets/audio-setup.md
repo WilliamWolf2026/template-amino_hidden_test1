@@ -151,7 +151,7 @@ The scaffold provides these methods via `BaseAudioManager`:
 ## Register Audio Bundle
 
 ```typescript
-// src/game/manifest.ts
+// src/game/asset-manifest.ts
 export const manifest: Manifest = {
   bundles: [
     // Audio bundles use 'audio-' prefix

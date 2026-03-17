@@ -46,7 +46,7 @@ export default function App() {
 ```
 
 This pattern means:
-- **`manifest`** -- The default asset manifest exported from `src/game/manifest.ts` (bundle definitions and cdnBase)
+- **`manifest`** -- The default asset manifest exported from `src/game/asset-manifest.ts` (bundle definitions and cdnBase)
 - **`defaultGameData`** -- Bundled game data from `src/game/data/default.json` (chapters, levels, stories)
 - **`serverStorageUrl`** -- From `gameConfig.serverStorageUrl` in `src/game/config.ts` (or `null` to skip CDN fetch)
 
@@ -77,7 +77,7 @@ The ManifestProvider uses these props as signal initial values, so the game can 
 - Updates game data only if not already injected via postMessage
 
 ### Source 3: Local Defaults (always available)
-- `props.manifest` -- asset bundle definitions passed from `src/game/manifest.ts`
+- `props.manifest` -- asset bundle definitions passed from `src/game/asset-manifest.ts`
 - `props.defaultGameData` -- bundled chapter/level data passed from `src/game/data/default.json`
 - Set as signal initial values -- the game can render immediately without waiting for sources 1 or 2
 

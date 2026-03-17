@@ -47,13 +47,15 @@ Target is **inferred from bundle prefix**:
 | Prefix | Target | Loader | Use Case |
 |--------|--------|--------|----------|
 | `boot-` | `dom` | DomLoader | Pre-engine loading screen |
-| `theme-` | `agnostic` | Either | Branding, can be DOM or engine |
+| `theme-` | `dom` | DomLoader | Branding/logo (pre-GPU, loading screen only) |
 | `audio-` | `agnostic` | AudioLoader | Sound effects, music |
 | `data-` | `agnostic` | DomLoader | JSON config files |
 | `core-` | `gpu` | GpuLoader | In-game UI |
-| `scene-` | `gpu` | GpuLoader | Gameplay assets |
+| `scene-` | `gpu` | GpuLoader | Gameplay assets (spritesheets, backgrounds, tiles) |
 | `fx-` | `gpu` | GpuLoader | Particles, effects |
 | `defer-` | `gpu` | GpuLoader | Low-priority extras |
+
+> **Game atlases must use `scene-*` or `core-*`.** Only GPU-prefixed bundles are registered with Pixi. Placing a game spritesheet in `theme-*` will make it invisible to `createSprite`/`getTexture`.
 
 Override with explicit target:
 ```typescript
