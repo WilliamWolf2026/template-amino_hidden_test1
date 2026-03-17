@@ -1,22 +1,24 @@
-# Shared Components Guide
+# Reusable Modules Guide
 
-How to use, create, and document reusable game components in `src/game/shared/`.
+How to use, create, and document reusable building blocks in `src/modules/`.
+
+> **Design authority**: See [amino-architecture.md](../../core/amino-architecture.md) for tier definitions, contracts, and extension rules.
 
 ---
 
-## The Three Layers
+## The Three Tiers
 
 ```
 src/core/          Platform infrastructure (DO NOT EDIT)
                        Hooks, providers, asset loading, audio base, viewport config
 
-src/game/shared/       Reusable game components (GENERIC)
-                       Accept all config via constructor params
-                       No imports from game-specific code
+src/modules/       Reusable building blocks (GAME-AGNOSTIC)
+  primitives/          Single-purpose visual components (PIXI.Container)
+  logic/               Pure logic factories (no rendering)
+  prefabs/             Composed from primitives
 
-src/game/[gamename]/   Game-specific code (COUPLED)
-                       Imports from shared/ and scaffold/
-                       Wraps shared components with game config
+src/game/          Game-specific code (VOLATILE — replaced when forking)
+  [gamename]/          Game logic, screens, audio, config
 ```
 
 ### Where Does My Code Go?
@@ -25,47 +27,50 @@ src/game/[gamename]/   Game-specific code (COUPLED)
 Is it game logic specific to one game?
   YES → src/game/[gamename]/
 
-Does it import game-specific constants (atlas names, fonts, sprite maps)?
-  YES → Can you make it accept those as params instead?
-    YES → src/game/shared/ (parameterized)
-    NO  → src/game/[gamename]/
+Is it a reusable visual component (renders to Pixi canvas)?
+  YES → Is it composed of other modules?
+    YES → src/modules/prefabs/<name>/
+    NO  → src/modules/primitives/<name>/
+
+Is it reusable pure logic (no rendering)?
+  YES → src/modules/logic/<name>/
 
 Is it a framework-level concern (asset loading, screen routing, audio engine)?
   YES → src/core/ (requires admin mode)
-
-Everything else that's reusable across games:
-  → src/game/shared/
 ```
 
 ### Decision Examples
 
 | Component | Where | Why |
 |-----------|-------|-----|
-| Button with hover/press animations | `shared/` | Every game needs buttons |
-| Progress bar with milestone dots | `shared/` | Generic UI, font passed as param |
-| Character sprite container | `shared/` | Generic pattern, sprite map passed as config |
-| NJ county landmark data | `[gamename]/` | Game-specific data |
-| Road tile rotation logic | `[gamename]/` | City Lines puzzle mechanic |
-| Level completion state machine | `shared/` | Every game has completion flow |
-| Dialogue box with 9-slice | `shared/` | Generic UI, atlas/positioning via config |
-| Chapter generation service | `[gamename]/` | Game-specific content pipeline |
+| Button with hover/press animations | `modules/primitives/sprite-button/` | Every game needs interactive buttons |
+| Progress bar with milestone dots | `modules/primitives/progress-bar/` | Generic UI, font passed as param |
+| Character sprite container | `modules/primitives/character-sprite/` | Generic pattern, sprite map passed as config |
+| Avatar circle + speech bubble popup | `modules/prefabs/avatar-popup/` | Composes character-sprite + dialogue-box |
+| Level completion state machine | `modules/logic/level-completion/` | Every game has completion flow |
+| Progress persistence service | `modules/logic/progress/` | Every game needs save/load |
+| Road tile rotation logic | `game/[gamename]/` | Game-specific puzzle mechanic |
+| Chapter generation service | `game/[gamename]/` | Game-specific content pipeline |
 
 ### Rules
 
-1. **Shared components never import from `[gamename]/`** - they accept config through constructor params
-2. **Game wrappers are thin** - just inject config, don't add logic
-3. **Shared components have sensible defaults** - `fontFamily ?? 'sans-serif'` etc.
-4. **Types are generic** - use `<T extends string>` not hardcoded unions
+1. **Modules never import from `game/`** — they accept config through constructor params or factory config
+2. **Primitives are independent** — they don't import from other primitives
+3. **Prefabs compose primitives** — that's their purpose
+4. **Logic modules use factory pattern** — `create*()` returns a typed interface
+5. **All game-specific values are parameters** — atlas names, fonts, colors, sprite maps
 
 ---
 
-## Component Catalog
+## Module Catalog
 
-### SpriteButton
+### Primitives
+
+#### SpriteButton
 
 Interactive Pixi button with hover/press GSAP animations, optional text label, 9-slice support.
 
-**Import:** `import { SpriteButton } from '~/game/shared/components/SpriteButton'`
+**Import:** `import { SpriteButton } from '~/modules/primitives/sprite-button'`
 
 **Usage:**
 ```typescript
@@ -79,15 +84,15 @@ const btn = new SpriteButton(gpuLoader, {
 });
 ```
 
-**Game wrapper needed?** No - fully config-driven, use directly.
+**Game wrapper needed?** No — fully config-driven, use directly.
 
 ---
 
-### ProgressBar
+#### ProgressBar
 
 Animated progress bar with milestone dots, smooth fill animation, optional label.
 
-**Import:** `import { ProgressBar } from '~/game/shared/components/ProgressBar'`
+**Import:** `import { ProgressBar } from '~/modules/primitives/progress-bar'`
 
 **Config params:**
 | Param | Type | Default | Notes |
@@ -111,15 +116,15 @@ bar.setProgress(3, 10, false); // instant (no animation)
 bar.setTheme(0xff0000);       // change fill color
 ```
 
-**Game wrapper needed?** Optional - can pass `fontFamily` directly or create a wrapper.
+**Game wrapper needed?** Optional — can pass `fontFamily` directly or create a wrapper.
 
 ---
 
-### CharacterSprite
+#### CharacterSprite
 
 Generic character sprite container with configurable type mapping and base size.
 
-**Import:** `import { CharacterSprite } from '~/game/shared/components/CharacterSprite'`
+**Import:** `import { CharacterSprite } from '~/modules/primitives/character-sprite'`
 
 **Config params:**
 | Param | Type | Notes |
@@ -132,7 +137,7 @@ Generic character sprite container with configurable type mapping and base size.
 **Game wrapper pattern:**
 ```typescript
 // src/game/mygame/core/MyCharacter.ts
-import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
+import { CharacterSprite } from '~/modules/primitives/character-sprite';
 
 type MyCharacterType = 'hero' | 'sidekick';
 
@@ -148,15 +153,15 @@ export class MyCharacter extends CharacterSprite<MyCharacterType> {
 }
 ```
 
-**Game wrapper needed?** Yes - you need to provide your character types and sprite mapping.
+**Game wrapper needed?** Yes — you need to provide your character types and sprite mapping.
 
 ---
 
-### DialogueBox
+#### DialogueBox
 
 9-slice sprite dialogue box with auto-sizing text, responsive positioning.
 
-**Import:** `import { DialogueBox } from '~/game/shared/components/DialogueBox'`
+**Import:** `import { DialogueBox } from '~/modules/primitives/dialogue-box'`
 
 **Config params:**
 | Param | Type | Notes |
@@ -169,7 +174,7 @@ export class MyCharacter extends CharacterSprite<MyCharacterType> {
 **Game wrapper pattern:**
 ```typescript
 // src/game/mygame/ui/MyDialogueBox.ts
-import { DialogueBox as SharedDialogueBox } from '~/game/shared/components/DialogueBox';
+import { DialogueBox as SharedDialogueBox } from '~/modules/primitives/dialogue-box';
 
 export class MyDialogueBox extends SharedDialogueBox {
   constructor(gpuLoader: PixiLoader, screenWidth: number, screenHeight: number) {
@@ -183,15 +188,17 @@ export class MyDialogueBox extends SharedDialogueBox {
 }
 ```
 
-**Game wrapper needed?** Yes - needs atlas, sprite, font, and positioning config.
+**Game wrapper needed?** Yes — needs atlas, sprite, font, and positioning config.
 
 ---
 
-### AvatarPopup
+### Prefabs
 
-Circular character avatar with speech bubble popup. Auto-dismisses on timer or tap. GSAP animations.
+#### AvatarPopup
 
-**Import:** `import { AvatarPopup } from '~/game/shared/components/AvatarPopup'`
+Circular character avatar with speech bubble popup. Auto-dismisses on timer or tap. GSAP animations. Composes CharacterSprite and DialogueBox primitives.
+
+**Import:** `import { AvatarPopup } from '~/modules/prefabs/avatar-popup'`
 
 **Config params:**
 | Param | Type | Default | Notes |
@@ -219,15 +226,17 @@ export class MyPopup extends AvatarPopup {
 }
 ```
 
-**Game wrapper needed?** Yes - needs character sprite and atlas config.
+**Game wrapper needed?** Yes — needs character sprite and atlas config.
 
 ---
 
-### LevelCompletionController
+### Logic Modules
+
+#### LevelCompletionController
 
 State machine for level completion flow: `playing → completing → complete`. Event-driven, configurable timers.
 
-**Import:** `import { createLevelCompletionController } from '~/game/shared/controllers/LevelCompletionController'`
+**Import:** `import { createLevelCompletionController } from '~/modules/logic/level-completion'`
 
 **Usage:**
 ```typescript
@@ -238,57 +247,103 @@ const controller = createLevelCompletionController({
     onCompletionEnd: () => loadNextLevel(),
     onLevelComplete: ({ levelId, moves, durationMs }) => trackAnalytics(levelId),
   },
-  celebrationDuration: 500,  // ms before showing overlay
-  clueDuration: 3000,        // ms before continue button appears
+  celebrationDuration: 500,
+  clueDuration: 3000,
 });
 
-// When puzzle solved:
 controller.startCompletion(levelId, moveCount, elapsedMs, clueText);
-
-// When continue clicked:
 controller.continue();
-
-// Between levels:
 controller.reset();
 ```
 
-**Game wrapper needed?** No - fully config-driven via events object.
+**Game wrapper needed?** No — fully config-driven via events object.
+
+---
+
+#### Progress Service
+
+Versioned localStorage persistence with typed progress shapes.
+
+**Import:** `import { createProgressService } from '~/modules/logic/progress'`
+
+**Usage:**
+```typescript
+const progress = createProgressService<MyProgress>({
+  key: 'mygame_progress',
+  version: 1,
+  defaults: { version: 1, score: 0, level: 1 },
+});
+
+progress.load();
+progress.save({ ...data });
+progress.clear();
+```
+
+---
+
+#### Catalog Service
+
+Ordered content navigation (chapters, levels, etc.).
+
+**Import:** `import { createCatalogService } from '~/modules/logic/catalog'`
+
+**Usage:**
+```typescript
+const catalog = createCatalogService<ChapterEntry>({
+  fetchIndex: () => fetch('/api/chapters').then(r => r.json()),
+  fallbackEntries: [{ id: 'fallback', url: 'default.json' }],
+});
+
+await catalog.init();
+catalog.current();
+catalog.next();
+```
+
+---
+
+#### Content Loader
+
+Typed fetch + transform pipeline.
+
+**Import:** `import { createContentLoader } from '~/modules/logic/loader'`
 
 ---
 
 ## New Game Integration Checklist
 
-When starting a new game, go through each shared component and decide whether to adopt it:
+When starting a new game, go through each module and decide whether to adopt it:
 
 ### Required Setup
 
 - [ ] Create `src/game/config/fonts.ts` with `GAME_FONT_FAMILY`
 - [ ] Prepare sprite atlas with UI sprites (buttons, dialogue boxes, etc.)
 
-### Component Adoption
+### Module Adoption
 
-| Component | Need It? | Action |
-|-----------|----------|--------|
+| Module | Need It? | Action |
+|--------|----------|--------|
 | **SpriteButton** | Any interactive buttons in Pixi? | Use directly, pass atlas + sprite name |
 | **ProgressBar** | Show level/chapter progress? | Use directly or wrap, pass `fontFamily` |
 | **CharacterSprite** | Display character sprites? | Create wrapper with your character types and sprite map |
 | **DialogueBox** | In-game dialogue or text popups? | Create wrapper with your atlas, font, positioning |
 | **AvatarPopup** | Character head + speech bubble? | Create wrapper with your character sprite config |
 | **LevelCompletionController** | Level-based game with completion flow? | Use directly, wire your events |
+| **Progress Service** | Save/load game progress? | Use directly with your progress type |
+| **Catalog Service** | Navigate ordered content? | Use directly with your entry type |
+| **Content Loader** | Fetch + transform remote data? | Use directly with your types |
 
 ### Wrapper Template
 
-For components that need a game wrapper:
+For visual modules that need a game wrapper:
 
 ```typescript
 // src/game/[gamename]/ui/MyComponent.ts
-import { SharedComponent } from '~/game/shared/components/SharedComponent';
+import { SharedComponent } from '~/modules/primitives/shared-component';
 import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
-import { getAtlasName } from '../utils/atlasHelper';  // your atlas helper
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 export class MyComponent extends SharedComponent {
-  constructor(gpuLoader: PixiLoader, /* game-specific params */) {
+  constructor(gpuLoader: PixiLoader) {
     super(gpuLoader, {
       atlasName: getAtlasName(),
       fontFamily: GAME_FONT_FAMILY,
@@ -298,73 +353,47 @@ export class MyComponent extends SharedComponent {
 }
 ```
 
-### Barrel Exports
-
-If your game wrapper replaces a shared component name, re-export it from your game's barrel so consumers don't need to know the difference:
-
-```typescript
-// src/game/[gamename]/ui/index.ts
-export { MyDialogueBox as DialogueBox } from './MyDialogueBox';
-```
-
 ---
 
-## Adding a New Shared Component
+## Adding a New Module
 
 ### When to Create One
 
-Create a shared component when:
-- You're building something that the next game would also need
+Create a module when:
+- You're building something the next game would also need
 - The component has zero game-specific imports (or can be parameterized to remove them)
 - It's a UI pattern (buttons, popups, progress indicators) or a game flow pattern (completion, scoring)
 
-### Step-by-Step
+### Step-by-Step (Visual Module)
 
-1. **Create the component** in `src/game/shared/components/` (or `controllers/`)
-2. **Parameterize everything** - no imports from `[gamename]/`, accept config via constructor
-3. **Provide defaults** for optional params (`fontFamily ?? 'sans-serif'`)
-4. **Export from barrel** - add to `shared/components/index.ts` or `shared/controllers/index.ts`
-5. **Create game wrapper** in `[gamename]/` if the game needs pre-configured defaults
-6. **Document in this file** - add a catalog entry (see template below)
+1. **Create the folder** in `src/modules/primitives/<name>/` (or `prefabs/`)
+2. **Add `renderers/pixi.ts`** with a `PIXI.Container` subclass
+3. **Add `defaults.ts`** with default config values
+4. **Add `tuning.ts`** with Tweakpane bindings (green section in dev panel)
+5. **Add `index.ts`** with public exports
+6. **Register tuning bindings** via `core/dev/tuningRegistry.ts`
 
-### Catalog Entry Template
+### Step-by-Step (Logic Module)
 
-Add this to the Component Catalog section above:
-
-```markdown
-### ComponentName
-
-One-line description.
-
-**Import:** `import { ComponentName } from '~/game/shared/components/ComponentName'`
-
-**Config params:**
-| Param | Type | Default | Notes |
-|-------|------|---------|-------|
-| `param1` | `string` | — | Description |
-| `param2` | `number` | `10` | Description |
-
-**Usage:**
-\`\`\`typescript
-// minimal example
-\`\`\`
-
-**Game wrapper needed?** Yes/No - explanation.
-```
+1. **Create the folder** in `src/modules/logic/<name>/`
+2. **Add `index.ts`** with a `create*()` factory function and types
+3. **Add `defaults.ts`** if the module has configurable defaults
+4. **Add `tuning.ts`** if tunable at runtime
 
 ### Naming Conventions
 
 | Type | Location | Naming |
 |------|----------|--------|
-| Shared component | `shared/components/PascalCase.ts` | Generic name (`CharacterSprite`, not `CompanionCharacter`) |
-| Shared controller | `shared/controllers/PascalCase.ts` | Generic name (`LevelCompletionController`) |
-| Game wrapper | `[gamename]/core/` or `[gamename]/ui/` | Game-specific name (`Character`, `CluePopup`) |
+| Visual primitive | `modules/primitives/<kebab-case>/` | Generic name (`sprite-button`, not `city-button`) |
+| Visual prefab | `modules/prefabs/<kebab-case>/` | Generic name (`avatar-popup`) |
+| Logic module | `modules/logic/<kebab-case>/` | Generic name (`level-completion`) |
+| Game wrapper | `game/[gamename]/core/` or `game/[gamename]/ui/` | Game-specific name (`Character`, `CluePopup`) |
 | Config interface | Same file as component | `ComponentNameConfig` |
 
 ---
 
 ## Related
 
-- [Creating a New Game](../getting-started/new-game.md) - Full new game setup guide
-- [Context Map](../../scaffold/context-map.md) - Architecture overview
-- [Animation Cookbook](animation-cookbook.md) - GSAP patterns used by shared components
+- [Amino Architecture (design authority)](../../core/amino-architecture.md) — Tier contracts and extension rules
+- [Writing a Module](../../modules/writing-a-module.md) — Detailed module authoring guide
+- [Animation Cookbook](animation-cookbook.md) — GSAP patterns used by modules

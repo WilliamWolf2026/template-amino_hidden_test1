@@ -1,5 +1,7 @@
 # Codebase Context Map
 
+> **Design authority**: For tier definitions, contracts, and extension rules, see [amino-architecture.md](amino-architecture.md). This document is the dependency map for AI context engineering.
+
 A relationship map for understanding the 3-tier core/modules/game architecture. Optimized for AI context engineering.
 
 ---

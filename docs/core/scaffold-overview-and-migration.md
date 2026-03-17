@@ -1,5 +1,7 @@
 # 3-Tier Framework: Overview & Migration Guide
 
+> **Design authority**: For tier definitions, contracts, and extension rules, see [amino-architecture.md](amino-architecture.md). This document is the migration guide for forking to a new game.
+>
 > **Purpose**: This document provides a comprehensive overview of the 3-tier architecture (core / modules / game) and serves as the authoritative guide for forking to a new game implementation.
 
 ---
