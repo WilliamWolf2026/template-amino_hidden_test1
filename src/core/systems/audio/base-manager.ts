@@ -5,13 +5,11 @@ import { audioState } from './state';
 
 /**
  * Base Audio Manager
- * Extend this class for game-specific audio management
  *
- * Provides:
- * - Sound playback with volume control
- * - Music playback with fade in/out
- * - Random sound selection for variations
- * - Respects audioState settings
+ * Provides sound-effect and music playback using the scaffold AudioLoader
+ * interface (aligned with the facade's `coordinator.audio`).
+ *
+ * Extend this class for game-specific audio management.
  *
  * @example
  * ```typescript
@@ -19,64 +17,48 @@ import { audioState } from './state';
  *   playShoot(): void {
  *     this.playSound(SOUND_SHOOT);
  *   }
- *
- *   playExplosion(): void {
- *     this.playRandomSound(EXPLOSION_SOUNDS);
- *   }
  * }
  * ```
  */
 export abstract class BaseAudioManager {
   protected audioLoader: AudioLoader;
+  protected currentMusicChannel: string | null = null;
   protected currentMusicId: number | null = null;
 
   constructor(audioLoader: AudioLoader) {
     this.audioLoader = audioLoader;
   }
 
-  /**
-   * Play a sound effect
-   */
   protected playSound(sound: SoundDefinition): void {
     this.audioLoader.play(sound.channel, sound.sprite, {
       volume: sound.volume,
     });
   }
 
-  /**
-   * Play a random sound from an array (for variations)
-   */
   protected playRandomSound(sounds: readonly SoundDefinition[]): void {
     const sound = getRandomSound(sounds);
     this.playSound(sound);
   }
 
-  /**
-   * Start music playback
-   * Override to customize music behavior
-   */
-  startMusic(track: SoundDefinition, fadeIn = 1000): void {
+  startMusic(track: SoundDefinition): void {
     if (!audioState.musicEnabled()) return;
 
-    this.currentMusicId = this.audioLoader.playMusic(track.channel, track.sprite, {
-      fadeIn,
+    this.stopMusic();
+    const id = this.audioLoader.play(track.channel, track.sprite, {
       volume: track.volume ?? 0.6,
     });
+    this.currentMusicChannel = track.channel;
+    this.currentMusicId = id;
   }
 
-  /**
-   * Stop music playback
-   */
-  stopMusic(fadeOut = 500): void {
-    if (this.currentMusicId !== null) {
-      this.audioLoader.stopMusic(fadeOut);
-      this.currentMusicId = null;
+  stopMusic(): void {
+    if (this.currentMusicChannel !== null && this.currentMusicId !== null) {
+      this.audioLoader.stop(this.currentMusicChannel, this.currentMusicId);
     }
+    this.currentMusicChannel = null;
+    this.currentMusicId = null;
   }
 
-  /**
-   * Check if music is currently playing
-   */
   isMusicPlaying(): boolean {
     return this.currentMusicId !== null;
   }

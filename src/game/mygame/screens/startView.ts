@@ -1,38 +1,20 @@
 /**
- * Start Screen View
+ * Start Screen View — DOM mode template
  *
- * Creates and manages the Pixi.js start/menu screen.
- * Called by screens/StartScreen.tsx — this is the bridge between Solid.js and Pixi.
+ * Called by screens/StartScreen.tsx — the bridge between Solid.js and your start screen.
  *
- * Implement your start screen here:
- * 1. Create a Pixi Application
- * 2. Build title screen, play button, etc.
- * 3. Return cleanup
+ * In DOM mode: the Play button loads core + audio bundles, then navigates.
+ * In Pixi mode: you can also call initGpu() here to set up the GPU early,
+ * then build your start screen scene graph with PixiJS.
  */
 
-import type { AssetCoordinator } from '~/core/systems/assets';
-import type { ScaffoldTuning } from '~/core';
-import type { GameTuning } from '~/game/tuning';
+import type {
+  StartScreenDeps,
+  StartScreenController,
+  SetupStartScreen,
+} from '~/game/mygame-contract';
 
-interface StartScreenDeps {
-  goto: (screen: string) => void;
-  coordinator: AssetCoordinator;
-  initGpu: () => Promise<void>;
-  unlockAudio: () => void;
-  loadCore: (onProgress?: (p: number) => void) => Promise<void>;
-  loadAudio: (onProgress?: (p: number) => void) => Promise<void>;
-  loadBundle?: (name: string, onProgress?: (p: number) => void) => Promise<void>;
-  tuning: { scaffold: ScaffoldTuning; game: GameTuning };
-  analytics: { trackGameStart: () => void };
-}
-
-interface StartScreenController {
-  init: (container: HTMLDivElement) => void;
-  destroy: () => void;
-  backgroundColor: string;
-}
-
-export function setupStartScreen(deps: StartScreenDeps): StartScreenController {
+export const setupStartScreen: SetupStartScreen = (deps: StartScreenDeps): StartScreenController => {
   let wrapper: HTMLDivElement | null = null;
 
   return {

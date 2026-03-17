@@ -45,14 +45,18 @@ function isInvalidPath(p: unknown): string | null {
   return null;
 }
 
+interface AssetDef {
+  alias: string;
+  src: string;
+}
+
 interface RawManifest {
   cdnBase: string;
   localBase?: string;
   bundles: {
     name: string;
-    assets: string[];
+    assets: AssetDef[];
     kind?: string;
-    target?: string;
   }[];
 }
 
@@ -78,17 +82,7 @@ async function main(): Promise<void> {
   try {
     const { validateManifest } = await import("@wolfgames/components/core");
     if (typeof validateManifest === "function") {
-      // Adapt to GC shape: scaffold assets are string paths, GC expects AssetDefinition[]
-      const gcBundles = manifest.bundles.map((b) => ({
-        name: b.name,
-        kind: b.kind,
-        assets: b.assets.map((p) => ({
-          alias: p.split("/").pop()?.replace(/\.[^.]+$/, "") ?? p,
-          src: p,
-        })),
-      }));
-      const gcManifest = { cdnBase: manifest.cdnBase, bundles: gcBundles };
-      const result = validateManifest(gcManifest);
+      const result = validateManifest(manifest);
       if (!result.valid) {
         for (const e of result.errors) {
           errors.push(`[gc] ${e.path}: ${e.message}`);
@@ -148,19 +142,23 @@ async function main(): Promise<void> {
     }
 
     if (!Array.isArray(b.assets)) {
-      errors.push(`${prefix}.assets: must be an array of path strings`);
+      errors.push(`${prefix}.assets: must be an array of { alias, src } objects`);
     } else {
       for (let j = 0; j < b.assets.length; j++) {
-        const path = b.assets[j];
-        const pathErr = isInvalidPath(path);
-        if (pathErr) errors.push(`${prefix}.assets[${j}]: ${pathErr}`);
-        else if (
-          typeof path === "string" &&
-          !ALLOWED_EXTENSIONS.test(path)
-        ) {
+        const asset = b.assets[j];
+        if (!asset || typeof asset !== "object" || typeof asset.src !== "string") {
+          errors.push(`${prefix}.assets[${j}]: must be { alias: string, src: string }`);
+          continue;
+        }
+        const pathErr = isInvalidPath(asset.src);
+        if (pathErr) errors.push(`${prefix}.assets[${j}].src: ${pathErr}`);
+        else if (!ALLOWED_EXTENSIONS.test(asset.src)) {
           errors.push(
-            `${prefix}.assets[${j}]: unknown extension (allowed: .json, .png, .jpg, .webp, .gif, .svg, .woff2, .mp3, .webm, etc.)`,
+            `${prefix}.assets[${j}].src: unknown extension (allowed: .json, .png, .jpg, .webp, .gif, .svg, .woff2, .mp3, .webm, etc.)`,
           );
+        }
+        if (!asset.alias || typeof asset.alias !== "string") {
+          errors.push(`${prefix}.assets[${j}].alias: required string`);
         }
       }
     }

@@ -1,94 +1,123 @@
-import { onMount, createSignal, Show } from 'solid-js';
-import { Spinner } from '@wolfgames/components/solid';
+import { onMount, createMemo, Show } from 'solid-js';
+import { Spinner, ProgressBar } from '@wolfgames/components/solid';
 import { useScreen } from '~/core/systems/screens';
-import { useAssets } from '~/core/systems/assets';
+import { useAssets, useLoadingState } from '~/core/systems/assets';
+import { useManifest } from '~/core/systems/manifest/context';
 import { useTuning, type ScaffoldTuning } from '~/core';
-import { ProgressBar } from '~/core/ui/ProgressBar';
 import { Logo } from '~/core/ui/Logo';
 import type { GameTuning } from '~/game/tuning';
 
 export function LoadingScreen() {
   const { goto } = useScreen();
-  const { loadBoot, loadTheme, initGpu, unlockAudio, loadCore, loadAudio } = useAssets();
+  const assets = useAssets();
+  const loadingState = useLoadingState();
+  const { manifest } = useManifest();
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
-  const [progress, setProgress] = createSignal(0);
-  const [themeLoaded, setThemeLoaded] = createSignal(false);
-  const [error, setError] = createSignal<string | null>(null);
 
-  // Map a phase's 0→1 progress into a weighted range of the overall bar
-  const phaseProgress = (phaseStart: number, phaseEnd: number) => {
-    return (p: number) => setProgress(phaseStart + p * (phaseEnd - phaseStart));
-  };
+  const m = manifest();
+  const bundlesByPrefix = (prefix: string) =>
+    m.bundles.filter((b) => b.name.startsWith(prefix)).map((b) => b.name);
 
-  /** Check if we should skip the start screen and go straight to gameplay */
+  const bootBundles = bundlesByPrefix('boot-');
+  const themeBundles = bundlesByPrefix('theme-');
+  const coreBundles = bundlesByPrefix('core-');
+  const audioBundles = bundlesByPrefix('audio-');
+
   const shouldSkipStartScreen = (): boolean => {
     if (tuning.game.devMode?.skipStartScreen) return true;
     const params = new URLSearchParams(window.location.search);
     return params.get('screen') === 'game';
   };
 
+  const skipToGame = shouldSkipStartScreen();
+
+  const targetBundles = skipToGame
+    ? [...bootBundles, ...themeBundles, ...coreBundles, ...audioBundles]
+    : [...bootBundles, ...themeBundles];
+
+  const progress = createMemo(() => {
+    const s = loadingState();
+    if (targetBundles.length === 0) return 100;
+    let sum = 0;
+    for (const name of targetBundles) {
+      if (s.loaded.includes(name)) {
+        sum += 1;
+      } else if (name in s.bundleProgress) {
+        sum += s.bundleProgress[name];
+      }
+    }
+    return (sum / targetBundles.length) * 100;
+  });
+
+  const themeLoaded = createMemo(() => {
+    const s = loadingState();
+    return themeBundles.every((b) => s.loaded.includes(b));
+  });
+
+  const failedBundles = createMemo(() => {
+    const s = loadingState();
+    return targetBundles.filter((name) => name in s.errors);
+  });
+
+  const retryFailed = async () => {
+    const failed = failedBundles();
+    for (const name of failed) {
+      await assets.loadBundle(name);
+    }
+  };
+
   onMount(async () => {
     try {
-      const skipToGame = shouldSkipStartScreen();
-
       if (skipToGame) {
-        // Dev shortcut: skip start screen, load everything
-        await loadBoot(phaseProgress(0, 5));
-        await loadTheme(phaseProgress(5, 45));
-        setThemeLoaded(true);
+        await assets.loadBoot();
+        await assets.loadTheme();
 
-        unlockAudio();
-        setProgress(45);
-        await initGpu();
-        setProgress(55);
-        await loadCore(phaseProgress(55, 60));
+        assets.unlockAudio();
+        await assets.initGpu();
+        await assets.loadCore();
         try {
-          await loadAudio(phaseProgress(60, 95));
-        } catch (error) {
-          console.warn('Audio loading failed:', error);
+          await assets.loadAudio();
+        } catch (err) {
+          console.warn('Audio loading failed:', err);
         }
-        setProgress(100);
         await new Promise((r) => setTimeout(r, 300));
         await goto('game');
       } else {
-        // Normal flow: load theme, go to start screen
-        await loadBoot(phaseProgress(0, 5));
-        await loadTheme(phaseProgress(5, 90));
-        setProgress(100);
-        setThemeLoaded(true);
-
+        await assets.loadBoot();
+        await assets.loadTheme();
         await new Promise((r) => setTimeout(r, 500));
         await goto('start');
       }
     } catch (err) {
       console.error('Failed to load initial assets:', err);
-      setError('Failed to load game assets. Please check your connection and try again.');
     }
   });
 
   return (
     <div class="fixed inset-0 flex flex-col items-center justify-center bg-[#BCE083]">
-      <Show when={error()} fallback={
-        <>
-          <Spinner size="lg" class="w-24 h-24 text-gray-800" />
-          <div class="mt-8 w-64">
-            <ProgressBar progress={progress()} />
+      <Show
+        when={failedBundles().length === 0}
+        fallback={
+          <div class="text-center max-w-sm px-6">
+            <p class="text-lg font-semibold text-gray-800 mb-2">Unable to load</p>
+            <p class="text-sm text-gray-600 mb-4">
+              Failed to load: {failedBundles().join(', ')}
+            </p>
+            <button
+              onClick={retryFailed}
+              class="px-6 py-3 bg-white text-gray-800 rounded-xl font-medium shadow-md hover:shadow-lg active:scale-95 transition-all"
+            >
+              Retry
+            </button>
           </div>
-        </>
-      }>
-        <div class="text-center max-w-sm px-6">
-          <p class="text-lg font-semibold text-gray-800 mb-2">Unable to load</p>
-          <p class="text-sm text-gray-600 mb-6">{error()}</p>
-          <button
-            onClick={() => window.location.reload()}
-            class="px-6 py-3 bg-white text-gray-800 rounded-xl font-medium shadow-md hover:shadow-lg active:scale-95 transition-all"
-          >
-            Retry
-          </button>
+        }
+      >
+        <Spinner size="lg" class="w-24 h-24 text-gray-800" />
+        <div class="mt-8 w-64">
+          <ProgressBar progress={progress()} />
         </div>
       </Show>
 
-      {/* Logo at bottom center */}
       {themeLoaded() && (
         <div class="absolute bottom-8">
           <Logo />

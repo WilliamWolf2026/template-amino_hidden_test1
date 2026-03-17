@@ -23,7 +23,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 
 | Intent | Path |
 |--------|------|
-| Asset loading, coordination, preloading | src/core/systems/assets/coordinator.ts |
+| Asset loading, coordination, preloading | src/core/systems/assets/facade.ts |
 | Asset context provider, useAssets hook | src/core/systems/assets/context.tsx |
 | Asset type definitions | src/core/systems/assets/types.ts |
 | GPU texture loader (Pixi) | src/core/systems/assets/loaders/gpu/pixi.ts |
@@ -84,8 +84,11 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Intent | Path |
 |--------|------|
 | How asset loading works | core/systems/assets.md |
+| Asset progress tracking, per-bundle progress | core/systems/assets.md#progress-tracking |
+| Asset unloading, memory lifecycle, GPU cleanup | core/systems/assets.md#unloading--memory-lifecycle |
 | Manifest contract (bundle/path rules, validation) | core/manifest-contract.md |
 | How screen navigation works | core/systems/screens.md |
+| Automatic bundle unloading on screen transitions | core/systems/screens.md#automatic-unloading |
 | How tuning / live config works | core/systems/tuning.md |
 | How the audio engine works | core/systems/audio.md |
 | How state persistence works | core/systems/state.md |

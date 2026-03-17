@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "check:assets": "bun run scripts/check-asset-naming.ts",
-    "check:manifest": "bun run scripts/check-manifest.ts"
+    "check:manifest": "bun run scripts/check-manifest.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",

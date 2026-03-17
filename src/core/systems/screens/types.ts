@@ -10,6 +10,16 @@ export interface TransitionConfig {
   type: 'fade' | 'slide' | 'none';
 }
 
+/**
+ * Declarative asset requirements for a screen.
+ * Required bundles are loaded before the screen is shown.
+ * Optional bundles are loaded in the background (non-blocking).
+ */
+export interface ScreenAssetConfig {
+  required?: string[];
+  optional?: string[];
+}
+
 // Screen context shape
 export interface ScreenContext {
   current: () => ScreenId;

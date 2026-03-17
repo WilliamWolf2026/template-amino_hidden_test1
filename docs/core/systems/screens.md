@@ -74,6 +74,50 @@ if (transition()) {
 goto('game', { duration: 500 });
 ```
 
+## Declarative Asset Requirements (`screenAssets`)
+
+Screens can declare their asset bundles as data rather than imperative loading calls. The screen manager loads required bundles before showing the screen and background-loads optional bundles.
+
+```typescript
+// src/game/config.ts
+export const gameConfig: GameConfig = {
+  screens: { loading: LoadingScreen, start: StartScreen, game: GameScreen, results: ResultsScreen },
+  screenAssets: {
+    start: { required: ['theme-branding'] },
+    game: { required: ['scene-game', 'core-sprites'], optional: ['fx-particles'] },
+  },
+  initialScreen: 'loading',
+};
+```
+
+**How it works:**
+- When `goto('game')` is called, the screen manager loads `scene-game` and `core-sprites` (blocking) before switching.
+- `fx-particles` loads in the background without blocking the transition.
+- Screens without a `screenAssets` entry (like `loading` or `results`) work as before.
+
+**Interface:**
+```typescript
+interface ScreenAssetConfig {
+  required?: string[];   // loaded before screen is shown
+  optional?: string[];   // loaded in background (non-blocking)
+}
+```
+
+This convention complements the imperative approach — screens can still call `useAssets()` directly for finer control (e.g. the LoadingScreen bootstraps boot/theme itself). Generated games benefit from declaring bundles as data since it's easier for LLMs to produce correctly.
+
+### Automatic Unloading
+
+When transitioning between screens, the screen manager compares the outgoing and incoming `screenAssets` entries. Bundles owned by the outgoing screen but **not** by the incoming screen are automatically unloaded, releasing GPU textures, audio sprites, and cached DOM assets. Shared bundles are preserved.
+
+```
+game → results
+  game owns:    [scene-game, core-sprites, fx-particles]
+  results owns: []
+  → unloads:    [scene-game, core-sprites, fx-particles]
+```
+
+This keeps memory bounded without manual cleanup in each screen's `onCleanup`. See [Asset Management — Unloading](./assets.md#unloading--memory-lifecycle) for details on what each loader releases.
+
 ## Screen Components
 
 Each screen is a SolidJS component receiving standard props:
