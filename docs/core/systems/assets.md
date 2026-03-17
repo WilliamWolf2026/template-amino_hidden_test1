@@ -317,6 +317,42 @@ Shared bundles (present in both screens) are preserved — only bundles exclusiv
 | DomLoader | Clears cached image bitmaps, data URLs, and font entries |
 | AudioLoader (Howler) | Calls `Howl.unload()` on each sound in the bundle |
 
+### Critical: Remove Sprites Before Unloading GPU Bundles
+
+When unloading a `scene-*` or `core-*` bundle, **you must remove all Pixi sprites
+referencing that bundle's textures from the stage first**. If a sprite is still on
+the display list when its texture is destroyed, Pixi's renderer will crash with:
+
+```
+TypeError: Cannot read properties of null (reading 'alphaMode')
+```
+
+Safe unload pattern:
+
+```typescript
+// 1. Kill GSAP animations targeting these sprites
+gsap.killTweensOf(sprite);
+gsap.killTweensOf(sprite.scale);
+
+// 2. Remove sprites from stage
+container.removeChild(sprite);
+sprite.destroy();
+
+// 3. NOW it's safe to unload the bundle
+coordinator.unloadBundle('scene-old-world');
+```
+
+The same applies to automatic screen-transition unloads: if your game screen uses
+`scene-*` textures in Pixi sprites, make sure `onCleanup` in the screen component
+destroys all Pixi display objects BEFORE the bundle is released.
+
+### Shared Bundles Across Screens
+
+If a bundle like `theme-branding` is used by multiple screens (e.g. the Logo
+component), list it in `screenAssets` for **every screen** that renders it.
+Otherwise the screen manager will unload it on transition and components referencing
+it will fail silently.
+
 ### Manual Unloading
 
 For screens not covered by `screenAssets` or for fine-grained control:

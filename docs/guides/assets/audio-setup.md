@@ -17,7 +17,7 @@ Audio sprites pack multiple sounds into a single audio file with a JSON manifest
 
 ```json
 {
-  "src": [
+  "urls": [
     "sfx-citylines.webm",
     "sfx-citylines.mp3"
   ],
@@ -28,6 +28,9 @@ Audio sprites pack multiple sounds into a single audio file with a JSON manifest
   }
 }
 ```
+
+**IMPORTANT:** The key must be `"urls"` (not `"src"`). The Howler loader resolves
+each URL relative to cdnBase. Using `"src"` will cause a runtime error.
 
 Each sprite entry: `"name": [start_ms, duration_ms]`
 

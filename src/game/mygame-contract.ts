@@ -13,6 +13,12 @@
  *              Use this when generating games without sprite assets.
  *   - 'pixi' — PixiJS game. Requires initGpu(), expects core and scene bundles in
  *              the asset manifest. Use this when sprite/atlas assets are available.
+ *
+ * Pixi texture lifecycle:
+ *   When calling coordinator.unloadBundle() for a scene-* bundle, ALL Pixi sprites
+ *   referencing that bundle's textures MUST be removed from the stage first.
+ *   Otherwise Pixi's renderer will crash with "Cannot read properties of null
+ *   (reading 'alphaMode')". Pattern: kill GSAP tweens → removeChild → destroy → unloadBundle.
  */
 
 import type { AssetCoordinatorFacade } from '~/core/systems/assets';
