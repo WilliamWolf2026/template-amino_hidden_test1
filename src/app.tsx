@@ -23,8 +23,9 @@ import { getViewportModeFromUrl } from '~/core/config/viewport';
 // import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './core/dev/env';
-import { AnalyticsProvider, useAnalytics } from '~/game/setup/AnalyticsContext';
-import { FeatureFlagProvider } from '~/game/setup/FeatureFlagContext';
+import { AnalyticsProvider, FeatureFlagProvider } from '~/core';
+import { useGameTracking } from '~/game/setup/tracking';
+import '~/game/setup/flags'; // registers flag config at module load
 import { ViewportToggle } from '~/core/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
@@ -39,7 +40,7 @@ const handleResetProgress = () => {
 
 /** SettingsMenu wired with game analytics */
 function GameSettingsMenu() {
-  const { trackAudioSettingChanged } = useAnalytics();
+  const { trackAudioSettingChanged } = useGameTracking();
   return (
     <SettingsMenu
       onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined}

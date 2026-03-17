@@ -4,7 +4,7 @@ import { useAssets } from '~/core/systems/assets';
 import { PauseOverlay, useTuning, type ScaffoldTuning } from '~/core';
 import { Logo } from '~/core/ui/Logo';
 import { useAudio } from '~/core/systems/audio';
-import { useAnalytics } from '~/game/setup/AnalyticsContext';
+import { useGameTracking } from '~/game/setup/tracking';
 
 import type { GameTuning } from '~/game/tuning';
 import { useGameData } from '~/game/screens/useGameData';
@@ -18,7 +18,7 @@ export default function GameScreen() {
   const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const audio = useAudio();
   const gameData = useGameData();
-  const analytics = useAnalytics();
+  const { analytics } = useGameTracking();
   let containerRef: HTMLDivElement | undefined;
 
   // Setup game-specific controller (creates signals & effects in reactive context)

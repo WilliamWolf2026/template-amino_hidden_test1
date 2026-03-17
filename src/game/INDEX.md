@@ -12,7 +12,7 @@ src/game/
 
   audio/           # GameAudioManager + sound definitions
   screens/         # Solid.js screen shells + hooks
-  setup/           # AnalyticsContext, FeatureFlagContext
+  setup/           # Game tracking hook, flag config, user helper
   tuning/          # Game tuning types + defaults
 
   mygame/          # Your game (Pixi engine, controllers, etc.)
@@ -27,9 +27,9 @@ src/game/
 | Global game state signals | state.ts |
 | Game tuning types + defaults | tuning/types.ts |
 | Game tuning barrel + URL helpers | tuning/index.ts |
-| Analytics context | setup/AnalyticsContext.tsx |
-| Feature flag context | setup/FeatureFlagContext.tsx |
-| Analytics helper (getUserData) | setup/helper.ts |
+| Game tracking hook (wraps Core analytics) | setup/tracking.ts |
+| Game feature flag config + types | setup/flags.ts |
+| User data helper (getUserData) | setup/helper.ts |
 
 ## Screens (Solid.js shells)
 
