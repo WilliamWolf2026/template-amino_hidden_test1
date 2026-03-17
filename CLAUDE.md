@@ -62,6 +62,7 @@ See **[docs/factory/](docs/factory/index.md)** for reusable commands.
 | `/deploy` | Deploy to QA/staging/production |
 | `/newgame` | Setup checklist for forking to a new game |
 | `/newmodule` | Create a new module in modules/ |
+| `/newmodule` | Create a new module in modules/ |
 
 ## File Permissions (Dev Mode)
 
