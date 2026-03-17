@@ -12,6 +12,8 @@
     "evaluate:report": "bun run evaluation/compare.ts",
     "test": "vitest",
     "test:run": "vitest run",
+    "scaffold:sync": "bun run scripts/scaffold-sync.ts",
+    "scaffold:release": "bun run scripts/scaffold-release.ts"
     "check:assets": "bun run scripts/check-asset-naming.ts",
     "check:manifest": "bun run scripts/check-manifest.ts",
     "typecheck": "tsc --noEmit"
@@ -40,6 +42,9 @@
     "tailwindcss": "^4.0.7",
     "vite": "^6.1.0",
     "vite-plugin-solid": "^2.11.0"
+  },
+  "scaffold": {
+    "version": "1.0.0"
   },
   "engines": {
     "node": ">=22"
