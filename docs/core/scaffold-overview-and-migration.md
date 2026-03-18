@@ -692,7 +692,54 @@ The core handles infrastructure, modules provide reusable building blocks, and y
 
 ---
 
+## Scaffold Commands Reference
+
+All commands are run from the game repo root with `bun run`.
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `scaffold:sync` | Pull latest scaffold (selective checkout) | Routine updates (non-breaking) |
+| `scaffold:verify` | Run typecheck + lint + build | After every sync |
+| `scaffold:rollback` | Revert the last sync commit | When a sync broke something |
+| `scaffold:drift` | Detect local changes to scaffold paths | Before syncing, or periodically |
+| `scaffold:release` | Bump version + tag (scaffold repo only) | When publishing a new scaffold version |
+
+For major (breaking) scaffold updates, use a full merge instead of `scaffold:sync`:
+
+```bash
+git fetch scaffold && git merge scaffold/main
+```
+
+## Adopting Scaffold Updates (Existing Games)
+
+If your game was forked before the scaffold tooling existed, follow these steps to adopt it:
+
+1. **Add the scaffold remote**:
+   ```bash
+   git remote add scaffold git@github.com:wolfgames/scaffold-production.git
+   ```
+
+2. **Run your first sync** — this establishes the version tracking metadata:
+   ```bash
+   bun run scaffold:sync
+   ```
+
+3. **Verify** the sync didn't break anything:
+   ```bash
+   bun run scaffold:verify
+   ```
+
+4. **Check for drift** — if your game modified `src/core/` or `src/modules/` locally, those changes will be overwritten on sync. Review drift first:
+   ```bash
+   bun run scaffold:drift
+   ```
+
+5. **(Optional) Add the update-check workflow** — copy `docs/core/scaffold-update-check.yml` to `.github/workflows/scaffold-update-check.yml` in your game repo to get automatic issue creation when new scaffold versions are released. *(Note: GitHub Actions CI/release workflows have been removed from the scaffold repo for now; this template workflow for game repos is still available.)*
+
+---
+
 *See also:*
+- [Scaffold Sync Guide](scaffold-sync-guide.md) -- Detailed sync, verify, rollback, and release workflow
 - [Architecture Map](architecture-map.md) -- Full system architecture diagram
 - [Context Map](context-map.md) -- Dependency relationships
 - [Entry Points](entry-points.md) -- How the app boots

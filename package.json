@@ -13,7 +13,10 @@
     "test": "vitest",
     "test:run": "vitest run",
     "scaffold:sync": "bun run scripts/scaffold-sync.ts",
-    "scaffold:release": "bun run scripts/scaffold-release.ts"
+    "scaffold:release": "bun run scripts/scaffold-release.ts",
+    "scaffold:verify": "bun run scripts/scaffold-verify.ts",
+    "scaffold:rollback": "bun run scripts/scaffold-rollback.ts",
+    "scaffold:drift": "bun run scripts/scaffold-drift.ts",
     "check:assets": "bun run scripts/check-asset-naming.ts",
     "check:manifest": "bun run scripts/check-manifest.ts",
     "typecheck": "tsc --noEmit"

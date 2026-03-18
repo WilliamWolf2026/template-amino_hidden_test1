@@ -4,7 +4,7 @@
 // Usage: bun scripts/scaffold-release.ts <major|minor|patch>
 
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 export type BumpType = "major" | "minor" | "patch";
@@ -44,8 +44,47 @@ export function bumpScaffoldVersion(type: BumpType, root: string): string {
   return newVersion;
 }
 
+export function generateChangelog(version: string, cwd: string): void {
+  const changelogPath = path.join(cwd, "CHANGELOG.md");
+  const date = new Date().toISOString().slice(0, 10);
+
+  // Find previous scaffold tag
+  let prevTag = "";
+  try {
+    prevTag = execSync('git describe --tags --abbrev=0 --match "scaffold-v*" HEAD', {
+      cwd,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    // No previous tag — include all commits
+  }
+
+  const range = prevTag ? `${prevTag}..HEAD` : "HEAD";
+  let log = "";
+  try {
+    log = execSync(`git log ${range} --pretty=format:"- %s (%h)" --no-merges`, {
+      cwd,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    log = "- Initial release";
+  }
+
+  const entry = `## ${version} (${date})\n\n${log}\n`;
+  const existing = existsSync(changelogPath) ? readFileSync(changelogPath, "utf-8") : "";
+  const header = existing.startsWith("# Changelog") ? "" : "# Changelog\n\n";
+  const content = existing
+    ? existing.replace(/^(# Changelog\n\n)/, `$1${entry}\n`)
+    : `${header}${entry}\n`;
+
+  writeFileSync(changelogPath, content);
+  console.log(`[release] Updated CHANGELOG.md`);
+}
+
 export function commitAndTag(version: string, cwd: string): void {
-  execSync("git add package.json", { cwd, stdio: "pipe" });
+  execSync("git add package.json CHANGELOG.md", { cwd, stdio: "pipe" });
   execSync(`git commit -m "chore: release scaffold v${version}"`, { cwd, stdio: "pipe" });
   const tagName = `scaffold-v${version}`;
   execSync(`git tag -a "${tagName}" -m "Scaffold release v${version}"`, { cwd, stdio: "pipe" });
@@ -69,6 +108,7 @@ if (import.meta.main) {
 
   console.log(`[release] Bumped scaffold version to ${newVersion} (${bumpType})`);
 
+  generateChangelog(newVersion, root);
   commitAndTag(newVersion, root);
 
   console.log(`[release] Created tag: ${tagName}`);
@@ -81,7 +121,7 @@ if (import.meta.main) {
   }
 
   console.log("[release] Next steps:");
-  console.log(`[release]   1. Push the tag:    git push origin ${tagName}`);
-  console.log("[release]   2. Push the commit: git push");
-  console.log("[release]   3. Notify game repos to sync");
+  console.log(`[release]   1. Push the commit: git push`);
+  console.log(`[release]   2. Push the tag:    git push origin ${tagName}`);
+  console.log("[release]   (A GitHub Release will be created automatically when the tag is pushed.)");
 }
