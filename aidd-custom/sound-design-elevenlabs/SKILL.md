@@ -24,6 +24,35 @@ Same as standard sound design — every ludemic moment gets an audio signature. 
 | **TEACH** | Subtle confirmation | "New concept encountered" |
 | **State change** | Transition sound | "Game phase changed" |
 
+## Scaffold Audio Integration
+
+This scaffold provides a complete audio system. DO NOT create a custom audio manager from scratch.
+
+**Extend the existing audio manager** at `src/game/audio/manager.ts`:
+- `GameAudioManager` extends `BaseAudioManager` from `~/core/systems/audio`
+- Add game-specific play methods (e.g., `playExplosion()`, `playMatch()`)
+- Each method calls `this.playSound(SOUND_DEFINITION)`
+
+**Define sounds** in `src/game/audio/sounds.ts`:
+- Each sound is a `SoundDefinition { channel, sprite, volume? }`
+- `channel` must match an audio bundle name in `src/game/asset-manifest.ts` (e.g., `audio-sfx-mygame`)
+- `sprite` is the sound name within the Howler audio sprite
+
+**Register audio bundles** in `src/game/asset-manifest.ts`:
+- Use `audio-sfx-<game>` for sound effects
+- Use `audio-music-<game>` for music tracks
+
+**Direct playback** (alternative): `deps.coordinator.audio.play(channel, sprite, { volume })`
+
+### File Targets for Sound Stage
+```yaml
+modify:
+  - src/game/audio/sounds.ts              # add SoundDefinition entries
+  - src/game/audio/manager.ts             # add play methods
+  - src/game/asset-manifest.ts            # register audio-* bundles
+  - src/game/mygame/screens/gameController.ts  # wire sound triggers to ludemic events
+```
+
 ## Generation Pipeline
 
 Sounds are generated **once** at build time, not at runtime. The pipeline:
@@ -311,7 +340,7 @@ Use the scaffold's existing audio system:
 
 ### Files Modified
 - `package.json` — Add `@fal-ai/client` dev dep + `generate-sounds` script
-- `gameController.ts` — Import playSound, call on REWARD/COLLIDE/FAIL/EXTEND moments
+- `mygame/screens/gameController.ts` — Import playSound, call on REWARD/COLLIDE/FAIL/EXTEND moments
 
 ### Stage Constraints
 - **Pre-generated**: Sounds are generated at build time, never at runtime

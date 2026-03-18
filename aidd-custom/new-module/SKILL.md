@@ -89,7 +89,7 @@ createModule(tokens, category) => files {
 
 ```sudolang
 verifyBuild() => pass | fail {
-  1. Run `npx tsc --noEmit`
+  1. Run `bun run typecheck`
   2. pass => continue
   3. fail => read errors, fix issues in generated files, re-run until clean
 }
@@ -137,6 +137,6 @@ Commands {
 
 - Given the module directory is listed, should contain index.ts, defaults.ts, tuning.ts, and renderers/pixi.ts (for primitives/prefabs)
 - Given any generated file is searched for `__`, should find zero unhydrated tokens
-- Given `npx tsc --noEmit` is run, should produce zero errors
+- Given `bun run typecheck` is run, should produce zero errors
 - Given `src/modules/INDEX.md` is read, should contain the new module in the correct category table
 - Given `src/core/` and `src/game/` are checked in git diff, should show zero modifications

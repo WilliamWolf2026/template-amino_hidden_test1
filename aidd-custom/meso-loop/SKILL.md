@@ -142,7 +142,7 @@ interface LevelDef {
 ### Files Modified
 - `gameState.ts` -- Extend with levelId, turnCount, levelStatus, win/lose logic
 - `types.ts` -- Add LevelDef, LevelStatus types
-- `gameController.ts` -- Add level lifecycle: load level -> play -> win/lose -> next level
+- `screens/gameController.ts` -- Add level lifecycle: load level -> play -> win/lose -> next level
 
 ### Stage Constraints
 - **GPS state ceiling**: State machine must have 12 or fewer states, 30 or fewer transitions
@@ -159,6 +159,26 @@ interface LevelDef {
 - Level data has at least 3 levels with progressive difficulty
 - Level transitions update state layer
 - Level data reflects GDD mechanics, not trivial test data
+
+## Scaffold Integration
+
+The pure game logic lives in `src/game/mygame/` — this is correct and by design. Here's how it connects to the scaffold:
+
+1. **Pure step function** (`src/game/mygame/gameState.ts`) — no Pixi, no DOM, no side effects. Testable in Node.
+2. **Game controller** (`src/game/mygame/screens/gameController.ts`) — bridges step function to Pixi rendering. Must satisfy `GameController` interface from `src/game/mygame-contract.ts`.
+3. **Cross-screen state** (`src/game/state.ts`) — SolidJS signals for score, level, etc. The game controller reads/writes these; ResultsScreen reads them to display final score.
+4. **Contract compliance** — `mygame/index.ts` must export `setupGame` (type `SetupGame`) and `setupStartScreen` (type `SetupStartScreen`).
+
+### File Targets
+```yaml
+create:
+  - src/game/mygame/gameState.ts          # pure step(state, action) function
+  - src/game/mygame/types.ts              # GameState, PlayerAction, LudemicEvent
+modify:
+  - src/game/mygame/screens/gameController.ts  # wire step function to rendering
+  - src/game/state.ts                          # add game-specific signals
+  - src/game/config.ts                         # update GAME_ID, GAME_SLUG, GAME_NAME
+```
 
 ## Execute
 

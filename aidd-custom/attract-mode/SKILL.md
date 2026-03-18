@@ -166,6 +166,28 @@ The demo uses the actual game canvas with all visual effects:
 - The demo should make the game look accessible, not intimidating
 - Difficulty should look moderate (not trivially easy, not impossibly hard)
 
+## Scaffold Integration
+
+Attract mode runs inside the **start screen**, not the game screen. The start screen has access to everything needed:
+
+- `deps.coordinator` — for loading scene bundles (sprites for the demo)
+- `deps.initGpu()` — initialize GPU if attract uses Pixi rendering
+- `deps.loadCore()` / `deps.loadBundle()` — load assets for the demo
+
+### Implementation Pattern
+
+1. Create `src/game/mygame/attractMode.ts` — the self-playing controller
+2. Modify `src/game/mygame/screens/startView.ts` — mount attract behind the title UI
+3. Attract starts after idle timeout (10-15s), any user input exits and returns to interactive title
+
+### File Targets
+```yaml
+create:
+  - src/game/mygame/attractMode.ts        # AI controller + demo sequence
+modify:
+  - src/game/mygame/screens/startView.ts  # mount attract, wire idle timeout
+```
+
 ## What This Stage Produces
 
 ### Files Created

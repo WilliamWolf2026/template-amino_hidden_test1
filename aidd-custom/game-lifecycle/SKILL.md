@@ -1,21 +1,21 @@
 ---
 name: game-lifecycle
-description: Game screen management with title, menu, game over, and pause screens. Use when implementing screen routing, session persistence, or game shell UI. Triggers on: lifecycle, game screens, title screen, game over, pause, screen routing, session model, goto, persistence, settings screen.
+description: Game screen management with title, menu, results, and pause screens. Use when implementing screen routing, session persistence, or game shell UI. Triggers on: lifecycle, game screens, title screen, results, pause, screen routing, session model, goto, persistence, settings screen.
 ---
 
 # Game Lifecycle -- Everything Before and After Gameplay
 
-The lifecycle wraps proven gameplay in a complete game shell -- everything the player experiences before and after playing. The title screen is the game's first impression. Game over is the moment to hook them into "one more round."
+The lifecycle wraps proven gameplay in a complete game shell -- everything the player experiences before and after playing. The title screen is the game's first impression. The results screen is the moment to hook them into "one more round."
 
 ## Screen Graph
 
 ```
-TITLE --> PLAYING --> GAME_OVER
-  |          |            |
-  |          v            v
+TITLE --> PLAYING --> RESULTS
+  |          |           |
+  |          v           v
   |        PAUSED     TITLE (home)
-  |          |            |
-  |          v            v
+  |          |           |
+  |          v           v
   v        PLAYING    PLAYING (replay)
 SETTINGS
 ```
@@ -27,8 +27,10 @@ SETTINGS
 | **TITLE** | First impression, invite to play | Game title (from GDD!), Play button, settings icon, optional attract mode |
 | **PLAYING** | The game canvas with HUD | Pixi stage, score display, level indicator, pause button |
 | **PAUSED** | Quick access during gameplay | Resume, restart, settings, quit options |
-| **GAME_OVER** | Celebrate and re-engage | Final score, high score, stars/rating, Play Again, Home |
+| **RESULTS** | Celebrate and re-engage | Final score, high score, stars/rating, Play Again, Home |
 | **SETTINGS** | Player preferences | SFX volume, mute toggle, reduced motion, high contrast |
+
+> **Note:** The scaffold provides 4 screen slots: `loading`, `start`, `game`, `results`. Do NOT create additional screen components -- customize the existing ResultsScreen for game-over display.
 
 ## Session Model
 
@@ -73,7 +75,9 @@ MODIFY it rather than creating a new one. Fill in the game's branding, not gener
 ### Title Screen Idle Behavior
 After 10-15 seconds of idle on the title screen, trigger attract mode (if implemented). Any user input exits attract and returns to interactive title.
 
-## Game Over Screen Design
+## Results Screen Design
+
+Modify existing `src/game/screens/ResultsScreen.tsx` -- do NOT create a new GameOverScreen component.
 
 ### Requirements
 - Celebrates the player's performance
@@ -104,13 +108,16 @@ The gap between current and best should motivate replay.
 - CSS transitions preferred over complex animation libraries
 
 ### Implementation
-Use the scaffold's screen routing:
+Use the scaffold's screen routing via `goto()` from `useScreen()`:
 ```typescript
-// Navigate between screens
-deps.goto('game_over');
-deps.goto('start');
-deps.goto('game');
+// In StartScreen / ResultsScreen (SolidJS shell components with useScreen()):
+const { goto } = useScreen();
+goto('game');
+goto('start');
+goto('results');
 ```
+
+**Important:** `goto()` is available in `StartScreenDeps` (passed to `setupStartScreen`), but `GameControllerDeps` does NOT include `goto`. The GameScreen shell reads game state (e.g. a `phase` or `complete` signal) and the shell component uses `useScreen().goto('results')` to transition when the game signals completion. The game controller itself never calls `goto` directly.
 
 ## Pause Handling
 
@@ -158,16 +165,13 @@ function resume(): void {
 
 ## What This Stage Produces
 
-### Files Created
-- `GameOverScreen.tsx` -- SolidJS component: score display, replay button, home button
-
 ### Files Modified
-- `config.ts` -- Register `game_over` screen in screens map
-- `gameController.ts` -- Call `goto('game_over')` on win/lose condition
-- `startView.ts` -- Polish title with game branding from theme
+- `src/game/screens/ResultsScreen.tsx` -- Customize existing component: score display, replay button, home button
+- `src/game/mygame/screens/gameController.ts` -- Signal game completion via game state (e.g. phase signal); does NOT call `goto()` directly
+- `src/game/mygame/screens/startView.ts` -- Polish title with game branding from theme
 
 ### Stage Constraints
-- **Screen routing**: Use the scaffold's goto() system, do NOT create a custom ScreenManager
+- **Screen routing**: Use the scaffold's `goto()` system (via `useScreen()` in shell components or `StartScreenDeps`), do NOT create a custom ScreenManager
 - **Themed**: All lifecycle screens use the theme palette and typography from visual design stage
 - **Preserve game**: Game canvas and game logic unchanged. Lifecycle wraps around them.
 - **Simple transitions**: CSS fade or slide. No complex animation libraries.
@@ -178,7 +182,7 @@ function resume(): void {
 ### Exit Criteria
 - Title screen renders with game title from GDD
 - Play button starts gameplay
-- Game over screen shows score
+- Results screen shows score
 - Replay button resets and starts new session
 - Screen routing handles all transitions
 - Screens use theme palette and typography
@@ -189,10 +193,10 @@ function resume(): void {
 ```sudolang
 fn whenImplementingLifecycle() {
   Constraints {
-    Screen graph must include: title, game, game over, pause — minimum viable set
+    Screen graph must include: title, game, results, pause — minimum viable set
     Maximum 2 taps from title screen to gameplay
     Level completion transitions to next level with interstitial, NOT to game over
-    Game over only triggers on fail or explicit quit
+    Results screen only triggers on fail or explicit quit
     Pause button must be visible during gameplay and produce a pause overlay
     All scores and progress persist via localStorage across page reloads
     Use scaffold's ScreenProvider and goto() for navigation — do not rebuild routing
@@ -205,8 +209,8 @@ fn whenImplementingLifecycle() {
 - Given the app launches, should display the title screen
 - Given the player taps "play" on the title screen, should reach gameplay in 2 or fewer taps
 - Given the player completes a level, should show a level-complete interstitial then advance to the next level
-- Given the player fails a level, should show the game over screen (not silently restart)
+- Given the player fails a level, should show the results screen (not silently restart)
 - Given the pause button is tapped during gameplay, should display a pause overlay and stop game logic
 - Given the pause overlay is dismissed, should resume gameplay from the exact paused state
 - Given a score is achieved and the page is reloaded, should persist and display the previous score
-- Given the game over screen is shown, should display final score and offer replay
+- Given the results screen is shown, should display final score and offer replay

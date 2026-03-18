@@ -76,7 +76,7 @@ Never write code blind. Always understand what exists first.
 
 ### Step 4: Validate
 ```bash
-npx tsc --noEmit && npx vite build
+bun run typecheck && bun run build
 ```
 If errors occur, read the error output, fix the issues, re-run. Repeat until the build passes.
 
@@ -127,7 +127,7 @@ Before creating any new file, check if the scaffold already provides the capabil
 After implementing all files for each stage:
 
 ```bash
-npx tsc --noEmit && npx vite build
+bun run typecheck && bun run build
 ```
 
 ### Common Error Patterns and Fixes
@@ -197,7 +197,7 @@ fn whenWritingGameCode() {
     step(state, action) is pure: no Pixi imports, no Math.random(), no side effects, no DOM access
     Entity names match the GDD — never use generic names like "Entity", "Item", "Thing"
     Scoring formula matches the design doc exactly — not a simplified version
-    Build validation: npx tsc --noEmit && npx vite build must pass after every stage
+    Build validation: bun run typecheck && bun run build must pass after every stage
     Write checklists/stage-N.md with specific details before coding
     Re-read design docs at the start of every stage — never code from memory after stage 3
   }
@@ -207,8 +207,8 @@ fn whenWritingGameCode() {
 ### Exit Criteria (Given/Should)
 
 - Given any .ts file is searched for "TODO", "FIXME", "implement", "placeholder", should find zero matches
-- Given npx tsc --noEmit is run, should produce zero errors
-- Given npx vite build is run, should produce a successful build with zero warnings
+- Given bun run typecheck is run, should produce zero errors
+- Given bun run build is run, should produce a successful build with zero warnings
 - Given step() is imported in a Node.js test (no DOM), should compile and run without errors
 - Given the codebase is searched for Math.random() inside step/state files, should find zero matches
 - Given entity variable names are inspected, should match GDD terminology (not generic names)

@@ -34,29 +34,68 @@ Colors organized by emotional role, not by CSS property.
 Shadows and highlights are hue-shifted, never flat gray or white. This is what makes objects feel lit instead of stamped.
 
 ```typescript
-import { Color } from 'pixi.js';
+// NOTE: Pixi.js v8 Color class does NOT have toHsl(). Use a manual conversion utility.
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return [h * 360, s * 100, l * 100];
+}
+
+function hslToNumber(h: number, s: number, l: number): number {
+  h /= 360; s /= 100; l /= 100;
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  let r: number, g: number, b: number;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return ((Math.round(r * 255) << 16) | (Math.round(g * 255) << 8) | Math.round(b * 255));
+}
+
+function hexToRgb(hex: number): [number, number, number] {
+  return [(hex >> 16) & 0xFF, (hex >> 8) & 0xFF, hex & 0xFF];
+}
 
 function hueShiftShadow(baseHex: number, warmLight: boolean): number {
-  const c = new Color(baseHex);
-  const [h, s, l] = c.toHsl();
+  const [r, g, b] = hexToRgb(baseHex);
+  const [h, s, l] = rgbToHsl(r, g, b);
   // Warm light → cool shadows (shift +30°), cool light → warm shadows (shift -30°)
   const hShift = warmLight ? 30 : -30;
-  return new Color({
-    h: (h + hShift + 360) % 360,
-    s: Math.min(s * 1.1, 100),
-    l: l * 0.45,
-  }).toNumber();
+  return hslToNumber(
+    (h + hShift + 360) % 360,
+    Math.min(s * 1.1, 100),
+    l * 0.45,
+  );
 }
 
 function hueShiftHighlight(baseHex: number, warmLight: boolean): number {
-  const c = new Color(baseHex);
-  const [h, s, l] = c.toHsl();
+  const [r, g, b] = hexToRgb(baseHex);
+  const [h, s, l] = rgbToHsl(r, g, b);
   const hShift = warmLight ? -10 : 10;
-  return new Color({
-    h: (h + hShift + 360) % 360,
-    s: s * 0.6,
-    l: Math.min(l + (100 - l) * 0.65, 97),
-  }).toNumber();
+  return hslToNumber(
+    (h + hShift + 360) % 360,
+    s * 0.6,
+    Math.min(l + (100 - l) * 0.65, 97),
+  );
 }
 ```
 
@@ -135,6 +174,8 @@ fonts: {
   score: '"Fredoka One", cursive',     // Game-world feel
 }
 ```
+
+> **Theme integration**: Theme colors should integrate with `GAME_FONT_FAMILY` from `src/game/config.ts`. The font family is used by the scaffold for UI text rendering.
 
 ## 5-Layer Object Rendering
 
@@ -338,6 +379,14 @@ Choose what serves the game's material voice. Don't use all of these — use the
 - **Procedural textures** — generate noise/grain textures at runtime for surface detail
 - Custom `@font-face` for game-specific typography — don't settle for system fonts
 
+### Scaffold Asset Integration
+
+Game textures are loaded via `coordinator.getGpuLoader()?.createSprite(atlasAlias, frameName)`. Atlas aliases must match `scene-*` or `core-*` bundle names declared in `src/game/asset-manifest.ts`.
+
+### Pixi Texture Cleanup
+
+When unloading scene bundles, follow teardown order: kill GSAP tweens → removeChild → sprite.destroy() → coordinator.unloadBundle(). See scaffold-profiles skill for details.
+
 ## Validation Checklist
 
 Ask yourself — and be honest:
@@ -360,8 +409,8 @@ Ask yourself — and be honest:
 - `sprites.ts` -- Visual ludeme factory functions using Pixi Graphics
 
 ### Files Modified
-- `gameController.ts` -- Use sprites.ts for entities, theme.ts for colors, add layered backgrounds
-- `startView.ts` -- Apply theme colors and typography to start screen
+- `src/game/mygame/screens/gameController.ts` -- Use sprites.ts for entities, theme.ts for colors, add layered backgrounds
+- `src/game/mygame/screens/startView.ts` -- Apply theme colors and typography to start screen
 - `StartScreen.tsx` -- Add tailwind theme classes for container styling
 - `GameScreen.tsx` -- Add tailwind theme classes for container styling
 

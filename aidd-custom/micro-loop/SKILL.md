@@ -145,7 +145,7 @@ interface GameState {
 - `gameState.ts` -- Pure step function, createInitialState, getEvents
 
 ### Files Modified
-- `gameController.ts` -- Replace demo content with real entities, input handling, render loop
+- `screens/gameController.ts` -- Replace demo content with real entities, input handling, render loop
 - `startView.ts` -- Update branding to match GDD
 - `config.ts` -- Set game identity from GDD
 
@@ -166,6 +166,26 @@ interface GameState {
 - TypeScript compiles without errors
 - Entities named after GDD concepts, not generic placeholders
 - Time to interactive under 3 seconds
+
+## Scaffold Integration
+
+The pure game logic lives in `src/game/mygame/` — this is correct and by design. Here's how it connects to the scaffold:
+
+1. **Pure step function** (`src/game/mygame/gameState.ts`) — no Pixi, no DOM, no side effects. Testable in Node.
+2. **Game controller** (`src/game/mygame/screens/gameController.ts`) — bridges step function to Pixi rendering. Must satisfy `GameController` interface from `src/game/mygame-contract.ts`.
+3. **Cross-screen state** (`src/game/state.ts`) — SolidJS signals for score, level, etc. The game controller reads/writes these; ResultsScreen reads them to display final score.
+4. **Contract compliance** — `mygame/index.ts` must export `setupGame` (type `SetupGame`) and `setupStartScreen` (type `SetupStartScreen`).
+
+### File Targets
+```yaml
+create:
+  - src/game/mygame/gameState.ts          # pure step(state, action) function
+  - src/game/mygame/types.ts              # GameState, PlayerAction, LudemicEvent
+modify:
+  - src/game/mygame/screens/gameController.ts  # wire step function to rendering
+  - src/game/state.ts                          # add game-specific signals
+  - src/game/config.ts                         # update GAME_ID, GAME_SLUG, GAME_NAME
+```
 
 ## Execute
 

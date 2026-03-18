@@ -22,6 +22,35 @@ Every ludemic moment -- every moment of meaning in gameplay -- gets an audio sig
 | **TEACH** | Subtle confirmation | "New concept encountered" |
 | **State change** | Transition sound | "Game phase changed" |
 
+## Scaffold Audio Integration
+
+This scaffold provides a complete audio system. DO NOT create a custom audio manager from scratch.
+
+**Extend the existing audio manager** at `src/game/audio/manager.ts`:
+- `GameAudioManager` extends `BaseAudioManager` from `~/core/systems/audio`
+- Add game-specific play methods (e.g., `playExplosion()`, `playMatch()`)
+- Each method calls `this.playSound(SOUND_DEFINITION)`
+
+**Define sounds** in `src/game/audio/sounds.ts`:
+- Each sound is a `SoundDefinition { channel, sprite, volume? }`
+- `channel` must match an audio bundle name in `src/game/asset-manifest.ts` (e.g., `audio-sfx-mygame`)
+- `sprite` is the sound name within the Howler audio sprite
+
+**Register audio bundles** in `src/game/asset-manifest.ts`:
+- Use `audio-sfx-<game>` for sound effects
+- Use `audio-music-<game>` for music tracks
+
+**Direct playback** (alternative): `deps.coordinator.audio.play(channel, sprite, { volume })`
+
+### File Targets for Sound Stage
+```yaml
+modify:
+  - src/game/audio/sounds.ts              # add SoundDefinition entries
+  - src/game/audio/manager.ts             # add play methods
+  - src/game/asset-manifest.ts            # register audio-* bundles
+  - src/game/mygame/screens/gameController.ts  # wire sound triggers to ludemic events
+```
+
 ## SFX Event Mapping
 
 ### Intensity Levels
@@ -185,7 +214,7 @@ Use the scaffold's existing audio system:
 - `sounds.ts` -- Sound effect definitions using jsfxr params + `playSound()` helper
 
 ### Files Modified
-- `gameController.ts` -- Import playSound, call on REWARD/COLLIDE/FAIL/EXTEND moments
+- `mygame/screens/gameController.ts` -- Import playSound, call on REWARD/COLLIDE/FAIL/EXTEND moments
 
 ### Stage Constraints
 - **Use scaffold audio**: Use the scaffold's audio libraries, don't create a custom SoundManager
