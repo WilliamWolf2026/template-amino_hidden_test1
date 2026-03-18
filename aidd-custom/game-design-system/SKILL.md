@@ -1,6 +1,7 @@
 ---
 name: game-design-system
 description: GPS game design framework with LISA ludemic assembly. Use when designing a new game, creating game design documents, or evaluating game concepts. Triggers on: game idea, game design, GDD, LISA program, ludemic, GPS gates, design documents, game production system.
+user-invocable: false
 ---
 
 # Game Design System (GPS)

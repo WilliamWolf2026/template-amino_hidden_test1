@@ -1,6 +1,7 @@
 ---
 name: scaffold-profiles
 description: Lightning and game_client scaffold documentation. Use when setting up a new game project, choosing a scaffold, or looking up framework APIs. Triggers on: scaffold, lightning, game_client, SolidJS, Preact, project setup, setupGame, GameDeps, screen routing, createPixiAdapter, createProgressService, getStored, setStored.
+user-invocable: false
 ---
 
 # Scaffold Profiles
