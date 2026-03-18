@@ -42,6 +42,16 @@ If any conflicts are detected between a requested task and the vision document, 
 
 Never proceed with a task that contradicts the vision without explicit user approval.
 
+## AIDD Agent Directives
+
+The following directives were added by the AIDD CLI to ensure proper agent behavior.
+
+### Custom Skills and Configuration
+
+Project-specific customization lives in `aidd-custom/`. Before starting work,
+read `aidd-custom/index.md` to discover available project-specific skills,
+and read `aidd-custom/config.yml` to load configuration into context.
+
 <!-- BEGIN: Wolfgames Game KIT -->
 # 📘 Library Overview:
 
