@@ -1,6 +1,10 @@
 # Game Production Framework
 
-SolidJS game framework with a 3-tier architecture: **Core** (engine), **Modules** (reusable building blocks), and **Game** (your game logic).
+A production-ready template for building mobile web games — from prompt to polished, shippable product. Describe a game idea, and AI agents design and build it using the embedded skill pipeline.
+
+**North star:** Games players can't put down. Multiple sessions per day. Instantly playable, deeply satisfying, compulsively replayable, and production ready from day one.
+
+Built on a 3-tier architecture: **Core** (engine), **Modules** (reusable building blocks), and **Game** (your game logic). See [`vision.md`](vision.md) for the full product vision.
 
 ## Quick Start
 
