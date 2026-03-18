@@ -1,92 +1,71 @@
-# Advance Games Platform
+# Vision — Prompt to Play
 
-## What We're Building
+## What This Is
 
-A platform for creating casual, chapter-based games that connect players to local stories and content. Each game is a standalone experience built on a shared foundation, so new games can be created quickly without reinventing the wheel.
+A production-ready template for building mobile web games. An engineer clones this repo, describes a game idea, and AI agents design and build a polished, shippable game using the embedded skill pipeline.
 
-## The Idea
+## North Star
 
-Players complete short puzzle chapters guided by a companion character. Each chapter is a self-contained experience — a handful of levels tied together by a narrative thread. That thread can be a local news story, a patrol route, a seasonal event, or anything a content team wants to deliver.
+**Games players can't put down.** Multiple sessions per day. The kind of game you open on the bus, at lunch, before bed — and keep coming back to.
 
-The games are embedded directly into publisher websites. Players don't need to download anything. They just play.
+Every game built from this scaffold should be:
 
-## How Games Work
+- **Instantly playable** — no downloads, no sign-up, under 3 seconds to first interaction
+- **Deeply satisfying** — the core verb feels good before any goals or scoring exist
+- **Compulsively replayable** — "one more round" is the natural reaction, not a design trick
+- **Production ready** — error tracking, analytics, asset management, and scalable infrastructure from day one
 
-Every Advance game follows the same rhythm:
+## Product Principles
 
-1. **A companion introduces the chapter** — sets the tone, gives context
-2. **The player works through levels** — each level is a small, satisfying puzzle
-3. **Between levels, the story unfolds** — clues, dialogue, or narrative beats keep the player engaged
-4. **The chapter ends with a payoff** — a story reveal, a completed patrol, a reward
+### The Feel Test
+If the core interaction isn't fun with no UI, no score, and no goals — it's not ready. Polish the verb before building the game around it.
 
-Chapters are delivered from a backend. Games don't ship with hardcoded content — they pull chapters dynamically, so content can be updated weekly, daily, or however the editorial team decides.
+### Respect the Player's Time
+Short sessions that feel complete. Players should be able to pick up and put down in under a minute and still feel they accomplished something. But they should *want* to keep going.
 
-## What's Shared Across Games
+### Progression Without Punishment
+Players always move forward. Difficulty breathes — hard levels are followed by easier ones. Failure teaches, it doesn't block. The player never feels stuck, only challenged.
 
-Every Advance game gets the same infrastructure for free:
+### Addictive Through Craft, Not Manipulation
+Retention comes from satisfying mechanics, beautiful presentation, and well-paced progression — not dark patterns, artificial timers, or pay-to-win gates.
 
-- **Asset loading** — images, sounds, spritesheets, all managed consistently
-- **Screen flow** — loading, start, gameplay, transitions
-- **Audio** — music, sound effects, volume controls
-- **Companion system** — characters that introduce chapters, deliver clues, and celebrate completions
-- **Chapter delivery** — a catalog of chapters fetched from a backend, with progress tracking
-- **Tuning** — real-time parameter adjustment for designers and QA
-- **Embedding** — games run inside publisher sites with data injection
-- **Progress persistence** — players can leave and come back where they left off
+### Ship Quality
+Every interaction feels intentional. Sounds, animations, transitions, and feedback are not nice-to-haves — they're what separate a game people play from a game people try once.
 
-## What's Unique to Each Game
+## What the Scaffold Provides
 
-Each game brings its own:
+The shared foundation handles everything that isn't your game:
 
-- **Core mechanic** — rotate tiles, match colors, connect pipes, whatever the game is
-- **Visual theme** — art, animations, tile sets
-- **Level generation** — how puzzles are built from seeds and configs
-- **Difficulty curve** — how levels progress within a chapter
+- **Asset pipeline** — layered loading (DOM, GPU, audio) with progress tracking
+- **Screen flow** — loading, start, gameplay, results with automatic asset lifecycle
+- **Audio system** — music, SFX, volume, mute — all managed
+- **Live tuning** — real-time parameter adjustment for designers and QA
+- **Analytics & errors** — PostHog events, Sentry tracking, feature flags
+- **Mobile-first** — responsive viewport, touch-safe UI, pull-to-refresh disabled
+- **Progress persistence** — players leave and return where they left off
+
+## What Each Game Brings
+
+- **Core mechanic** — the one verb that makes this game *this game*
+- **Visual identity** — palette, typography, sprites, atmosphere
+- **Level system** — generation, validation, difficulty curves
+- **Progression** — what keeps players coming back across sessions
+- **Sound & juice** — the feedback layer that makes every action feel 10x better
 
 ## Separation Principle
 
-The shared foundation never knows about any specific game. Games depend on the foundation, never the other way around. This means:
+The scaffold never knows about any specific game. Games depend on the scaffold, never the other way around.
 
-- A new game starts by replacing the game layer, not by forking the whole project
-- Improvements to the foundation benefit every game automatically
-- Games can have completely different mechanics while sharing all the plumbing
+- A new game starts by implementing the game contract, not by forking the project
+- Scaffold improvements benefit every game automatically
+- Games can have completely different mechanics while sharing all infrastructure
 
-## Content Model
+## Success Metrics
 
-- A **catalog** lists all available chapters for a game
-- Each **chapter** contains levels, a story, and companion dialogue
-- Each **level** contains a seed, config, and clues
-- Chapters can be tied to real-world content (news, events) or be standalone (patrols, seasonal themes)
-- **Fallback chapters** exist for every game so it always has something to play, even without a backend
+A game built from this scaffold succeeds when:
 
-## Player Experience Principles
-
-- No failure states — players always make progress
-- No time pressure — relaxing, not stressful
-- Short sessions — a chapter should feel complete in a few minutes
-- Story as reward — the narrative is what pulls you forward, not points or leaderboards
-- Works on any device — mobile-first, but plays well everywhere
-
-## Current Games
-
-- **City Lines** — rotate road tiles to connect landmarks across neighborhoods
-
-## Roadmap
-
-### Now
-- Chapter catalog with multiple chapters and progression between them
-- Companion-guided introduction and story flow
-- Fallback patrol chapters for offline/default play
-- Progress persistence across sessions
-
-### Next
-- Backend-driven chapter publishing (editorial creates, players receive)
-- Multiple companion characters with distinct personalities
-- Seasonal and event-based chapter themes
-- Embed integration with publisher analytics
-
-### Later
-- Second game on the platform (proving the foundation works for more than one game)
-- Shared player profiles across games
-- A/B testing of chapter content and game tuning via feature flags
-- Community features (sharing completed chapters, streaks)
+1. **Day-1 retention > 40%** — players come back the next day
+2. **Sessions per day > 2** — players open it more than once
+3. **Session length > 3 min** — long enough to mean something
+4. **Time to first "fun moment" < 10 seconds** — the game hooks immediately
+5. **Zero crashes in first 1000 sessions** — production quality, not prototype quality

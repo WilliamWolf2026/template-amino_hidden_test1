@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless"
+      ]
+    },
+    "wolfgames-asset-gen": {
+      "type": "http",
+      "url": "https://asset-gen-five.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer wg_ag_550e8400e29b41d4a716446655440000"
+      }
+    }
+  }
+}
