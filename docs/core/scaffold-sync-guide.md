@@ -111,7 +111,7 @@ This compares `src/core/`, `src/modules/`, and root configs against `scaffold/ma
 The scaffold repo publishes [GitHub Releases](https://github.com/wolfgames/scaffold-production/releases) for each version. To get notified:
 
 - **Watch the repo** — GitHub sends email notifications for new releases
-- **Add the update-check workflow** — Copy `docs/core/scaffold-update-check.yml` into your game repo at `.github/workflows/scaffold-update-check.yml`. It runs weekly and opens an issue when a new scaffold version is available.
+- **Add the update-check workflow** — Copy `docs/core/scaffold-update-check.yml` into your game repo at `.github/workflows/scaffold-update-check.yml`. It runs weekly and opens an issue when a new scaffold version is available. *(Note: GitHub Actions CI/release workflows have been removed from the scaffold repo itself for now; this template workflow for game repos is still available.)*
 
 ## Releasing a New Scaffold Version
 

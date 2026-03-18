@@ -1,6 +1,6 @@
 # Scaffold Update Workflow & Automation Epic
 
-**Status**: ✅ COMPLETED (2026-03-13)
+**Status**: ✅ COMPLETED (2026-03-13) — GitHub Actions workflows removed (2026-03-18)
 **Linear**: ENG-1726
 **Goal**: Safe, automated, and validated workflow for propagating scaffold updates to games
 
@@ -10,14 +10,11 @@ ENG-1684 delivered the distribution mechanism (sync script, release script, merg
 
 ---
 
-## Add Scaffold CI Workflow
+## ~~Add Scaffold CI Workflow~~ (Removed)
 
-GitHub Actions workflow that runs on PRs to the scaffold repo, gating merges on passing tests.
+> **Removed 2026-03-18**: GitHub Actions workflows have been removed from the scaffold repo for now. CI gating will be revisited later.
 
-**Requirements**:
-
-- Given a PR to `main`, should run typecheck, Biome lint, and the full test suite before merge is allowed
-- Given the workflow file at `.github/workflows/scaffold-ci.yml`, should use Bun for all steps to match the local dev toolchain
+~~GitHub Actions workflow that runs on PRs to the scaffold repo, gating merges on passing tests.~~
 
 ---
 
@@ -44,15 +41,11 @@ A convenience command to revert a failed scaffold sync.
 
 ---
 
-## Create Scaffold Release Workflow and Game Update Template
+## ~~Create Scaffold Release Workflow and Game Update Template~~ (Removed)
 
-GitHub Actions workflow that creates a GitHub Release on tag push, plus a template workflow game repos can adopt to check for updates.
+> **Removed 2026-03-18**: GitHub Actions workflows have been removed from the scaffold repo for now. Release automation will be revisited later.
 
-**Requirements**:
-
-- Given a `scaffold-v*` tag push, should create a GitHub Release with auto-generated release notes from git history
-- Given a major version release, should include a breaking-change warning in the release notes
-- Given a game repo with the template workflow, should check for new scaffold releases weekly and open an issue if an update is available
+~~GitHub Actions workflow that creates a GitHub Release on tag push, plus a template workflow game repos can adopt to check for updates.~~
 
 ---
 

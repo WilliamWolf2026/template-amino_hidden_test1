@@ -734,7 +734,7 @@ If your game was forked before the scaffold tooling existed, follow these steps 
    bun run scaffold:drift
    ```
 
-5. **(Optional) Add the update-check workflow** — copy `docs/core/scaffold-update-check.yml` to `.github/workflows/scaffold-update-check.yml` in your game repo to get automatic issue creation when new scaffold versions are released.
+5. **(Optional) Add the update-check workflow** — copy `docs/core/scaffold-update-check.yml` to `.github/workflows/scaffold-update-check.yml` in your game repo to get automatic issue creation when new scaffold versions are released. *(Note: GitHub Actions CI/release workflows have been removed from the scaffold repo for now; this template workflow for game repos is still available.)*
 
 ---
 
