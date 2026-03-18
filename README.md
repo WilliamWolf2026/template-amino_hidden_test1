@@ -45,6 +45,20 @@ modules/ → can import from core/
 game/    → can import from core/ + modules/
 ```
 
+## Where to Put New Code
+
+| What you're building | Where it goes |
+|---------------------|---------------|
+| Single-purpose reusable component | `src/modules/primitives/<name>/` |
+| Pure logic, no rendering | `src/modules/logic/<name>/` |
+| Assembled from multiple primitives | `src/modules/prefabs/<name>/` |
+| Game screen | `src/game/screens/` |
+| Game mechanic / controller | `src/game/<game-name>/` |
+| Game state signals | `src/game/state.ts` |
+| Game tuning values | `src/game/tuning/` |
+| Module configuration for a game | `src/game/setup/` |
+| Framework system / provider | `src/core/systems/` (admin only) |
+
 ## Features
 
 - **Engine Agnostic** — Swap between Pixi, Phaser, or Three.js
@@ -53,22 +67,41 @@ game/    → can import from core/ + modules/
 - **Live Tuning** — Press backtick (`) to adjust parameters in real-time
 - **Error Boundaries** — Layered error handling with Sentry + PostHog
 
-## Documentation
+## Factory Commands
 
-See the **[docs folder](docs/README.md)** for full documentation, or use the **[flat index](docs/INDEX.md)** for fast lookup.
+See **[docs/factory/index.md](docs/factory/index.md)** for the full list.
 
-### Quick Links
+| Command | Purpose |
+|---------|---------|
+| `/research` | Investigate without code changes |
+| `/compare` | Compare solutions with trade-offs |
+| `/report` | Generate documentation |
+| `/audit` | Systematic codebase review |
+| `/debug` | Find bug root cause |
+| `/review` | Code quality review |
+| `/naming` | Asset naming convention |
+| `/commit` | Git commit |
+| `/deploy` | Deploy to QA/staging/production |
+| `/newgame` | Setup checklist for forking to a new game |
+| `/newmodule` | Create a new module in modules/ |
 
-| Topic | Description |
-|-------|-------------|
-| [Architecture](docs/core/architecture.md) | System overview and diagrams |
-| [Context Map](docs/core/context-map.md) | Node-edge relationship map (AI context) |
-| [Module System](docs/modules/index.md) | Primitives, logic, prefabs |
-| [Creating a New Game](docs/guides/getting-started/new-game.md) | Step-by-step guide |
-| [Audio Setup](docs/guides/assets/audio-setup.md) | Howler.js audio sprites |
-| [Debugging](docs/guides/development/debugging.md) | DevTools and troubleshooting |
-| [Tuning System](docs/core/systems/tuning.md) | Live parameter adjustment |
-| [Game Design Doc](docs/game/gdd.md) | Game design |
+## File Permissions
+
+| Folder | Read | Edit |
+|--------|:----:|:----:|
+| `src/game/` | Yes | Yes |
+| `src/modules/` | Yes | Yes |
+| `src/core/` | Yes | **No** |
+| `docs/` | Yes | Yes |
+| `public/` | Yes | Yes |
+| `ai/` | Yes | **No** |
+
+**Switch modes:** See [.claude/README.md](.claude/README.md)
+```bash
+cp .claude/settings.design.json .claude/settings.local.json  # Design (game only)
+cp .claude/settings.dev.json .claude/settings.local.json     # Dev (game + modules)
+cp .claude/settings.admin.json .claude/settings.local.json   # Admin (unrestricted)
+```
 
 ## Tech Stack
 
@@ -80,3 +113,27 @@ See the **[docs folder](docs/README.md)** for full documentation, or use the **[
 | Animation | GSAP |
 | Build | Vite |
 | Styling | TailwindCSS |
+
+## Common Tasks
+
+```bash
+bun run dev        # Development server
+bun run typecheck  # Type check
+bun run build      # Production build
+bun run test       # Run tests
+```
+
+## Documentation
+
+See the **[docs folder](docs/README.md)** for full documentation, or use the **[flat index](docs/INDEX.md)** for fast lookup.
+
+| Topic | Description |
+|-------|-------------|
+| [Architecture](docs/core/architecture.md) | System overview and diagrams |
+| [Context Map](docs/core/context-map.md) | Node-edge relationship map (AI context) |
+| [Module System](docs/modules/index.md) | Primitives, logic, prefabs |
+| [Creating a New Game](docs/guides/getting-started/new-game.md) | Step-by-step guide |
+| [Audio Setup](docs/guides/assets/audio-setup.md) | Howler.js audio sprites |
+| [Debugging](docs/guides/development/debugging.md) | DevTools and troubleshooting |
+| [Tuning System](docs/core/systems/tuning.md) | Live parameter adjustment |
+| [Game Design Doc](docs/game/gdd.md) | Game design |
