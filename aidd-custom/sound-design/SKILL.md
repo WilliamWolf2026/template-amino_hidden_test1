@@ -1,6 +1,7 @@
 ---
 name: sound-design
 description: SFX design with jsfxr synthesis for ludemic moments. Use when implementing game audio, sound effects, or audio feedback systems. Triggers on: sound design, SFX, jsfxr, audio, sound effects, Howler, playSound, sfxr, ludemic moments, mute, volume.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Sound Design -- Audio Feedback for Ludemic Moments

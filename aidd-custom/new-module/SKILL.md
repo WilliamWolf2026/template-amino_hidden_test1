@@ -8,6 +8,7 @@ description: >
   Triggers on: new module, create module, add module, scaffold module, newmodule.
 user-invocable: true
 compatibility: Requires bun/npm, TypeScript, and the template files in docs/factory/templates/modules/.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # 🧩 New Module

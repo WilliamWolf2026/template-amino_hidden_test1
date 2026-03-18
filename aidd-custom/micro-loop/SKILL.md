@@ -1,6 +1,7 @@
 ---
 name: micro-loop
 description: Core verb design for tap/swipe/drag games. Use when implementing the atomic player interaction, pointer event routing, or pure game state functions. Triggers on: micro loop, core verb, tap mechanic, swipe mechanic, drag mechanic, GameState.step, pointer events, pure state function, entity design.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Micro Loop -- Core Verb Design

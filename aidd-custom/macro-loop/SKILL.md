@@ -1,6 +1,7 @@
 ---
 name: macro-loop
 description: Progression systems and difficulty curves. Use when implementing progression, difficulty scaling, bot policies, or replay functions. Triggers on: macro loop, progression, difficulty curve, bot policy, replay, unlock milestones, session tracking, multiplicative scoring, greedy bot, random bot.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Macro Loop -- Progression and Compulsion

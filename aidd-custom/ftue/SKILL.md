@@ -1,6 +1,7 @@
 ---
 name: ftue
 description: First-time user experience with guided tutorial play. Use when implementing tutorials, hint systems, or onboarding flows. Triggers on: FTUE, tutorial, onboarding, first time, hints, guided play, spotlight, hand pointer, skip tutorial, first-run detection.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # FTUE -- First Time User Experience

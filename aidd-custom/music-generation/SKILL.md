@@ -1,6 +1,7 @@
 ---
 name: music-generation
 description: AI-generated background music via MiniMax Music 2.0 on fal.ai. Optional add-on to the sound stage. Triggers on: music, background music, soundtrack, BGM, MiniMax, game music, title theme, gameplay loop, ambient music.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Music Generation -- AI Background Music via MiniMax Music 2.0

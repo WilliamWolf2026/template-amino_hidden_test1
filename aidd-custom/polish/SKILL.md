@@ -1,6 +1,7 @@
 ---
 name: polish
 description: Audit a completed game against its design docs and iteratively polish until impressive. Use when the game builds but needs quality improvement, when auditing fidelity to design specs, or when iterating on UI/UX polish. Triggers on: polish, audit, review game, make it better, iterate, improve, refine, quality pass, it doesn't look good, make it impressive.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Polish & Audit — From "It Runs" to "It's Impressive"

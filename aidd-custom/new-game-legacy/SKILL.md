@@ -12,6 +12,7 @@ description: >
   from scaffold, legacy game setup, configure forked repo.
 user-invocable: true
 compatibility: Requires git, bun/npm, and a cloned/forked copy of the scaffold repo.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # 🎮 New Game (Legacy Fork Setup)

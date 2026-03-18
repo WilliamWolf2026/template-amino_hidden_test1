@@ -1,6 +1,7 @@
 ---
 name: 03-presentation
 description: Define visual identity, sound design, music plan, and juice feedback. Step 3 of 4.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent
 ---
 
 # 03 — Presentation

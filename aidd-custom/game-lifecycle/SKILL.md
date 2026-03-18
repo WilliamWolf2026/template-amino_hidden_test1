@@ -1,6 +1,7 @@
 ---
 name: game-lifecycle
 description: Game screen management with title, menu, results, and pause screens. Use when implementing screen routing, session persistence, or game shell UI. Triggers on: lifecycle, game screens, title screen, results, pause, screen routing, session model, goto, persistence, settings screen.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Game Lifecycle -- Everything Before and After Gameplay

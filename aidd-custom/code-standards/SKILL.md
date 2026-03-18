@@ -2,6 +2,7 @@
 name: code-standards
 description: Game development coding standards with Nintendo polish philosophy. Use when writing game code, reviewing implementations, or validating build quality. Triggers on: code standards, build validation, TypeScript strict, no stubs, pure state, setupGame contract, Pixi eventMode, SolidJS rules, implementation workflow.
 user-invocable: false
+allowed-tools: Read, Glob, Grep
 ---
 
 # Code Standards -- The Base Coding Philosophy

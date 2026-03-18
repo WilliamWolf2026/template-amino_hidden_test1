@@ -1,6 +1,7 @@
 ---
 name: 02-game-loops
 description: Define level structure, level generation, and progression system. Step 2 of 4.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent
 ---
 
 # 02 — Game Loops

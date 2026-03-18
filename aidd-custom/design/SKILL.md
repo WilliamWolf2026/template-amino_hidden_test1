@@ -1,6 +1,7 @@
 ---
 name: design
 description: Design a game from an idea — produce 4 structured design docs (identity, loops, presentation, journey) via sub-agents. Use when the user wants to design a game, create a GDD, define game mechanics, or run only the design phase without building. Triggers on: design a game, game design, GDD, design docs, game idea, core identity, game loops, design phase.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent
 ---
 
 # Design Phase — Game Idea to Design Docs

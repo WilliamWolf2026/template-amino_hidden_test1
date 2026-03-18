@@ -1,6 +1,7 @@
 ---
 name: level-generation
 description: Procedural level generation with solvability proofs. Use when implementing level generators, difficulty parameterization, or content validation. Triggers on: level generation, procedural, solvability, level validator, backward construction, forward construction, seeded RNG, difficulty tiers, solver.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Level Generation -- Solvability-First Design

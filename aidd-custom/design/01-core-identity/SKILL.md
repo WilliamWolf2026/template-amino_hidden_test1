@@ -1,6 +1,7 @@
 ---
 name: 01-core-identity
 description: Transform a game idea into LISA program, GDD, and core verb definition. Step 1 of 4.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent
 ---
 
 # 01 — Core Identity

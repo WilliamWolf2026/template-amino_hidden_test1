@@ -1,6 +1,7 @@
 ---
 name: juice
 description: Visual feedback with particles, screen shake, and GSAP tweens. Use when adding juice effects, combo escalation, or animation polish. Triggers on: juice, particles, screen shake, scale punch, combo, GSAP, tweens, feedback, confetti, freeze frame, animation timing.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Juice -- Making Every Action Feel 10x More Impactful

@@ -1,6 +1,7 @@
 ---
 name: attract-mode
 description: Self-playing demo with AI controller and hand pointer overlay. Use when implementing attract mode, auto-play demos, or idle screen animations. Triggers on: attract mode, demo, auto-play, idle, AI player, self-playing, hand pointer, tap to play, arcade cabinet demo.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Attract Mode -- Self-Playing Demo

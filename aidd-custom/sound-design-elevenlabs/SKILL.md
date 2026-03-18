@@ -1,6 +1,7 @@
 ---
 name: sound-design-elevenlabs
 description: SFX design with ElevenLabs AI-generated sound effects via fal.ai. Use as an alternative to jsfxr when higher-fidelity, AI-generated audio is desired. Triggers on: elevenlabs, fal.ai, AI sound, generated audio, realistic SFX, sound effects v2, text-to-audio.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Sound Design (ElevenLabs) -- AI-Generated SFX for Ludemic Moments

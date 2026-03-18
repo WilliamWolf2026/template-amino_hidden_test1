@@ -1,6 +1,7 @@
 ---
 name: visual-design
 description: Lickable, dimensional visual identity — 5-layer object rendering, hue-shifted lighting, material physics, scene atmosphere. Use when applying visual design to a game. Triggers on: visual design, palette, typography, material voice, theme, sprites, chromatic architecture, affordance gradient, 5-layer rendering, scene atmosphere, lighting.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Visual Design -- Creating a Visual World Worth Inhabiting

@@ -1,6 +1,7 @@
 ---
 name: 04-player-journey
 description: Define lifecycle screens, FTUE tutorial, and attract mode demo. Step 4 of 4.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent
 ---
 
 # 04 — Player Journey

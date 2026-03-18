@@ -1,6 +1,7 @@
 ---
 name: meso-loop
 description: Level design with Ki-Sho-Ten-Ketsu structure. Use when designing levels, state machines, scoring formulas, or win/lose conditions. Triggers on: meso loop, level design, state machine, scoring formula, Ki-Sho-Ten-Ketsu, level status, win condition, lose condition, social artifact.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Meso Loop -- Level Design

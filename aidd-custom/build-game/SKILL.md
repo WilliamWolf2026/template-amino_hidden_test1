@@ -1,6 +1,7 @@
 ---
 name: build-game
 description: Build a complete game from idea to playable product. Use when the user wants to create a new game, build a game from a prompt, turn an idea into a playable game, or run the full design-build-polish pipeline. Triggers on: build game, create game, make a game, new game, game from idea, prompt to play, build me a game, game from scratch.
+allowed-tools: Read, Write, Edit, Bash(*), Glob, Grep, Agent, WebFetch, WebSearch, mcp__context7__*, mcp__playwright__*
 ---
 
 # Build Game — Idea to Playable Product
