@@ -18,7 +18,7 @@ import { resolve } from "node:path";
 
 const STRICT = process.argv.includes("--strict");
 
-// Scaffold-specific prefix list (superset of GC LOADER_PREFIXES)
+// Scaffold-specific prefix list (mirrors GC KIND_TO_PREFIX)
 const SCAFFOLD_PREFIXES = [
   "boot-",
   "theme-",
@@ -27,7 +27,6 @@ const SCAFFOLD_PREFIXES = [
   "core-",
   "scene-",
   "fx-",
-  "defer-",
 ];
 
 const BUNDLE_NAME_RE = /^[a-z][a-z0-9-]*$/;

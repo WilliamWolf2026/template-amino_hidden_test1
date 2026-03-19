@@ -19,7 +19,7 @@
 import { describe, it, expect } from 'vitest';
 
 const SCAFFOLD_PREFIXES = [
-  'boot-', 'theme-', 'audio-', 'data-', 'core-', 'scene-', 'fx-', 'defer-',
+  'boot-', 'theme-', 'audio-', 'data-', 'core-', 'scene-', 'fx-',
 ];
 
 const BUNDLE_NAME_RE = /^[a-z][a-z0-9-]*$/;

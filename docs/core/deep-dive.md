@@ -453,8 +453,8 @@ coordinator.loadTheme(onProgress);    // Load all 'theme-*' bundles
 coordinator.loadAudio(onProgress);    // Load all 'audio-*' bundles
 coordinator.loadScene('game', onProgress); // Load 'scene-game' bundle
 
-// Background loading for deferred bundles
-coordinator.startBackgroundLoading(); // Load 'defer-*' and 'fx-*' via requestIdleCallback
+// Background loading for low-priority bundles
+coordinator.startBackgroundLoading(); // Load 'fx-*' bundles in the background
 ```
 
 ---
