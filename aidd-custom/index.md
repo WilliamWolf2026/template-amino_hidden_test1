@@ -68,6 +68,10 @@ See [`new-module/index.md`](./new-module/index.md) for contents.
 
 See [`polish/index.md`](./polish/index.md) for contents.
 
+### 📁 posthog/
+
+See [`posthog/index.md`](./posthog/index.md) for contents.
+
 ### 📁 scaffold-profiles/
 
 See [`scaffold-profiles/index.md`](./scaffold-profiles/index.md) for contents.
