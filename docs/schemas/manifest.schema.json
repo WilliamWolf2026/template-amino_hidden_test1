@@ -55,7 +55,7 @@
         "name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9-]*$",
-          "description": "Unique bundle name; prefer reserved prefix (boot-, theme-, audio-, core-, scene-, fx-, defer-, data-)"
+          "description": "Unique bundle name; prefer reserved prefix (boot-, theme-, audio-, core-, scene-, fx-, data-)"
         },
         "assets": {
           "type": "array",
@@ -64,7 +64,7 @@
         },
         "kind": {
           "type": "string",
-          "enum": ["boot", "theme", "audio", "data", "core", "scene", "fx", "defer"],
+          "enum": ["boot", "theme", "audio", "data", "core", "scene", "fx"],
           "description": "Optional semantic classification. When present, overrides prefix-based inference for validation. If both kind and a name prefix are present, they must be consistent."
         }
       }

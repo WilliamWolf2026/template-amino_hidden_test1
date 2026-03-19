@@ -53,7 +53,6 @@ Target is **inferred from bundle prefix**:
 | `core-` | `gpu` | GpuLoader | In-game UI |
 | `scene-` | `gpu` | GpuLoader | Gameplay assets (spritesheets, backgrounds, tiles) |
 | `fx-` | `gpu` | GpuLoader | Particles, effects |
-| `defer-` | `gpu` | GpuLoader | Low-priority extras |
 
 > **Game atlases must use `scene-*` or `core-*`.** Only GPU-prefixed bundles are registered with Pixi. Placing a game spritesheet in `theme-*` will make it invisible to `createSprite`/`getTexture`.
 
@@ -105,8 +104,8 @@ export const manifest: Manifest = {
 
     { name: 'data-levels', assets: ['data/levels.json'] },
 
-    // ─── BACKGROUND LOADING ──────────────────────────────
-    { name: 'defer-achievements', assets: ['ui/achievements.json'] },
+    // ─── BACKGROUND LOADING (use backgroundLoadBundle) ───
+    { name: 'core-achievements', assets: ['ui/achievements.json'] },
   ],
 };
 ```
@@ -241,7 +240,7 @@ StartScreen
     ▼
 GameScreen
     ├── loadScene('gameplay') ──► GpuLoader (scene-gameplay)
-    └── startBackgroundLoading() ──► defer-*, fx-*
+    └── startBackgroundLoading() ──► fx-*
 ```
 
 ## Progress Tracking

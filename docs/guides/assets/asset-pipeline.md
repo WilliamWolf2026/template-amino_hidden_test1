@@ -148,7 +148,6 @@ The asset system infers loading stage from bundle name prefixes:
 | `core-` | Core | Required before gameplay |
 | `scene-` | Scene | Scene-specific assets |
 | `audio-` | Audio | Sound effects and music |
-| `defer-` | Deferred | Low-priority, loaded later |
 | `theme-` | Theme | Branding, logos |
 | `vfx-` | VFX | Visual effects |
 | `tiles_` | Tiles | Game tile atlases |

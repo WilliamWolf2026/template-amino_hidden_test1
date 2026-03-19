@@ -10,33 +10,31 @@ Machine-readable contract for valid asset manifests. Use this when generating or
 
 Target is **inferred from bundle name prefix** unless overridden by `target`:
 
-| Prefix   | Inferred target | Loader     | Use case                          |
-|----------|-----------------|------------|-----------------------------------|
-| `boot-`  | `dom`           | DomLoader  | Pre-engine loading screen         |
-| `theme-` | `agnostic`      | Dom/Gpu    | Branding, DOM or engine          |
-| `audio-` | `agnostic`      | AudioLoader| Sound effects, music             |
-| `data-`  | `agnostic`      | DomLoader  | JSON config files                 |
-| `core-`  | `gpu`           | GpuLoader  | In-game UI                        |
-| `scene-` | `gpu`           | GpuLoader  | Gameplay assets                   |
-| `fx-`    | `gpu`           | GpuLoader  | Particles, effects                |
-| `defer-` | `gpu`           | GpuLoader  | Low-priority background loading   |
+| Prefix   | Loader      | Use case                          |
+|----------|-------------|-----------------------------------|
+| `boot-`  | DomLoader   | Pre-engine loading screen         |
+| `theme-` | DomLoader   | Branding, DOM loading screen      |
+| `audio-` | AudioLoader | Sound effects, music              |
+| `data-`  | DomLoader   | JSON config files                 |
+| `core-`  | GpuLoader   | In-game UI                        |
+| `scene-` | GpuLoader   | Gameplay assets                   |
+| `fx-`    | GpuLoader   | Particles, effects                |
 
-Any other prefix is treated as `gpu`. Explicit `target` on a bundle overrides inference.
+Bundles without a recognised prefix must set an explicit `kind` field. The loader is determined by `KIND_TO_LOADER` from `@wolfgames/components/core`.
 
 ### 1.2 `kind` field (optional)
 
 Bundles may carry an explicit `kind` that classifies them semantically:
 
-| `kind`  | Equivalent prefix | Loader     |
-|---------|-------------------|------------|
-| `boot`  | `boot-`           | DomLoader  |
-| `theme` | `theme-`          | Dom/Gpu    |
-| `audio` | `audio-`          | AudioLoader|
-| `data`  | `data-`           | DomLoader  |
-| `core`  | `core-`           | GpuLoader  |
-| `scene` | `scene-`          | GpuLoader  |
-| `fx`    | `fx-`             | GpuLoader  |
-| `defer` | `defer-`          | GpuLoader  |
+| `kind`  | Equivalent prefix | Loader      |
+|---------|-------------------|-------------|
+| `boot`  | `boot-`           | DomLoader   |
+| `theme` | `theme-`          | DomLoader   |
+| `audio` | `audio-`          | AudioLoader |
+| `data`  | `data-`           | DomLoader   |
+| `core`  | `core-`           | GpuLoader   |
+| `scene` | `scene-`          | GpuLoader   |
+| `fx`    | `fx-`             | GpuLoader   |
 
 **Rules:**
 - If `kind` is set, it must be one of the values above.
@@ -97,7 +95,7 @@ interface AssetDefinition {
 }
 
 type AssetType = 'image' | 'json' | 'spritesheet' | 'audioSprite';
-type BundleKind = 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx' | 'defer';
+type BundleKind = 'boot' | 'theme' | 'audio' | 'data' | 'core' | 'scene' | 'fx';
 ```
 
 ### 3.1 `AssetDefinition.type` (prompt-friendly)
@@ -204,7 +202,7 @@ Generators should follow one consistent set of rules for both **files on disk** 
 
 ### 6.2 Packed outputs (atlases, audio sprites)
 
-- **Sprite atlases:** `atlas-{category}-{name}.json` (and matching `.png`), e.g. `atlas-branding-wolf.json`, `atlas-tiles-daily-dispatch.json`. These appear in `theme-*`, `core-*`, `scene-*`, or `defer-*` bundles.
+- **Sprite atlases:** `atlas-{category}-{name}.json` (and matching `.png`), e.g. `atlas-branding-wolf.json`, `atlas-tiles-daily-dispatch.json`. These appear in `theme-*`, `core-*`, `scene-*`, or `fx-*` bundles.
 - **Audio sprites:** `sfx-{name}.json` or `music-{name}.json` (e.g. `sfx-citylines.json`, `music-warehouse-puzzle.json`). Paths often under an `audio/` subfolder in the manifest for correct type inference; alternatively flat names like `sfx-daily-dispatch.json` are valid if loader routing is explicit.
 - **VFX / data JSON:** `vfx-{name}.json` or other `{category}-{name}.json` under appropriate bundles (`fx-*`, `data-*`).
 
