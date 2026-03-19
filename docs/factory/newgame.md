@@ -5,7 +5,7 @@ Guide for setting up a new game after forking this repo.
 Constraints {
   - Read-only — do NOT make changes, only explain what needs to be done
   - Be specific — show file paths, expected values, code snippets
-  - Reference the City Lines implementation as the working example
+  - Reference generic examples rather than any specific game
 }
 
 Process {
@@ -20,7 +20,7 @@ Process {
 
 ### Step 1: Game Identity
 
-Update `src/game/config/identity.ts` — everything flows from here:
+Update `src/game/config.ts` — everything flows from here:
 
 ```
 GAME_ID            → analytics event tag (e.g. "word_quest")
@@ -30,9 +30,9 @@ GAME_CDN_PATH      → CDN path segment (auto-derived from GAME_SLUG)
 GAME_STORAGE_PREFIX → localStorage prefix (auto-derived from GAME_SLUG)
 ```
 
-Files that read from identity.ts (no changes needed if imports are correct):
-- `scaffold/systems/telemetry/AnalyticsContext.tsx` → GAME_ID, GAME_STORAGE_PREFIX
-- `scaffold/systems/telemetry/FeatureFlagContext.tsx` → GAME_STORAGE_PREFIX
+Files that read from config.ts (no changes needed if imports are correct):
+- `game/setup/tracking.ts` → GAME_ID, GAME_STORAGE_PREFIX
+- `game/setup/flags.ts` → GAME_STORAGE_PREFIX
 - `game/analytics/trackers.ts` → GAME_ID
 - `game/analytics/index.ts` → reads via param set defaults
 
@@ -50,7 +50,7 @@ gameConfig.initialScreen → which screen loads first
 Update `src/game/tuning/types.ts` and `src/game/tuning/index.ts`:
 - Define your `GameTuning` interface (game-specific tunable values)
 - Set `GAME_DEFAULTS` with sensible starting values
-- City Lines example: tile sizes, animation speeds, grid config
+- Example: tile sizes, animation speeds, grid config
 
 ### Step 4: Audio
 
@@ -83,21 +83,21 @@ Replace `src/game/analytics/trackers.ts`:
 ### Step 8: Analytics — Context
 
 Update `src/game/analytics/index.ts`:
-- Replace `CityLinesContext` with your game's session state
+- Replace the game context with your game's session state
 - Define your own param set schemas (location, config, etc.)
 - Update `addParamsDefault` to read from your new context
 
 ### Step 9: Analytics — Provider
 
-Update `scaffold/systems/telemetry/AnalyticsContext.tsx`:
-- Replace City Lines tracker imports with your new trackers
+Update `src/game/setup/tracking.ts`:
+- Replace existing tracker imports with your new trackers
 - Update `AnalyticsContextValue` type with your tracker signatures
 - Update `session_end` override to include your session rollup counters
 - Update or remove survey logic if not needed
 
 ### Step 10: Feature Flags
 
-Update `scaffold/systems/telemetry/FeatureFlagContext.tsx`:
+Update `src/game/setup/flags.ts`:
 - Replace `FeatureFlags` interface with your game's flags
 - Update `DEFAULT_FLAGS` with your defaults
 - Replace validators (`isDifficultyVariant`, etc.) with yours
@@ -106,34 +106,34 @@ Update `scaffold/systems/telemetry/FeatureFlagContext.tsx`:
 
 ### Step 11: Game Logic
 
-Replace `src/game/citylines/` with your game's core:
-- This is 100% game-specific — no scaffold dependencies here
+Replace `src/game/mygame/` with your game's core:
+- This is 100% game-specific — no core layer dependencies here
 - Your game mechanics, rendering, state machine, etc.
 
 ### Step 12: Clean Up
 
-- Delete `src/game/citylines/` (City Lines game logic)
-- Delete `src/game/shared/` components you don't need
-- Delete City Lines level data from `public/levels/`
+- Delete `src/game/mygame/` (placeholder game logic)
+- Remove any placeholder modules in `src/modules/` you don't need
+- Delete placeholder level data from `public/levels/`
 - Update `public/` assets (favicon, manifest.json, etc.)
 
 ---
 
 ## What You DON'T Touch
 
-These scaffold systems work as-is for any game:
+These core systems work as-is for any game:
 
 ```
-scaffold/systems/assets/     ← asset loading pipeline
-scaffold/systems/audio/      ← BaseAudioManager
-scaffold/systems/screens/    ← screen transitions
-scaffold/systems/pause/      ← pause state
-scaffold/systems/errors/     ← error boundary + reporter
-scaffold/systems/tuning/     ← dev tuning panel
-scaffold/systems/manifest/   ← manifest provider
-scaffold/lib/                ← gameKit, sentry, posthog bridge
-scaffold/config/             ← environment, viewport
-scaffold/ui/                 ← shared UI components
+src/core/systems/assets/     ← asset loading pipeline
+src/core/systems/audio/      ← BaseAudioManager
+src/core/systems/screens/    ← screen transitions
+src/core/systems/pause/      ← pause state
+src/core/systems/errors/     ← error boundary + reporter
+src/core/systems/tuning/     ← dev tuning panel
+src/core/systems/manifest/   ← manifest provider
+src/core/lib/                ← gameKit, sentry, posthog bridge
+src/core/config/             ← environment, viewport
+src/core/ui/                 ← shared UI components
 ```
 
 ---

@@ -14,7 +14,7 @@ A comprehensive guide to the 3-tier architecture: **core** (reusable platform), 
 4. [Directory Structure](#directory-structure)
 5. [Core (Reusable Platform)](#core-reusable-platform)
 6. [Modules (Shared Building Blocks)](#modules-shared-building-blocks)
-7. [Game (CityLines Implementation)](#game-citylines-implementation)
+7. [Game (Implementation Layer)](#game-implementation-layer)
 8. [Integration Across Tiers](#integration-across-tiers)
 9. [Systems Architecture](#systems-architecture)
 10. [Key Files Reference](#key-files-reference)
@@ -29,7 +29,7 @@ The project follows a **3-tier architecture** with strict dependency rules:
 src/
 ├── core/        # Reusable platform - can power ANY game
 ├── modules/     # Shared building blocks - visual primitives, prefabs, logic
-└── game/        # CityLines-specific implementation
+└── game/        # Game-specific implementation
 ```
 
 ### Design Philosophy
@@ -87,8 +87,8 @@ These rules are enforced by convention. Code in `core/` must never reference `mo
 │    Tuning (state)       │  │    avatar-popup             │  │    GameAudioManager        │
 │    Audio (base manager) │  │                             │  │                            │
 │    Errors (boundaries)  │  │  Each module has:           │  │  Game Logic:               │
-│    Pause (state)        │  │    index.ts (public API)    │  │    citylines/              │
-│    VFX (particles)      │  │    defaults.ts              │  │    dailydispatch/          │
+│    Pause (state)        │  │    index.ts (public API)    │  │    mygame/                 │
+│    VFX (particles)      │  │    defaults.ts              │  │                            │
 │                         │  │    tuning.ts                │  │                            │
 │  UI:                    │  │    renderers/pixi.ts        │  │  Services:                 │
 │    Button, Spinner,     │  │                             │  │    progress, catalog,      │
@@ -205,7 +205,7 @@ src/core/
 │   ├── PauseOverlay.tsx
 │   ├── ProgressBar.tsx
 │   ├── Spinner.tsx
-│   └── ViewportToggle.tsx   # (moved from game/shared)
+│   └── ViewportToggle.tsx
 └── utils/                   # Utilities (storage, SettingsMenu)
 ```
 
@@ -258,22 +258,16 @@ src/game/
 ├── config/                  # Game identity, fonts, environment
 ├── state.ts                 # Game state (score, health, level)
 ├── setup/                   # Game-specific providers
-│   ├── AnalyticsContext.tsx  # AnalyticsProvider (game-specific)
-│   └── FeatureFlagContext.tsx # FeatureFlagProvider (game-specific)
+│   ├── tracking.ts          # Analytics tracking setup (game-specific)
+│   └── flags.ts             # Feature flags (game-specific)
 ├── tuning/                  # Game-specific tuning config
 ├── audio/                   # GameAudioManager
 ├── screens/                 # Game screens (use core hooks)
 ├── services/                # Game services (progress, etc.)
 ├── analytics/               # Game-specific analytics events
-└── citylines/               # Core game logic
-    ├── core/                # Game engine classes
-    ├── types/               # Type definitions
-    ├── systems/             # Game-specific systems
-    ├── services/            # Business logic services
-    ├── controllers/         # Game controllers
-    ├── ui/                  # Game UI (Companion, etc.)
-    ├── data/                # Static game data
-    └── animations/          # Game animations
+└── mygame/                  # Core game logic
+    ├── index.ts             # Game module exports
+    └── screens/             # Game views and controllers
 ```
 
 ---
@@ -364,7 +358,7 @@ stateDiagram-v2
 
     note right of game
         GameScreen
-        CityLinesGame instance
+        Game instance
         Pixi.js rendering
     end note
 ```
@@ -566,11 +560,11 @@ catalog.next();
 
 ---
 
-## Game (CityLines Implementation)
+## Game (Implementation Layer)
 
 ### What the Game Provides
 
-The game implements **all game-specific logic** using core systems and module building blocks.
+The game tier implements **all game-specific logic** using core systems and module building blocks.
 
 ### Game Configuration Files
 
@@ -640,58 +634,19 @@ graph TB
 </GlobalBoundary>
 ```
 
-### Core Game Classes
+### Game Logic Structure
 
-```mermaid
-classDiagram
-    class CityLinesGame {
-        +Pixi.Container
-        -grid: Grid
-        -landmarks: Landmark[]
-        -exits: Exit[]
-        -tiles: RoadTile[]
-        +loadLevel(config)
-        +rotateTile(tile)
-        +checkConnections()
-        +on(event, handler)
-    }
+Game-specific logic lives in `game/mygame/`. The template provides a minimal starting structure:
 
-    class RoadTile {
-        -texture: Texture
-        -connections: Direction[]
-        +rotate()
-        +getConnections()
-    }
-
-    class Landmark {
-        -position: Point
-        -isConnected: boolean
-        +checkConnection()
-        +pulse()
-    }
-
-    class Exit {
-        -position: Point
-        -direction: Direction
-    }
-
-    class ConnectionDetector {
-        +detectPath(from, to)
-        +validateAll()
-    }
-
-    class LevelGenerator {
-        +generate(config)
-        -createPaths()
-        -addWriggle()
-    }
-
-    CityLinesGame --> RoadTile
-    CityLinesGame --> Landmark
-    CityLinesGame --> Exit
-    CityLinesGame --> ConnectionDetector
-    CityLinesGame ..> LevelGenerator
 ```
+game/mygame/
+├── index.ts        # Game module exports
+└── screens/        # Game views and controllers
+    ├── gameController.ts   # Main game controller
+    └── startView.ts        # Start screen view
+```
+
+As your game grows, expand this structure as needed (e.g., `core/`, `types/`, `systems/`, `services/`, `ui/`, `data/`, `animations/`). The main game class typically extends `Pixi.Container` and is instantiated by `GameScreen`.
 
 ### Game Screen Flow
 
@@ -700,14 +655,14 @@ classDiagram
 const GameScreen = () => {
   // 1. Access core systems via Solid.js hooks
   const assets = useAssets();
-  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const tuning = useTuning<ScaffoldTuning, GameTuning>();
   const screen = useScreen();
 
   // 2. Create Pixi application using core's GPU loader
   const app = assets.getPixiApp();
 
   // 3. Instantiate game with tuning config
-  const game = new CityLinesGame({
+  const game = new MyGame({
     tuning: tuning.game,
     assets: assets,
   });
@@ -736,7 +691,7 @@ sequenceDiagram
     participant SP as ScreenProvider
     participant LS as LoadingScreen
     participant GS as GameScreen
-    participant CLG as CityLinesGame
+    participant CLG as MyGame
 
     Note over U,CLG: Startup Phase
     U->>APP: Open app
@@ -759,7 +714,7 @@ sequenceDiagram
     SP->>GS: Render game
     GS->>TP: useTuning()
     GS->>AP: useAssets()
-    GS->>CLG: new CityLinesGame()
+    GS->>CLG: new MyGame()
 
     U->>CLG: Click tile
     CLG->>CLG: rotate and check
@@ -914,8 +869,8 @@ graph TB
 | `game/config/index.ts` | Screen component mapping, identity, environment |
 | `game/state.ts` | Global game state (Solid.js root) |
 | `game/tuning/` | Game config schema + defaults |
-| `game/setup/AnalyticsContext.tsx` | Game-specific AnalyticsProvider |
-| `game/setup/FeatureFlagContext.tsx` | Game-specific FeatureFlagProvider |
+| `game/setup/tracking.ts` | Game-specific analytics tracking |
+| `game/setup/flags.ts` | Game-specific feature flags |
 
 ### Integration Point
 
@@ -979,7 +934,7 @@ graph TB
 
 ### Adding Game-Specific Logic
 
-1. Add to `game/citylines/` (core logic) or `game/screens/` (UI)
+1. Add to `game/mygame/` (core logic) or `game/screens/` (UI)
 2. Use core hooks for assets, screens, tuning, manifest
 3. Use module factories for progress, catalog, loader, level completion
 4. Use module primitives/prefabs for visual components
