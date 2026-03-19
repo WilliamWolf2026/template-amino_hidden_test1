@@ -213,7 +213,7 @@ The `src/game/shared/` directory provides reusable Pixi components. Create game-
 ```typescript
 // src/game/[gamename]/core/MyCharacter.ts
 import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
-import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets';
 
 export class MyCharacter extends CharacterSprite<'hero' | 'villain'> {
   constructor(type: 'hero' | 'villain', gpuLoader: PixiLoader, scale = 1) {

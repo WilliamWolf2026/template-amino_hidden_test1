@@ -1,6 +1,6 @@
 import { Container, Graphics, NineSliceSprite, Text } from 'pixi.js';
 import gsap from 'gsap';
-import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets';
 
 /**
  * Configuration for creating an AvatarPopup
