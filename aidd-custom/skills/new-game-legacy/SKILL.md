@@ -59,7 +59,7 @@ preFlight() => { repoReady, stackProfile } {
   2. Ask which scaffold profile to use:
      - **Lightning** (recommended): SolidJS + Pixi.js 8 + GSAP + Howler + Tailwind
      - **Game Client** (legacy): Preact + Pixi.js 8 + Zustand
-     Read `aidd-custom/scaffold-profiles/SKILL.md` for full profile details.
+     Read `aidd-custom/skills/scaffold-profiles/SKILL.md` for full profile details.
   3. Ask the user for their game name, slug, and display name
   4. Print the full 12-step checklist overview so the user knows what's ahead
 }
