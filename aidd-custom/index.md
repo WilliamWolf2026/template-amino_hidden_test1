@@ -1,46 +1,11 @@
 # aidd-custom
 
-This index provides an overview of the contents in this directory.
+This directory contains project configuration and custom skills for AI-assisted game development.
 
-## Subdirectories
+## Files
 
-### 📁 attract-mode/
-
-See [`attract-mode/index.md`](./attract-mode/index.md) for contents.
-
-### 📁 build-game/
-
-See [`build-game/index.md`](./build-game/index.md) for contents.
-
-### 📁 code-standards/
-
-See [`code-standards/index.md`](./code-standards/index.md) for contents.
-
-### 📁 design/
-
-See [`design/index.md`](./design/index.md) for contents.
-
-### 📁 ftue/
-
-See [`ftue/index.md`](./ftue/index.md) for contents.
-
-### 📁 game-design-system/
-
-See [`game-design-system/index.md`](./game-design-system/index.md) for contents.
-
-### 📁 game-lifecycle/
-
-See [`game-lifecycle/index.md`](./game-lifecycle/index.md) for contents.
-
-### 📁 juice/
-
-See [`juice/index.md`](./juice/index.md) for contents.
-
-### 📁 level-generation/
-
-See [`level-generation/index.md`](./level-generation/index.md) for contents.
-
-### 📁 macro-loop/
+- [`config.yml`](./config.yml) — Project configuration
+- [`index.md`](./index.md) — This file
 
 See [`macro-loop/index.md`](./macro-loop/index.md) for contents.
 
@@ -82,8 +47,8 @@ See [`sound-design/index.md`](./sound-design/index.md) for contents.
 
 ### 📁 sound-design-elevenlabs/
 
-See [`sound-design-elevenlabs/index.md`](./sound-design-elevenlabs/index.md) for contents.
+### 📁 skills/
 
-### 📁 visual-design/
+All Claude Code skills live here. See [`skills/index.md`](./skills/index.md) for the full list.
 
-See [`visual-design/index.md`](./visual-design/index.md) for contents.
+> `.claude/skills` is a symlink to this directory.

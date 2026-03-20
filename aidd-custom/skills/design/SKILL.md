@@ -26,10 +26,10 @@ The design docs feed code generation. Builders need values, not philosophy.
 
 | Step | Skill | Read Before Running | Produces |
 |------|-------|---------------------|----------|
-| 1 | `aidd-custom/design/01-core-identity/SKILL.md` | Game idea only | `design/01-core-identity.md` |
-| 2 | `aidd-custom/design/02-game-loops/SKILL.md` | `design/01-core-identity.md` | `design/02-game-loops.md` |
-| 3 | `aidd-custom/design/03-presentation/SKILL.md` | `design/01-core-identity.md`, `design/02-game-loops.md` | `design/03-presentation.md` |
-| 4 | `aidd-custom/design/04-player-journey/SKILL.md` | `design/01-core-identity.md`, `design/02-game-loops.md`, `design/03-presentation.md` | `design/04-player-journey.md` |
+| 1 | `aidd-custom/skills/design/01-core-identity/SKILL.md` | Game idea only | `design/01-core-identity.md` |
+| 2 | `aidd-custom/skills/design/02-game-loops/SKILL.md` | `design/01-core-identity.md` | `design/02-game-loops.md` |
+| 3 | `aidd-custom/skills/design/03-presentation/SKILL.md` | `design/01-core-identity.md`, `design/02-game-loops.md` | `design/03-presentation.md` |
+| 4 | `aidd-custom/skills/design/04-player-journey/SKILL.md` | `design/01-core-identity.md`, `design/02-game-loops.md`, `design/03-presentation.md` | `design/04-player-journey.md` |
 
 Steps 1 and 2 are sequential. Steps 3 and 4 can run in parallel after step 2 completes.
 
@@ -38,7 +38,7 @@ Steps 1 and 2 are sequential. Steps 3 and 4 can run in parallel after step 2 com
 ```
 You are running design step {N} ({step_name}).
 
-Read the skill: aidd-custom/design/{NN}-{step_name}/SKILL.md
+Read the skill: aidd-custom/skills/design/{NN}-{step_name}/SKILL.md
 Read prior docs: {list from 'Read Before Running' column}
 
 Produce: design/{NN}-{step_name}.md

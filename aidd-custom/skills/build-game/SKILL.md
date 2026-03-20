@@ -114,7 +114,7 @@ Read `ai/index.md` to discover available skills, commands, and rules. Use progre
 
 ## Phase 1: Design (fast)
 
-Produce 4 design docs via sub-agents. Run `aidd-custom/design/SKILL.md` — it has the full execution sequence, dependency graph, sub-agent template, and quality gates.
+Produce 4 design docs via sub-agents. Run `aidd-custom/skills/design/SKILL.md` — it has the full execution sequence, dependency graph, sub-agent template, and quality gates.
 
 ---
 
@@ -134,7 +134,7 @@ Context compaction kills fidelity. Delegate each build stage to a sub-agent with
  Read: src/game/mygame-contract.ts (authoritative contract)
  Read: ai/skills/ relevant AIDD skills for this stage
  Read existing codebase in src/game/
- Implement per aidd-custom/{stage-skill}/SKILL.md
+ Implement per aidd-custom/skills/{stage-skill}/SKILL.md
  Test: bun run test
  Build: bun run typecheck && bun run build
  Verify every checklist item passes."
@@ -146,22 +146,22 @@ At each stage start, write `checklists/stage-N.md` extracting every specific val
 
 ### Build Stages
 
-1. **Scaffold** — Configure `src/game/config.ts` from GDD (GAME_ID, GAME_SLUG, GAME_NAME). Update `src/game/state.ts` with game-specific signals. Read `aidd-custom/scaffold-profiles/SKILL.md`.
-2. **Micro Loop** — Core verb. Pure `step(state, action)` in `src/game/mygame/`. Pointer events. Entity rendering. No UI. Read `aidd-custom/micro-loop/SKILL.md`.
-3. **Meso Loop** — Level structure. State machine. Deterministic scoring. Exact formula from design. Read `aidd-custom/meso-loop/SKILL.md`.
-4. **Level Gen** — Generation strategy from design (backward-construction = backward-construction, not shuffle). Solvability validator. Seeded RNG. Read `aidd-custom/level-generation/SKILL.md`.
-5. **Macro Loop** — Progression, breathe rhythm, unlocks at exact levels, bot policies, replay_fn, persistence. Level complete → next level, NOT results. Read `aidd-custom/macro-loop/SKILL.md`.
+1. **Scaffold** — Configure `src/game/config.ts` from GDD (GAME_ID, GAME_SLUG, GAME_NAME). Update `src/game/state.ts` with game-specific signals. Read `aidd-custom/skills/scaffold-profiles/SKILL.md`.
+2. **Micro Loop** — Core verb. Pure `step(state, action)` in `src/game/mygame/`. Pointer events. Entity rendering. No UI. Read `aidd-custom/skills/micro-loop/SKILL.md`.
+3. **Meso Loop** — Level structure. State machine. Deterministic scoring. Exact formula from design. Read `aidd-custom/skills/meso-loop/SKILL.md`.
+4. **Level Gen** — Generation strategy from design (backward-construction = backward-construction, not shuffle). Solvability validator. Seeded RNG. Read `aidd-custom/skills/level-generation/SKILL.md`.
+5. **Macro Loop** — Progression, breathe rhythm, unlocks at exact levels, bot policies, replay_fn, persistence. Level complete → next level, NOT results. Read `aidd-custom/skills/macro-loop/SKILL.md`.
 
 **── MID-BUILD GATE ──**
 Re-read design/01-core-identity.md + design/02-game-loops.md + all checklists. Grep codebase for each item. Fix drift before polish stages.
 
-6. **Visual Design** — Read render code first, compare to design, replace placeholders with exact spec. Read `aidd-custom/visual-design/SKILL.md`.
-7. **Sound** — SFX wired to every ludemic moment. Read `aidd-custom/sound-design/SKILL.md` (jsfxr) OR `aidd-custom/sound-design-elevenlabs/SKILL.md` (AI-generated, requires `FAL_KEY`).
-7b. **Music** _(optional)_ — AI-generated background music via MiniMax Music 2.0. Read `aidd-custom/music-generation/SKILL.md` (requires `FAL_KEY`).
-8. **Juice** — Particles, shakes, popups per feedback tier. GSAP tweens. Layers on top — never modify state. Read `aidd-custom/juice/SKILL.md`.
-9. **Lifecycle** — Start, pause, results, settings. Max 2 taps to play. localStorage persistence. Modify existing `ResultsScreen.tsx`, do NOT create a GameOverScreen. Read `aidd-custom/game-lifecycle/SKILL.md`.
-10. **FTUE** — Tutorial through doing. 30s phone test. Skippable. First-time only. Read `aidd-custom/ftue/SKILL.md`.
-11. **Attract Mode** — Self-playing demo. Scripted failure beat. Hand pointer. Any input exits. Read `aidd-custom/attract-mode/SKILL.md`.
+6. **Visual Design** — Read render code first, compare to design, replace placeholders with exact spec. Read `aidd-custom/skills/visual-design/SKILL.md`.
+7. **Sound** — SFX wired to every ludemic moment. Read `aidd-custom/skills/sound-design/SKILL.md` (jsfxr) OR `aidd-custom/skills/sound-design-elevenlabs/SKILL.md` (AI-generated, requires `FAL_KEY`).
+7b. **Music** _(optional)_ — AI-generated background music via MiniMax Music 2.0. Read `aidd-custom/skills/music-generation/SKILL.md` (requires `FAL_KEY`).
+8. **Juice** — Particles, shakes, popups per feedback tier. GSAP tweens. Layers on top — never modify state. Read `aidd-custom/skills/juice/SKILL.md`.
+9. **Lifecycle** — Start, pause, results, settings. Max 2 taps to play. localStorage persistence. Modify existing `ResultsScreen.tsx`, do NOT create a GameOverScreen. Read `aidd-custom/skills/game-lifecycle/SKILL.md`.
+10. **FTUE** — Tutorial through doing. 30s phone test. Skippable. First-time only. Read `aidd-custom/skills/ftue/SKILL.md`.
+11. **Attract Mode** — Self-playing demo. Scripted failure beat. Hand pointer. Any input exits. Read `aidd-custom/skills/attract-mode/SKILL.md`.
 12. **Validate** — Full fidelity audit against all design docs and checklists. Fix remaining issues.
 
 ### Testing
@@ -215,7 +215,7 @@ When code doesn't match a checklist item:
 
 ## Phase 3: Polish
 
-Audit → fix → re-audit loop. Delegate audits to sub-agents per domain. Max 5 iterations. Read `aidd-custom/polish/SKILL.md`.
+Audit → fix → re-audit loop. Delegate audits to sub-agents per domain. Max 5 iterations. Read `aidd-custom/skills/polish/SKILL.md`.
 
 ### Audit Domains (parallel sub-agents)
 
