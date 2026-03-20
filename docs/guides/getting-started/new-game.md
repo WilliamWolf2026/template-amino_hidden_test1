@@ -1,6 +1,6 @@
 # Creating a New Game
 
-This scaffold is designed to host different games. Here's how to create a new game or replace the existing one.
+The Amino Template is designed to host different games. Here's how to create a new game or replace the existing one.
 
 ## Game Structure
 
@@ -22,16 +22,13 @@ src/game/
 │   ├── StartScreen.tsx
 │   ├── GameScreen.tsx
 │   └── ResultsScreen.tsx
-├── shared/            # Reusable game-level components & controllers
-│   ├── components/    # SpriteButton, ProgressBar, DialogueBox, CharacterSprite, AvatarPopup
-│   └── controllers/   # LevelCompletionController
-└── [gamename]/        # Game-specific logic (e.g., citylines/)
+└── [gamename]/        # Game-specific logic
     ├── core/          # Game entities and systems
     ├── types/         # Type definitions
     └── data/          # Static data
 ```
 
-> **Shared vs Game-Specific:** `src/game/shared/` contains generic, reusable components that work across any game built on this scaffold (buttons, progress bars, character sprites, dialogue boxes, completion controllers). These accept configuration through constructor params rather than importing game-specific constants. Game-specific code in `[gamename]/` creates thin wrappers that inject game config (atlas names, fonts, sprite mappings) into shared components.
+> **Modules vs Game-Specific:** `src/modules/` contains generic, reusable components that work across any game built on this template (buttons, progress bars, character sprites, dialogue boxes, completion controllers). These accept configuration through constructor params rather than importing game-specific constants. Game-specific code in `[gamename]/` creates thin wrappers that inject game config (atlas names, fonts, sprite mappings) into module components.
 
 ## Step-by-Step Guide
 
@@ -39,7 +36,7 @@ src/game/
 
 Remove or rename the existing game folder:
 ```bash
-rm -rf src/game/citylines   # Or rename to keep as reference
+rm -rf src/game/[oldgame]   # Or rename to keep as reference
 ```
 
 Clear the old game's tuning from browser storage:
@@ -48,7 +45,7 @@ Clear the old game's tuning from browser storage:
 localStorage.removeItem('tuning_game');
 ```
 
-> **Note**: Scaffold tuning (`tuning_scaffold`) persists across games — your engine, audio, and debug preferences stay intact.
+> **Note**: Core tuning (`tuning_scaffold`) persists across games — your engine, audio, and debug preferences stay intact.
 
 ### Step 2: Create Game Tuning
 
@@ -138,32 +135,32 @@ const GAME_WIRED_PATHS = [
 ];
 ```
 
-## Scaffold vs Game Code
+## Core vs Game Code
 
-### What Scaffold Provides (Don't Recreate)
+### What Core Provides (Don't Recreate)
 
-The scaffold handles all the boilerplate so you can focus on game logic:
+The core layer handles all the boilerplate so you can focus on game logic:
 
 | System | What It Does | Location |
 |--------|--------------|----------|
-| **Asset Loading** | Loads atlases, audio sprites, images | `scaffold/systems/assets/` |
-| **Screen Management** | Screen transitions, routing | `scaffold/systems/screens/` |
-| **Audio System** | Howler.js wrapper, music/sfx control | `scaffold/systems/audio/` |
-| **Tuning Panel** | Live parameter editing (dev) | `scaffold/systems/tuning/` |
-| **Error Handling** | Global error boundary, Sentry | `scaffold/systems/errors/` |
-| **Pause System** | Pause/resume, visibility handling | `scaffold/systems/pause/` |
-| **UI Components** | Button, Spinner, ProgressBar, Logo | `scaffold/ui/` |
-| **MobileViewport** | 9:16 constraint for desktop testing | `scaffold/ui/MobileViewport` |
-| **Viewport Config** | Min width, touch targets, safe padding | `scaffold/config/viewport.ts` |
-| **SettingsMenu** | Audio/music toggle menu | `scaffold/utils/SettingsMenu/` |
-| **BaseAudioManager** | Audio manager base class to extend | `scaffold/systems/audio/` |
+| **Asset Loading** | Loads atlases, audio sprites, images | `src/core/systems/assets/` |
+| **Screen Management** | Screen transitions, routing | `src/core/systems/screens/` |
+| **Audio System** | Howler.js wrapper, music/sfx control | `src/core/systems/audio/` |
+| **Tuning Panel** | Live parameter editing (dev) | `src/core/systems/tuning/` |
+| **Error Handling** | Global error boundary, Sentry | `src/core/systems/errors/` |
+| **Pause System** | Pause/resume, visibility handling | `src/core/systems/pause/` |
+| **UI Components** | Button, Spinner, ProgressBar, Logo | `src/core/ui/` |
+| **MobileViewport** | 9:16 constraint for desktop testing | `src/core/ui/MobileViewport` |
+| **Viewport Config** | Min width, touch targets, safe padding | `src/core/config/viewport.ts` |
+| **SettingsMenu** | Audio/music toggle menu | `src/core/ui/SettingsMenu/` |
+| **BaseAudioManager** | Audio manager base class to extend | `src/core/systems/audio/` |
 
 ### What You Create Per Game
 
 | Item | Purpose | Location |
 |------|---------|----------|
 | **Game Logic** | Core gameplay, entities, systems | `src/game/[gamename]/` |
-| **Shared Components** | Reusable Pixi components (buttons, popups, etc.) | `src/game/shared/` |
+| **Module Wrappers** | Game-specific wrappers for module components | `src/game/[gamename]/` |
 | **Screens** | Loading, Start, Game, Results UI | `src/game/screens/` |
 | **Audio Manager** | Extends BaseAudioManager with game sounds | `src/game/audio/manager.ts` |
 | **Sound Definitions** | SoundDefinition constants for each sound | `src/game/audio/sounds.ts` |
@@ -175,7 +172,7 @@ The scaffold handles all the boilerplate so you can focus on game logic:
 
 ### Files to Update (Not Replace)
 
-These scaffold files need game-specific values:
+These template files need game-specific values:
 
 | File | What to Change |
 |------|----------------|
@@ -184,14 +181,14 @@ These scaffold files need game-specific values:
 | `src/entry-client.tsx` | Already waits for `document.fonts.ready` (no change needed) |
 | `src/app.tsx` | Update tuning defaults import |
 
-> **Font Loading**: The scaffold preloads fonts in `entry-server.tsx` and waits for `document.fonts.ready` in `entry-client.tsx` to prevent FOUT (Flash of Unstyled Text) on the loading screen.
+> **Font Loading**: The template preloads fonts in `entry-server.tsx` and waits for `document.fonts.ready` in `entry-client.tsx` to prevent FOUT (Flash of Unstyled Text) on the loading screen.
 
-### Platform Constants (Scaffold-Provided)
+### Platform Constants (Core-Provided)
 
-Viewport constraints are provided by the scaffold — no need to recreate:
+Viewport constraints are provided by the core layer — no need to recreate:
 
 ```typescript
-// Already available from scaffold:
+// Already available from core:
 import { VIEWPORT_MIN_WIDTH, SAFE_PADDING, MIN_TOUCH_TARGET } from '~/core/config/viewport';
 ```
 
@@ -208,11 +205,11 @@ export const GAME_FONT_FAMILY = 'YourFont, system-ui, sans-serif';
 
 See the **[Shared Components Guide](../development/shared-components.md)** for the full catalog, decision framework, and integration checklist.
 
-The `src/game/shared/` directory provides reusable Pixi components. Create game-specific wrappers that inject your config:
+The `src/modules/` directory provides reusable Pixi components. Create game-specific wrappers that inject your config:
 
 ```typescript
 // src/game/[gamename]/core/MyCharacter.ts
-import { CharacterSprite } from '~/game/shared/components/CharacterSprite';
+import { CharacterSprite } from '~/modules/primitives/character-sprite';
 import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
 
 export class MyCharacter extends CharacterSprite<'hero' | 'villain'> {
@@ -229,11 +226,11 @@ export class MyCharacter extends CharacterSprite<'hero' | 'villain'> {
 
 ## Tuning Storage
 
-The tuning system stores scaffold and game settings **separately**:
+The tuning system stores core and game settings **separately**:
 
 | localStorage Key | Contents | Persists |
 |------------------|----------|----------|
-| `tuning_scaffold` | Engine, audio, debug, performance | Across all games |
+| `tuning_scaffold` | Engine, audio, debug, performance (core) | Across all games |
 | `tuning_game` | Your game's grid, difficulty, visuals | Per game (clear when switching) |
 
 **Loading priority**: localStorage → `/public/config/tuning/*.json` → TypeScript defaults
@@ -311,7 +308,7 @@ audioManager.playScore();
 
 ### BaseAudioManager Features
 
-The scaffold provides these methods via `BaseAudioManager`:
+The core layer provides these methods via `BaseAudioManager`:
 
 | Method | Purpose |
 |--------|---------|
@@ -360,10 +357,10 @@ Use this checklist when starting a new game:
 ## Tips
 
 - **Tuning Panel**: Press backtick (`) to access live tuning
-- **Scaffold vs Game**: Cyan = scaffold settings, Orange = your game settings
+- **Core vs Game**: Cyan = core settings, Orange = your game settings
 - **Hot Reload**: Most changes hot-reload, tuning changes apply instantly when wired
 - **Assets**: Place in `public/` folder, reference in manifest
 - **Team Defaults**: Create `public/config/tuning/game.json` for shared overrides
-- **Viewport Mode**: Set `defaultViewportMode` in `config.ts` to control the desktop preview frame. Toggle at runtime via URL (`?viewport=large`), TweakPane dropdown, or the dev toggle button (top-left: S/L/∞). See [Viewport Mode](../../scaffold/systems/viewport-mode.md)
+- **Viewport Mode**: Set `defaultViewportMode` in `config.ts` to control the desktop preview frame. Toggle at runtime via URL (`?viewport=large`), TweakPane dropdown, or the dev toggle button (top-left: S/L/∞). See [Viewport Mode](../../core/systems/viewport-mode.md)
 
-See [Tuning Panel](../scaffold/components/tuning-panel.md) for detailed setup guide including storage system.
+See [Tuning Panel](../../core/systems/tuning.md) for detailed setup guide including storage system.
