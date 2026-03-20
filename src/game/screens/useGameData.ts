@@ -1,5 +1,5 @@
 import { type Accessor } from 'solid-js';
-import { useManifest } from '~/core/systems/manifest/context';
+import { useManifest } from '@wolfgames/components/solid';
 import type { GameData } from '~/game/config';
 
 /**

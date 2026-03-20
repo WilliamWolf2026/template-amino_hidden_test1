@@ -16,7 +16,7 @@ import {
 import { initSentry } from '~/core/lib/sentry';
 import { getEnvironment } from '~/core/config';
 import { gameConfig, manifest, defaultGameData } from '~/game';
-import { ManifestProvider } from '~/core/systems/manifest/context';
+import { ManifestProvider } from '@wolfgames/components/solid';
 import { GAME_DEFAULTS } from '~/game/tuning';
 import { getViewportModeFromUrl } from '~/core/config/viewport';
 // TODO: Wire up progress reset when new game implements progress service

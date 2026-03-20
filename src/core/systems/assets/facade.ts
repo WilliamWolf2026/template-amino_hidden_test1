@@ -15,7 +15,6 @@ import {
   createSignal,
   type Manifest,
   type LoadingState,
-  LOADER_PREFIXES,
   KIND_TO_PREFIX,
   KIND_TO_LOADER,
 } from '@wolfgames/components/core';
@@ -35,9 +34,6 @@ function getLoaderTypeForBundle(
   if (!bundle) return null;
   if (bundle.kind && KIND_TO_LOADER[bundle.kind]) {
     return KIND_TO_LOADER[bundle.kind] as LoaderType;
-  }
-  for (const [prefix, type] of Object.entries(LOADER_PREFIXES)) {
-    if (bundleName.startsWith(prefix)) return type as LoaderType;
   }
   for (const [kind, prefix] of Object.entries(KIND_TO_PREFIX)) {
     if (bundleName.startsWith(prefix) && KIND_TO_LOADER[kind as keyof typeof KIND_TO_LOADER]) {

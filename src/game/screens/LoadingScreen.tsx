@@ -2,7 +2,7 @@ import { onMount, createMemo, Show } from 'solid-js';
 import { Spinner } from '@wolfgames/components/solid';
 import { useScreen } from '~/core/systems/screens';
 import { useAssets, useLoadingState } from '~/core/systems/assets';
-import { useManifest } from '~/core/systems/manifest/context';
+import { useManifest } from '@wolfgames/components/solid';
 import { useTuning, type ScaffoldTuning } from '~/core';
 import { Logo } from '~/core/ui/Logo';
 import type { GameTuning } from '~/game/tuning';
