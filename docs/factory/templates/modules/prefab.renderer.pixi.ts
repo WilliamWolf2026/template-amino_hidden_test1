@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js';
-import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets';
 import { __UPPER_SNAKE_NAME___DEFAULTS } from '../defaults';
 
 /**

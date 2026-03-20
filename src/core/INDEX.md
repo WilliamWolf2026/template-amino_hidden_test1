@@ -11,7 +11,7 @@ Framework shell — providers, hooks, systems, dev tools. No deps on `modules/` 
 | Asset type definitions (Manifest, Bundle) | systems/assets/types.ts | |
 | DOM asset loader (fonts, styles) | systems/assets/loaders/dom.ts | |
 | Audio sprite loader | systems/assets/loaders/audio.ts | |
-| GPU/Pixi texture loader | systems/assets/loaders/gpu/pixi.ts | |
+| GPU/Pixi texture loader | `@wolfgames/components/pixi` (re-exported via systems/assets/index.ts) | |
 | Screen navigation, transitions | systems/screens/context.tsx | `useScreen()` |
 | Screen manager logic | systems/screens/manager.ts | |
 | Audio playback, state, volumes | systems/audio/context.tsx | `useAudio()` |

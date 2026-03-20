@@ -339,7 +339,7 @@ For visual modules that need a game wrapper:
 ```typescript
 // src/game/[gamename]/ui/MyComponent.ts
 import { SharedComponent } from '~/modules/primitives/shared-component';
-import type { PixiLoader } from '~/core/systems/assets/loaders/gpu/pixi';
+import type { PixiLoader } from '~/core/systems/assets';
 import { GAME_FONT_FAMILY } from '~/game/config/fonts';
 
 export class MyComponent extends SharedComponent {
