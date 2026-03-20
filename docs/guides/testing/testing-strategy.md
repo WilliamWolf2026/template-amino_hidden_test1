@@ -36,22 +36,22 @@ Unit tests, E2E tests, and manual QA for games.
 ### Example: Game Logic
 
 ```typescript
-// src/game/citylines/__tests__/scoring.test.ts
+// src/game/mygame/__tests__/scoring.test.ts
 import { describe, it, expect } from 'vitest';
 import { calculateScore, calculateBonus } from '../scoring';
 
 describe('calculateScore', () => {
-  it('scores 100 per connected path', () => {
-    const paths = [
-      { start: 'A', end: 'B' },
-      { start: 'C', end: 'D' },
+  it('scores points per completed objective', () => {
+    const objectives = [
+      { id: 'obj-1', completed: true },
+      { id: 'obj-2', completed: true },
     ];
-    expect(calculateScore(paths)).toBe(200);
+    expect(calculateScore(objectives)).toBe(200);
   });
 
   it('applies move penalty', () => {
-    const paths = [{ start: 'A', end: 'B' }];
-    expect(calculateScore(paths, { moves: 10, par: 5 })).toBe(50);
+    const objectives = [{ id: 'obj-1', completed: true }];
+    expect(calculateScore(objectives, { moves: 10, par: 5 })).toBe(50);
   });
 });
 
@@ -86,17 +86,17 @@ import { describe, it, expect, vi } from 'vitest';
 import { GameAudioManager } from '../audio/manager';
 
 describe('GameAudioManager', () => {
-  it('plays random variation for tile rotate', () => {
+  it('plays random variation for game action', () => {
     const mockLoader = {
       play: vi.fn(),
     };
 
     const manager = new GameAudioManager(mockLoader);
-    manager.playTileRotate();
+    manager.playAction();
 
     expect(mockLoader.play).toHaveBeenCalledWith(
-      'sfx-citylines',
-      expect.stringMatching(/tile_rotate_\d/),
+      'sfx-mygame',
+      expect.stringMatching(/action_\d/),
       expect.any(Object)
     );
   });

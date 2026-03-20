@@ -6,7 +6,31 @@ A production-ready template for building mobile web games — from prompt to pol
 
 Built on a 3-tier architecture: **Core** (engine), **Modules** (reusable building blocks), and **Game** (your game logic). See [`vision.md`](vision.md) for the full product vision.
 
-## Quick Start
+## Getting Started
+
+### Prerequisites
+
+- **Bun** — install from [bun.sh](https://bun.sh)
+- **GitHub Personal Access Token** — required for `@wolfgames/*` packages on GitHub Packages
+
+### 1. Configure GitHub Packages
+
+Create a **classic** token at https://github.com/settings/tokens with the `read:packages` scope.
+
+Add to `~/.npmrc` (your home directory, not the project):
+
+```
+@wolfgames:registry=https://npm.pkg.github.com/
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+```
+
+Then export the token in your shell profile (`~/.zshrc` or `~/.bashrc`):
+
+```bash
+export NODE_AUTH_TOKEN="ghp_your_token_here"
+```
+
+### 2. Install & Run
 
 ```bash
 bun install
@@ -15,7 +39,22 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) to play.
 
-Starting a new game? See the **[New Game Guide](docs/guides/getting-started/new-game.md)**.
+### 3. IDE Setup (Claude Code / Cursor)
+
+The project has three permission modes. Copy one to activate:
+
+```bash
+cp .claude/settings.design.json .claude/settings.local.json   # Design — game/ only
+cp .claude/settings.dev.json .claude/settings.local.json       # Dev — game/ + modules/
+cp .claude/settings.admin.json .claude/settings.local.json     # Admin — unrestricted
+```
+
+See [.claude/README.md](.claude/README.md) for details.
+
+### Next Steps
+
+- Read [`vision.md`](vision.md) to understand the project goals
+- See the **[New Game Guide](docs/guides/getting-started/new-game.md)** to start building
 
 ## Architecture
 
@@ -100,12 +139,37 @@ See **[docs/factory/index.md](docs/factory/index.md)** for the full list.
 | `public/` | Yes | Yes |
 | `ai/` | Yes | **No** |
 
-**Switch modes:** See [.claude/README.md](.claude/README.md)
-```bash
-cp .claude/settings.design.json .claude/settings.local.json  # Design (game only)
-cp .claude/settings.dev.json .claude/settings.local.json     # Dev (game + modules)
-cp .claude/settings.admin.json .claude/settings.local.json   # Admin (unrestricted)
+See **IDE Setup** in Getting Started above to switch permission modes.
+
+## MCP Servers
+
+This project uses MCP servers for AI-assisted development. The `.mcp.json` file is gitignored — you need to create it yourself.
+
+Create `.mcp.json` in the project root:
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless"]
+    },
+    "wolfgames-asset-gen": {
+      "type": "http",
+      "url": "https://asset-gen-five.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-token-here>"
+      }
+    }
+  }
+}
 ```
+
+Ask a team member for the `wolfgames-asset-gen` bearer token, or see the [Asset Gen MCP Setup](https://www.notion.so/wolfgames/Asset-Gen-MCP-Setup-30d4a337719980248e1ed1c5419f11cc) docs on Notion.
 
 ## Tech Stack
 

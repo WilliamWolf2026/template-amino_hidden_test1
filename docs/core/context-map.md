@@ -71,7 +71,7 @@ A relationship map for understanding the 3-tier core/modules/game architecture. 
     │  │                    screens/                              │    │
     │  │   Loading --> Start --> Game --> Results                 │    │
     │  │      │          │        │                               │    │
-    │  │      │          │        └── citylines/CityLinesGame     │    │
+    │  │      │          │        └── mygame/MyGame                │    │
     │  │      │          │                                        │    │
     │  │      └──────────┴── audio/GameAudioManager               │    │
     │  └─────────────────────────────────────────────────────────┘    │
@@ -83,8 +83,8 @@ A relationship map for understanding the 3-tier core/modules/game architecture. 
     │  └─────────────┘  └─────────────┘                               │
     │                                                                  │
     │  ┌─────────────┐                                                │
-    │  │ citylines/  │<-- Game-specific logic (Pixi.js containers)   │
-    │  │  core/      │    RoadTile, Landmark, Exit, ConnectionDetector│
+    │  │ mygame/     │<-- Game-specific logic (Pixi.js containers)   │
+    │  │  core/      │    Your game objects, mechanics, interactions  │
     │  │  types/     │    (uses modules/ for shared components)       │
     │  │  services/  │                                                │
     │  └─────────────┘                                                │
@@ -141,7 +141,7 @@ A relationship map for understanding the 3-tier core/modules/game architecture. 
 |------|---------------------|---------|
 | `screens/*.tsx` | `modules/primitives/*` | SpriteButton, ProgressBar, etc. |
 | `screens/*.tsx` | `modules/prefabs/*` | AvatarPopup |
-| `citylines/` | `modules/logic/*` | LevelCompletionController, etc. |
+| `mygame/` | `modules/logic/*` | LevelCompletionController, etc. |
 
 ---
 
@@ -195,12 +195,12 @@ loading --> start --> game --> results
 | Reusable primitives (SpriteButton, ProgressBar, etc.) | `src/modules/primitives/` |
 | Reusable prefabs (AvatarPopup, etc.) | `src/modules/prefabs/` |
 | Shared game logic (LevelCompletion, progress, etc.) | `src/modules/logic/` |
-| Core game logic | `src/game/citylines/core/` |
+| Core game logic | `src/game/mygame/core/` |
 | Viewport constraints | `src/core/config/viewport.ts` |
 | UI components (DOM-level) | `src/core/ui/` |
 | Debug tools | `src/core/dev/` |
-| Analytics setup | `src/game/setup/AnalyticsContext.tsx` |
-| Feature flags | `src/game/setup/FeatureFlagContext.tsx` |
+| Analytics setup | `src/game/setup/tracking.ts` |
+| Feature flags | `src/game/setup/flags.ts` |
 | ViewportToggle | `src/core/ui/ViewportToggle.tsx` |
 
 ---
@@ -216,7 +216,7 @@ loading --> start --> game --> results
 | Module Logic | Yellow-Green | LevelCompletionController, catalog, progress |
 | Game Config | Orange | config.ts, manifest.ts, tuning/ |
 | Game Screen | Amber | LoadingScreen, GameScreen |
-| Game Logic | Yellow | CityLinesGame, RoadTile |
+| Game Logic | Yellow | MyGame, game-specific objects |
 
 ---
 

@@ -150,10 +150,10 @@ export interface MyFeatureConfig {
 
 ### Step 2: Add to Main Tuning Interface
 
-Update the `CityLinesTuning` interface (or your game's equivalent):
+Update the `GameTuning` interface:
 
 ```typescript
-export interface CityLinesTuning extends GameTuningBase {
+export interface GameTuning extends GameTuningBase {
   // ... existing configs
   myFeature: MyFeatureConfig;  // Add your new config
 }
@@ -161,10 +161,10 @@ export interface CityLinesTuning extends GameTuningBase {
 
 ### Step 3: Set Default Values
 
-Add defaults to `CITYLINES_DEFAULTS` (or your game's defaults):
+Add defaults to `GAME_DEFAULTS`:
 
 ```typescript
-export const CITYLINES_DEFAULTS: CityLinesTuning = {
+export const GAME_DEFAULTS: GameTuning = {
   // ... existing defaults
   myFeature: {
     someNumber: 50,
@@ -194,7 +194,7 @@ import { createEffect } from 'solid-js';
 import { useTuning } from '~/core';
 
 function MyComponent() {
-  const tuning = useTuning<ScaffoldTuning, CityLinesTuning>();
+  const tuning = useTuning<ScaffoldTuning, GameTuning>();
 
   // Wire the tuning value to reactive updates
   createEffect(() => {

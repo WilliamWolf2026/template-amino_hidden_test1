@@ -5,7 +5,7 @@ import { useSignal } from '@wolfgames/components/solid';
 import type { ProgressCallback } from './types';
 import { createCoordinatorFacade } from './facade';
 import type { AssetCoordinatorFacade } from './facade';
-import { useManifest } from '~/core/systems/manifest/context';
+import { useManifest } from '@wolfgames/components/solid';
 
 /**
  * Scaffold-specific asset context.

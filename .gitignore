@@ -41,6 +41,9 @@ evaluation/
 Thumbs.db
 Desktop.ini
 
+# MCP
+.mcp.json
+
 # Cache
 .cache
 .eslintcache

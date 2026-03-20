@@ -1,8 +1,8 @@
 import { onMount, createMemo, Show } from 'solid-js';
-import { Spinner, ProgressBar } from '@wolfgames/components/solid';
+import { Spinner } from '@wolfgames/components/solid';
 import { useScreen } from '~/core/systems/screens';
 import { useAssets, useLoadingState } from '~/core/systems/assets';
-import { useManifest } from '~/core/systems/manifest/context';
+import { useManifest } from '@wolfgames/components/solid';
 import { useTuning, type ScaffoldTuning } from '~/core';
 import { Logo } from '~/core/ui/Logo';
 import type { GameTuning } from '~/game/tuning';
@@ -42,8 +42,8 @@ export function LoadingScreen() {
     for (const name of targetBundles) {
       if (s.loaded.includes(name)) {
         sum += 1;
-      } else if (name in s.bundleProgress) {
-        sum += s.bundleProgress[name];
+      } else if (s.loading.includes(name)) {
+        sum += 0.5;
       }
     }
     return (sum / targetBundles.length) * 100;
@@ -113,8 +113,11 @@ export function LoadingScreen() {
         }
       >
         <Spinner size="lg" class="w-24 h-24 text-gray-800" />
-        <div class="mt-8 w-64">
-          <ProgressBar progress={progress()} />
+        <div class="mt-8 w-64 h-2 bg-white/30 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-gray-800 rounded-full transition-all duration-300"
+            style={{ width: `${progress()}%` }}
+          />
         </div>
       </Show>
 
