@@ -301,13 +301,4 @@ See [Claude Code Setup Guide](guides/claude-code-setup-prompt.md) for applying t
 
 ## Archive
 
-Historical planning documents and implementation reports.
-
-### Executed Plans
-Implementation reports from completed work are preserved in [archive/executed-plans/](archive/executed-plans/).
-
-### CityLines Learnings
-Project-specific insights: [archive/citylines/citylines-learnings.md](archive/citylines/citylines-learnings.md)
-
-### Scaffold v1
-Original 2-tier architecture documentation: [archive/scaffold-v1/](archive/scaffold-v1/)
+Archive was cleared (2026-03-19). Historical docs were superseded by `docs/core/`. Backup at `Nucleo/.nucleo/archive-backup/template-amino-docs-archive/`.
