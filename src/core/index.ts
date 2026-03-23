@@ -32,36 +32,36 @@ export {
 export { TweakpaneConfig, isOpen, setIsOpen } from './dev';
 export { TuningPanel, isPanelOpen, setIsPanelOpen } from './dev';
 
-// Analytics Library
+// Analytics (consolidated — service, events, types all live in systems/analytics/)
 export {
+  // Service (imperative)
   getAnalytics,
   resetAnalytics,
   getSessionElapsed,
   getSessionStartTime,
   resetSessionTimer,
-  cachePostHogInstance,
-  getCachedPostHog,
+  getPostHogInstance,
+  setPostHogInstance,
+  capture,
+  identify,
+  setPersonProperties,
+  createBaseDefaults,
+  GetAnalyticsServiceCommand,
+  // Event schemas
   baseParamsSet,
   levelContextParamsSet,
-  createBaseDefaults,
+  sessionStartSchema,
+  sessionPauseSchema,
+  sessionResumeSchema,
+  sessionEndSchema,
+  extendSessionEndSchema,
+  gameStartSchema,
+  audioSettingChangedSchema,
+  errorCapturedSchema,
+  // Types
   type AnalyticsConfig,
   type AnalyticsService,
   type PostHog,
   type BaseAnalyticsContext,
   type TrackerParams,
-  GetAnalyticsServiceCommand,
-} from './lib/analytics';
-
-// Shared Analytics Schemas
-export {
-  baseParamsSet as sharedBaseParamsSet,
-  sessionStartSchema,
-  sessionPauseSchema,
-  sessionResumeSchema,
-  sessionEndSchema,
-  gameStartSchema,
-  audioSettingChangedSchema,
-  errorCapturedSchema,
-  extendSessionEndSchema,
-  type BaseAnalyticsContext as SharedBaseAnalyticsContext,
-} from './analytics/events';
+} from './systems/analytics';

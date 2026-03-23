@@ -5,10 +5,54 @@ import {
   type PostHog,
   type AnalyticsConfig,
 } from "@wolfgames/game-kit";
-import { type } from "arktype";
 
-// Re-export the AnalyticsConfig type from game-kit
-export type { AnalyticsConfig } from "@wolfgames/game-kit";
+// ============================================================================
+// POSTHOG SINGLETON
+// ============================================================================
+
+let posthogInstance: PostHog | null = null;
+
+/**
+ * Store the PostHog instance for imperative access.
+ * Called once during analytics initialization.
+ */
+export function setPostHogInstance(instance: PostHog | null): void {
+  posthogInstance = instance;
+}
+
+/**
+ * Get the cached PostHog instance.
+ * Returns null before initialization.
+ */
+export function getPostHogInstance(): PostHog | null {
+  return posthogInstance;
+}
+
+/**
+ * Capture an analytics event imperatively (outside SolidJS context).
+ * Use `useAnalytics().capture()` in components instead.
+ */
+export function capture(event: string, properties?: Record<string, unknown>) {
+  if (!posthogInstance) {
+    console.warn(`[analytics] capture called before init: ${event}`);
+    return;
+  }
+  posthogInstance.capture(event, properties);
+}
+
+/**
+ * Identify a user imperatively (outside SolidJS context).
+ */
+export function identify(userId: string, properties?: Record<string, unknown>) {
+  posthogInstance?.identify(userId, properties);
+}
+
+/**
+ * Set person properties imperatively.
+ */
+export function setPersonProperties(properties: Record<string, unknown>) {
+  posthogInstance?.people.set(properties);
+}
 
 // ============================================================================
 // SESSION MANAGEMENT
@@ -32,7 +76,6 @@ export function getSessionStartTime(): number {
 
 /**
  * Get seconds elapsed since session started.
- * Useful for the `session_elapsed` property in analytics events.
  */
 export function getSessionElapsed(): number {
   return parseFloat(((Date.now() - sessionStartTime) / 1000).toFixed(2));
@@ -51,13 +94,12 @@ async function createAnalytics(
   const { promise } = gameKit.execute(
     new GetAnalyticsServiceCommand(config),
   );
-
   return promise;
 }
 
 /**
- * Get or create the singleton AnalyticsService.
- * Lazy initialization - service is created on first call.
+ * Get or create the singleton AnalyticsService via GameKit.
+ * Lazy initialization — service is created on first call.
  */
 export async function getAnalytics(
   gameKit: GameKIT,
@@ -77,37 +119,13 @@ export function resetAnalytics(): void {
 }
 
 // ============================================================================
-// COMMON PARAMETER SETS (for use with addParamsSet)
-// ============================================================================
-
-/**
- * Base parameter set schema that should be included in every game event.
- * Games should register this with addParamsSet({ base: baseParamsSet })
- */
-export const baseParamsSet = type({
-  game_name: "string",
-  session_elapsed: "number",
-});
-
-/**
- * Level context parameter set schema for level-related events.
- * Games should extend this based on their specific needs.
- */
-export const levelContextParamsSet = type({
-  chapter_count: "number",
-  county_theme: "string",
-  level_order: "number",
-  "chapter_progress?": "string",
-});
-
-// ============================================================================
 // DEFAULT PARAMETER GENERATORS
 // ============================================================================
 
 /**
  * Creates the base default parameter generator function.
- * This should be used with addParamsDefault({ base: createBaseDefaults(...) })
- * 
+ * Use with addParamsDefault({ base: createBaseDefaults(...) })
+ *
  * @param gameName - The name of the game (e.g., 'city_lines')
  * @returns A function that generates base defaults from context
  */
@@ -123,58 +141,13 @@ export function createBaseDefaults<T extends { sessionStartTime: number }, const
 }
 
 // ============================================================================
-// TYPING HELPERS
-// ============================================================================
-
-/**
- * Base context interface that all games should extend.
- * Provides session tracking foundation.
- */
-export interface BaseAnalyticsContext {
-  sessionStartTime: number;
-}
-
-/**
- * Helper type to extract tracker parameters from a createTracker call.
- * Useful for creating wrapper functions.
- * 
- * @example
- * const _trackLevelStart = analyticsService.createTracker(...);
- * export const trackLevelStart = (
- *   params: TrackerParams<typeof _trackLevelStart>
- * ) => { ... }
- */
-export type TrackerParams<T> = T extends (p: infer P) => void ? P : never;
-
-// ============================================================================
-// POSTHOG ACCESS
-// ============================================================================
-
-let cachedPostHog: PostHog | null = null;
-
-/**
- * Cache the PostHog instance for direct access.
- * Call this after analytics service initialization.
- */
-export function cachePostHogInstance(ph: PostHog | null): void {
-  cachedPostHog = ph;
-}
-
-/**
- * Get the cached PostHog instance.
- * Returns null if cachePostHogInstance hasn't been called.
- */
-export function getCachedPostHog(): PostHog | null {
-  return cachedPostHog;
-}
-
-// ============================================================================
-// RE-EXPORTS FOR CONVENIENCE
+// RE-EXPORTS
 // ============================================================================
 
 export {
   type AnalyticsService,
+  type AnalyticsConfig,
   type PostHog,
+  type GameKIT,
   GetAnalyticsServiceCommand,
 } from "@wolfgames/game-kit";
-export { type } from "arktype";

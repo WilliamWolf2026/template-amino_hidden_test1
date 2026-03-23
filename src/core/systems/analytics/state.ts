@@ -1,7 +1,5 @@
 import { createSignal } from 'solid-js';
-import type { PostHog } from '~/core/lib/analytics';
-import { setPostHogInstance } from '~/core/lib/posthog';
-import { cachePostHogInstance } from '~/core/lib/analytics';
+import type { PostHog } from '@wolfgames/game-kit';
 import type { AnalyticsIdentity, AnalyticsState } from './types';
 
 export function createAnalyticsState() {
@@ -37,10 +35,10 @@ export function createAnalyticsState() {
     // Skeleton: PostHog is not initialized here yet.
     // When GameKit API is confirmed, wire up real initialization:
     //   1. Check getPosthogConfig().enabled
-    //   2. Init via GameKit
+    //   2. Init via getAnalytics() from ./service
     //   3. setPosthog(instance)
-    //   4. setPostHogInstance(instance) — bridge for error reporter
-    //   5. cachePostHogInstance(instance)
+    //   4. setPostHogInstance(instance) — imperative bridge
+    //   5. connectSentryToPostHog() from lib/sentry
     //
     // For now, just mark as ready so the app proceeds.
     setIsReady(true);

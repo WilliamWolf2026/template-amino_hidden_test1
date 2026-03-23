@@ -1,5 +1,5 @@
 import { captureException, setUser as setSentryUser, addBreadcrumb as addSentryBreadcrumb } from '../../lib/sentry';
-import { capture as posthogCapture, identify as posthogIdentify } from '../../lib/posthog';
+import { capture as posthogCapture, identify as posthogIdentify } from '../analytics/service';
 import type { ErrorContext, ErrorSeverity, ErrorReporter } from './types';
 
 // Dedupe rapid-fire errors

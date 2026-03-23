@@ -8,7 +8,7 @@ import {
   type ParentProps,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import type { PostHog } from '~/core/lib/analytics';
+import type { PostHog } from '~/core/systems/analytics/types';
 import { useAnalytics } from '../analytics/context';
 import type { FeatureFlagState } from './types';
 import { getRegisteredFlagConfig } from './registry';
