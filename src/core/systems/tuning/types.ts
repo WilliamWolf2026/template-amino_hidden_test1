@@ -48,11 +48,8 @@ export interface TuningPanelConfig {
   position: 'left' | 'center' | 'right';
 }
 
-export type ViewportMode = 'small' | 'large' | 'none';
-
-export interface ViewportConfig {
-  mode: ViewportMode;
-}
+import type { ViewportMode, ViewportConfig } from '@wolfgames/components/core';
+export type { ViewportMode, ViewportConfig };
 
 export interface ScaffoldTuning {
   version: string;
