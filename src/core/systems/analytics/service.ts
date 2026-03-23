@@ -1,121 +1,97 @@
 import {
-  type AnalyticsService,
   type GameKIT,
   GetAnalyticsServiceCommand,
-  type PostHog,
-  type AnalyticsConfig,
+  type AnalyticsConfig as GameKitAnalyticsConfig,
 } from "@wolfgames/game-kit";
+import {
+  createAnalyticsCore,
+  type AnalyticsCore,
+  type AnalyticsClient,
+} from "@wolfgames/components/core";
 
 // ============================================================================
-// POSTHOG SINGLETON
+// CORE INSTANCE
 // ============================================================================
 
-let posthogInstance: PostHog | null = null;
+let coreInstance: AnalyticsCore | null = null;
 
 /**
- * Store the PostHog instance for imperative access.
- * Called once during analytics initialization.
+ * Get or create the singleton AnalyticsCore.
+ * Called by the provider on mount; available imperatively for non-SolidJS code.
  */
-export function setPostHogInstance(instance: PostHog | null): void {
-  posthogInstance = instance;
+export function getAnalyticsCore(): AnalyticsCore {
+  if (!coreInstance) {
+    coreInstance = createAnalyticsCore();
+  }
+  return coreInstance;
 }
 
 /**
- * Get the cached PostHog instance.
- * Returns null before initialization.
+ * Reset the core instance. Useful for testing.
  */
-export function getPostHogInstance(): PostHog | null {
-  return posthogInstance;
+export function resetAnalyticsCore(): void {
+  coreInstance?.dispose();
+  coreInstance = null;
 }
 
+// ============================================================================
+// GAMEKIT INITIALIZATION
+// ============================================================================
+
 /**
- * Capture an analytics event imperatively (outside SolidJS context).
+ * Creates an initClient function for the AnalyticsProvider config.
+ * Wires up GameKit's analytics service and returns the PostHog client.
+ */
+export function createGameKitInitClient(
+  gameKit: GameKIT,
+  config: GameKitAnalyticsConfig,
+): () => Promise<AnalyticsClient | null> {
+  return async () => {
+    const { promise } = gameKit.execute(
+      new GetAnalyticsServiceCommand(config),
+    );
+    const service = await promise;
+    // The GameKit AnalyticsService exposes PostHog as the underlying client
+    return service as unknown as AnalyticsClient;
+  };
+}
+
+// ============================================================================
+// IMPERATIVE ACCESS (for non-SolidJS code like error reporter)
+// ============================================================================
+
+/**
+ * Capture an analytics event imperatively.
  * Use `useAnalytics().capture()` in components instead.
  */
 export function capture(event: string, properties?: Record<string, unknown>) {
-  if (!posthogInstance) {
+  const core = coreInstance;
+  if (core) {
+    core.capture(event, properties);
+  } else {
     console.warn(`[analytics] capture called before init: ${event}`);
-    return;
   }
-  posthogInstance.capture(event, properties);
 }
 
 /**
- * Identify a user imperatively (outside SolidJS context).
+ * Identify a user imperatively.
  */
 export function identify(userId: string, properties?: Record<string, unknown>) {
-  posthogInstance?.identify(userId, properties);
+  coreInstance?.identify(userId, properties);
 }
 
 /**
  * Set person properties imperatively.
  */
 export function setPersonProperties(properties: Record<string, unknown>) {
-  posthogInstance?.people.set(properties);
-}
-
-// ============================================================================
-// SESSION MANAGEMENT
-// ============================================================================
-
-let sessionStartTime = Date.now();
-
-/**
- * Reset the session timer to now. Call this when a new session starts.
- */
-export function resetSessionTimer(): void {
-  sessionStartTime = Date.now();
+  coreInstance?.setPersonProperties(properties);
 }
 
 /**
- * Get the session start timestamp.
+ * Get the underlying analytics client for direct access.
  */
-export function getSessionStartTime(): number {
-  return sessionStartTime;
-}
-
-/**
- * Get seconds elapsed since session started.
- */
-export function getSessionElapsed(): number {
-  return parseFloat(((Date.now() - sessionStartTime) / 1000).toFixed(2));
-}
-
-// ============================================================================
-// ANALYTICS SERVICE INITIALIZATION
-// ============================================================================
-
-let analyticsPromise: Promise<AnalyticsService> | null = null;
-
-async function createAnalytics(
-  gameKit: GameKIT,
-  config: AnalyticsConfig,
-): Promise<AnalyticsService> {
-  const { promise } = gameKit.execute(
-    new GetAnalyticsServiceCommand(config),
-  );
-  return promise;
-}
-
-/**
- * Get or create the singleton AnalyticsService via GameKit.
- * Lazy initialization — service is created on first call.
- */
-export async function getAnalytics(
-  gameKit: GameKIT,
-  config: AnalyticsConfig,
-): Promise<AnalyticsService> {
-  if (!analyticsPromise) {
-    analyticsPromise = createAnalytics(gameKit, config);
-  }
-  return analyticsPromise;
-}
-
-/**
- * Reset the analytics singleton. Useful for testing.
- */
-export function resetAnalytics(): void {
-  analyticsPromise = null;
+export function getClient(): AnalyticsClient | null {
+  return coreInstance?.client.get() ?? null;
 }
 
 // ============================================================================
@@ -125,9 +101,6 @@ export function resetAnalytics(): void {
 /**
  * Creates the base default parameter generator function.
  * Use with addParamsDefault({ base: createBaseDefaults(...) })
- *
- * @param gameName - The name of the game (e.g., 'city_lines')
- * @returns A function that generates base defaults from context
  */
 export function createBaseDefaults<T extends { sessionStartTime: number }, const G extends string>(
   gameName: G,
@@ -145,9 +118,15 @@ export function createBaseDefaults<T extends { sessionStartTime: number }, const
 // ============================================================================
 
 export {
-  type AnalyticsService,
-  type AnalyticsConfig,
-  type PostHog,
+  type AnalyticsConfig as GameKitAnalyticsConfig,
   type GameKIT,
   GetAnalyticsServiceCommand,
 } from "@wolfgames/game-kit";
+
+export {
+  createAnalyticsCore,
+  type AnalyticsCore,
+  type AnalyticsConfig,
+  type AnalyticsClient,
+  type AnalyticsIdentity,
+} from "@wolfgames/components/core";

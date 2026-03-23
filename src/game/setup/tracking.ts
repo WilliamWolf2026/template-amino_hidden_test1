@@ -1,14 +1,4 @@
-import { registerAnalyticsIdentity } from '~/core/systems/analytics';
-import { useAnalytics, type AnalyticsState } from '~/core/systems/analytics';
-import { getUserData } from './helper';
-
-// ============================================================================
-// REGISTRATION (runs at module load)
-// ============================================================================
-
-const { uid, email, name } = getUserData();
-
-registerAnalyticsIdentity({ userId: uid, email, name });
+import { useAnalytics, type AnalyticsCore } from '~/core/systems/analytics';
 
 // ============================================================================
 // GAME TRACKING HOOK
@@ -20,7 +10,7 @@ export interface GameTracking {
   /** Track audio setting change (settings menu) */
   trackAudioSettingChanged: () => void;
   /** Raw Core analytics for advanced use / passing to controllers */
-  analytics: AnalyticsState;
+  analytics: AnalyticsCore;
 }
 
 export function useGameTracking(): GameTracking {

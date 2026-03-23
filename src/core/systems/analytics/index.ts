@@ -1,26 +1,20 @@
-// Reactive layer (SolidJS)
+// Reactive layer (SolidJS) — thin wrapper around game-components core
 export { AnalyticsProvider, useAnalytics } from './context';
 
-// Identity registration
-export { registerAnalyticsIdentity } from './registry';
-
-// Imperative service (for non-SolidJS code)
+// Imperative access (for non-SolidJS code like error reporter)
 export {
   capture,
   identify,
   setPersonProperties,
-  getPostHogInstance,
-  setPostHogInstance,
-  getAnalytics,
-  resetAnalytics,
-  getSessionElapsed,
-  getSessionStartTime,
-  resetSessionTimer,
+  getClient,
+  getAnalyticsCore,
+  resetAnalyticsCore,
+  createGameKitInitClient,
   createBaseDefaults,
   GetAnalyticsServiceCommand,
 } from './service';
 
-// Event schemas
+// Event schemas (game-specific)
 export {
   baseParamsSet,
   levelContextParamsSet,
@@ -34,13 +28,16 @@ export {
   errorCapturedSchema,
 } from './events';
 
-// Types
+// Types — re-exported from game-components + game-kit helpers
 export type {
+  AnalyticsCore,
+  AnalyticsConfig,
+  AnalyticsClient,
   AnalyticsIdentity,
-  AnalyticsState,
+  AnalyticsService,
+  PostHog,
   BaseAnalyticsContext,
   TrackerParams,
-  AnalyticsService,
-  AnalyticsConfig,
-  PostHog,
 } from './types';
+
+export type { GameKitAnalyticsConfig } from './service';

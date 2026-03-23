@@ -1,28 +1,38 @@
-import { createContext, useContext, onMount, type ParentProps } from 'solid-js';
-import type { AnalyticsState } from './types';
-import { createAnalyticsState } from './state';
-import { getRegisteredIdentity } from './registry';
+import { createContext, useContext, onMount, onCleanup, type ParentProps } from 'solid-js';
+import type { AnalyticsCore } from '@wolfgames/components/core';
+import { getAnalyticsCore } from './service';
 
-const AnalyticsContext = createContext<AnalyticsState>();
+/**
+ * Props for the AnalyticsProvider.
+ * The core is created via getAnalyticsCore() from service.ts,
+ * ensuring the same instance is available imperatively.
+ */
+export interface AnalyticsProviderProps extends ParentProps {}
 
-export function AnalyticsProvider(props: ParentProps) {
-  const { state, initialize } = createAnalyticsState();
+const AnalyticsContext = createContext<AnalyticsCore>();
+
+export function AnalyticsProvider(props: AnalyticsProviderProps) {
+  const core = getAnalyticsCore();
 
   onMount(() => {
-    initialize(getRegisteredIdentity());
+    core.init();
+  });
+
+  onCleanup(() => {
+    core.dispose();
   });
 
   return (
-    <AnalyticsContext.Provider value={state}>
+    <AnalyticsContext.Provider value={core}>
       {props.children}
     </AnalyticsContext.Provider>
   );
 }
 
-export function useAnalytics(): AnalyticsState {
-  const context = useContext(AnalyticsContext);
-  if (!context) {
+export function useAnalytics() {
+  const core = useContext(AnalyticsContext);
+  if (!core) {
     throw new Error('useAnalytics must be used within AnalyticsProvider');
   }
-  return context;
+  return core;
 }
