@@ -95,25 +95,6 @@ export function getClient(): AnalyticsClient | null {
 }
 
 // ============================================================================
-// DEFAULT PARAMETER GENERATORS
-// ============================================================================
-
-/**
- * Creates the base default parameter generator function.
- * Use with addParamsDefault({ base: createBaseDefaults(...) })
- */
-export function createBaseDefaults<T extends { sessionStartTime: number }, const G extends string>(
-  gameName: G,
-): (ctx: T) => { game_name: G; session_elapsed: number } {
-  return (ctx: T) => ({
-    game_name: gameName,
-    session_elapsed: parseFloat(
-      ((Date.now() - ctx.sessionStartTime) / 1000).toFixed(2)
-    ),
-  });
-}
-
-// ============================================================================
 // RE-EXPORTS
 // ============================================================================
 
@@ -125,6 +106,7 @@ export {
 
 export {
   createAnalyticsCore,
+  createBaseDefaults,
   type AnalyticsCore,
   type AnalyticsConfig,
   type AnalyticsClient,

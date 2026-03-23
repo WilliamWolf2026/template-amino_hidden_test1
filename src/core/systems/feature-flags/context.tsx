@@ -9,7 +9,7 @@ import {
   type ParentProps,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import type { AnalyticsClient } from '~/core/systems/analytics/types';
+import type { AnalyticsClient } from '@wolfgames/components/core';
 import { useAnalytics } from '../analytics/context';
 import type { FeatureFlagState } from './types';
 import { getRegisteredFlagConfig } from './registry';
