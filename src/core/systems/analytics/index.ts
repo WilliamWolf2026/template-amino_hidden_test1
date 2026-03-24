@@ -15,7 +15,7 @@ export {
   createGameKitInitClient,
 } from './service';
 
-// Types — re-exported from game-components + game-kit
+// Types — direct from packages (no local re-export layer)
 export type {
   AnalyticsCore,
   AnalyticsConfig,
@@ -23,11 +23,11 @@ export type {
   AnalyticsIdentity,
   BaseAnalyticsContext,
   TrackerParams,
-} from './types';
+} from '@wolfgames/components/core';
 
 export type {
   AnalyticsService,
   PostHog,
-} from './types';
+} from '@wolfgames/game-kit';
 
 export type { GameKitAnalyticsConfig } from './service';
