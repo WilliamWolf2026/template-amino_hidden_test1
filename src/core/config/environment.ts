@@ -2,9 +2,14 @@
  * Environment configuration for different deployment targets.
  * Controls CDN URLs, API servers, and feature flags per environment.
  *
- * This is scaffold-level config - reusable across games.
- * Game-specific paths are configured separately.
+ * Environment detection is Vite-specific (import.meta.env).
+ * URL resolution is delegated to @wolfgames/game-kit factories.
  */
+
+import {
+  Environment as GKEnvironment,
+  getCdnHost,
+} from '@wolfgames/game-kit';
 
 export type Environment =
   | "local"
@@ -12,6 +17,19 @@ export type Environment =
   | "staging"
   | "qa"
   | "production";
+
+/** Map amino environment strings to game-kit's Environment enum. */
+const ENV_MAP: Record<Environment, GKEnvironment> = {
+  local: GKEnvironment.Local,
+  development: GKEnvironment.Development,
+  staging: GKEnvironment.Staging,
+  qa: GKEnvironment.QA,
+  production: GKEnvironment.Production,
+};
+
+export function toGameKitEnvironment(env: Environment): GKEnvironment {
+  return ENV_MAP[env];
+}
 
 export const getEnvironment = (): Environment => {
   const env = import.meta.env.VITE_APP_ENV;
@@ -52,42 +70,38 @@ export interface EnvConfig {
   posthog: PosthogConfig;
 }
 
-const SHARED_CONFIG = {
-  posthog: {
-    enabled: true,
-    key: "phc_RFhmtnQWjam4fNHYyn89lf0WVW6qF5bVYMwoXO8dSpR",
-    host: "https://us.i.posthog.com",
-    platform: "advance",
-  },
+const SHARED_POSTHOG = {
+  key: "phc_RFhmtnQWjam4fNHYyn89lf0WVW6qF5bVYMwoXO8dSpR",
+  host: "https://us.i.posthog.com",
+  platform: "advance",
 };
 
 /**
+ * Build env config using game-kit CDN factories + local posthog settings.
+ */
+function buildEnvConfig(env: Environment): EnvConfig {
+  const gkEnv = toGameKitEnvironment(env);
+  const analyticsEnabled = env !== "local" && env !== "development";
+
+  return {
+    url: getCdnHost(gkEnv),
+    posthog: {
+      ...SHARED_POSTHOG,
+      enabled: analyticsEnabled,
+    },
+  };
+}
+
+/**
  * Base environment config (scaffold-level).
- * Games extend this with their specific paths.
+ * CDN URLs are resolved via game-kit factories.
  */
 export const ENV_CONFIG: Record<Environment, EnvConfig> = {
-  local: {
-    url: "", // Empty = relative paths, games provide their own
-    ...SHARED_CONFIG,
-    posthog: { ...SHARED_CONFIG.posthog, enabled: false },
-  },
-  development: {
-    url: "https://media.dev.wolf.games",
-    ...SHARED_CONFIG,
-    posthog: { ...SHARED_CONFIG.posthog, enabled: false },
-  },
-  qa: {
-    url: "https://media.qa.wolf.games",
-    ...SHARED_CONFIG,
-  },
-  staging: {
-    url: "https://media.staging.wolf.games",
-    ...SHARED_CONFIG,
-  },
-  production: {
-    url: "https://media.wolf.games",
-    ...SHARED_CONFIG,
-  },
+  local: buildEnvConfig("local"),
+  development: buildEnvConfig("development"),
+  qa: buildEnvConfig("qa"),
+  staging: buildEnvConfig("staging"),
+  production: buildEnvConfig("production"),
 };
 
 export const getEnvConfig = (): EnvConfig => {

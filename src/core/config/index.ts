@@ -8,6 +8,7 @@ export {
   getPosthogConfig,
   isLocal,
   isProduction,
+  toGameKitEnvironment,
   ENV_CONFIG,
 } from './environment';
 

@@ -1,10 +1,9 @@
-import { Environment, GameKIT } from '@wolfgames/game-kit';
+import { GameKIT } from '@wolfgames/game-kit';
 import { getEnvironment } from '../config';
+import { toGameKitEnvironment } from '../config/environment';
 import { projectId } from '../../../wolf-game-kit.json';
 
-export const environment = getEnvironment() === 'production'
-  ? Environment.Production
-  : Environment.QA;
+export const environment = toGameKitEnvironment(getEnvironment());
 
 let instance: GameKIT | null = null;
 

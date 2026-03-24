@@ -12,10 +12,11 @@ import type { ViewportMode } from '~/core/systems/tuning/types';
 import type { ScreenId, ScreenAssetConfig } from '~/core/systems/screens/types';
 import {
   getEnvironment,
-  getCdnBaseUrl,
   isLocal,
   type Environment,
 } from '~/core/config';
+import { buildCdnUrl } from '@wolfgames/game-kit';
+import { toGameKitEnvironment } from '~/core/config/environment';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 
@@ -57,9 +58,10 @@ const GAME_PATHS = {
 export const getLocalAssetPath = (): string => GAME_PATHS.localAssetPath;
 
 export const getCdnUrl = (): string => {
-  const baseUrl = getCdnBaseUrl();
-  if (!baseUrl) return GAME_PATHS.localAssetPath;
-  return `${baseUrl}/${GAME_PATHS.gamePath}/assets`;
+  const env = getEnvironment();
+  if (env === 'local') return GAME_PATHS.localAssetPath;
+  const gkEnv = toGameKitEnvironment(env);
+  return buildCdnUrl(gkEnv, `${GAME_PATHS.gamePath}/assets`);
 };
 
 // ============================================================================
