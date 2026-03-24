@@ -1,4 +1,4 @@
-import { onMount, Show, type JSX } from 'solid-js';
+import { onMount, onCleanup, Show, type JSX, type ParentProps } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -12,18 +12,20 @@ import {
   TuningPanel,
   useTuning,
   type ScaffoldTuning,
+  FeatureFlagProvider,
 } from '~/core';
 import { initSentry } from '~/core/lib/sentry';
 import { getEnvironment } from '~/core/config';
 import { gameConfig, manifest, defaultGameData } from '~/game';
-import { ManifestProvider } from '@wolfgames/components/solid';
+import { ManifestProvider, AnalyticsProvider } from '@wolfgames/components/solid';
+import { useAnalyticsCore } from '@wolfgames/components/solid';
 import { GAME_DEFAULTS } from '~/game/tuning';
 import { getViewportModeFromUrl } from '~/core/config/viewport';
 // TODO: Wire up progress reset when new game implements progress service
 // import { clearProgress } from '~/game/services/progress';
 import './app.css';
 import { IS_DEV_ENV } from './core/dev/env';
-import { AnalyticsProvider, FeatureFlagProvider } from '~/core';
+import { setCoreInstance } from '~/core/systems/analytics/service';
 import { useGameTracking } from '~/game/setup/tracking';
 import '~/game/setup/flags'; // registers flag config at module load
 import { ViewportToggle } from '~/core/ui/ViewportToggle';
@@ -31,6 +33,17 @@ import { ViewportToggle } from '~/core/ui/ViewportToggle';
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlViewportMode = getViewportModeFromUrl();
 const environment = getEnvironment();
+
+/**
+ * Registers the provider-owned AnalyticsCore for imperative access
+ * (error reporter, etc.) via setCoreInstance in service.ts.
+ */
+function AnalyticsBridge(props: ParentProps) {
+  const core = useAnalyticsCore();
+  setCoreInstance(core);
+  onCleanup(() => setCoreInstance(null));
+  return <>{props.children}</>;
+}
 
 /** Reset progress and reload the page */
 const handleResetProgress = () => {
@@ -115,6 +128,7 @@ export default function App() {
           <TuningPanel />
         </Show>
         <AnalyticsProvider>
+          <AnalyticsBridge>
           <FeatureFlagProvider>
             <ViewportModeWrapper>
               {/* Settings Menu - Top Right Corner */}
@@ -138,6 +152,7 @@ export default function App() {
               </PauseProvider>
             </ViewportModeWrapper>
           </FeatureFlagProvider>
+          </AnalyticsBridge>
         </AnalyticsProvider>
       </TuningProvider>
     </GlobalBoundary>

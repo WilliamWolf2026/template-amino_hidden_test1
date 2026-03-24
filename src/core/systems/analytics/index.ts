@@ -1,43 +1,33 @@
-// Reactive layer (SolidJS) — thin wrapper around game-components core
-export { AnalyticsProvider, useAnalytics } from './context';
+// Provider & hooks — from game-components (NOT defined here)
+export {
+  AnalyticsProvider,
+  useAnalytics,
+  useAnalyticsCore,
+} from '@wolfgames/components/solid';
 
-// Imperative access (for non-SolidJS code like error reporter)
+// Imperative access bridge (for non-SolidJS code like error reporter)
 export {
   capture,
   identify,
   setPersonProperties,
   getClient,
-  getAnalyticsCore,
-  resetAnalyticsCore,
+  setCoreInstance,
   createGameKitInitClient,
-  createBaseDefaults,
-  GetAnalyticsServiceCommand,
 } from './service';
 
-// Event schemas (game-specific)
-export {
-  baseParamsSet,
-  levelContextParamsSet,
-  sessionStartSchema,
-  sessionPauseSchema,
-  sessionResumeSchema,
-  sessionEndSchema,
-  extendSessionEndSchema,
-  gameStartSchema,
-  audioSettingChangedSchema,
-  errorCapturedSchema,
-} from './events';
-
-// Types — re-exported from game-components + game-kit helpers
+// Types — re-exported from game-components + game-kit
 export type {
   AnalyticsCore,
   AnalyticsConfig,
   AnalyticsClient,
   AnalyticsIdentity,
-  AnalyticsService,
-  PostHog,
   BaseAnalyticsContext,
   TrackerParams,
+} from './types';
+
+export type {
+  AnalyticsService,
+  PostHog,
 } from './types';
 
 export type { GameKitAnalyticsConfig } from './service';

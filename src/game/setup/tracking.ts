@@ -1,4 +1,5 @@
-import { useAnalytics, type AnalyticsCore } from '~/core/systems/analytics';
+import { useAnalyticsCore } from '@wolfgames/components/solid';
+import type { AnalyticsCore } from '@wolfgames/components/core';
 
 // ============================================================================
 // GAME TRACKING HOOK
@@ -14,7 +15,7 @@ export interface GameTracking {
 }
 
 export function useGameTracking(): GameTracking {
-  const analytics = useAnalytics();
+  const analytics = useAnalyticsCore();
 
   return {
     trackGameStart: () => {

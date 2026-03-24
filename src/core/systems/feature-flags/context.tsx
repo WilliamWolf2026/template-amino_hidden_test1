@@ -10,7 +10,7 @@ import {
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import type { AnalyticsClient } from '@wolfgames/components/core';
-import { useAnalytics } from '../analytics/context';
+import { useAnalyticsCore } from '@wolfgames/components/solid';
 import type { FeatureFlagState } from './types';
 import { getRegisteredFlagConfig } from './registry';
 import { loadFlagCache, saveFlagCache, validateFlags } from './cache';
@@ -29,7 +29,7 @@ export function FeatureFlagProvider(props: ParentProps) {
 
   const { defaults, validators, storagePrefix, userId, timeoutMs = 2000 } = config;
   const cached = loadFlagCache(storagePrefix, userId, defaults, validators);
-  const analytics = useAnalytics();
+  const analytics = useAnalyticsCore();
   const defs = defaults as Record<string, unknown>;
 
   const [state, setState] = createStore<FeatureFlagState<typeof defaults>>({
