@@ -8,15 +8,15 @@
     "preview": "vite preview",
     "format": "biome check --write .",
     "format:src": "biome check --write ./src",
-    "evaluate": "bun run evaluation/run.ts",
-    "evaluate:report": "bun run evaluation/compare.ts",
+    "evaluate": "bun run tests/evaluation/run.ts",
+    "evaluate:report": "bun run tests/evaluation/compare.ts",
     "test": "vitest",
     "test:run": "vitest run",
-    "scaffold:sync": "bun run scripts/scaffold-sync.ts",
-    "scaffold:release": "bun run scripts/scaffold-release.ts",
-    "scaffold:verify": "bun run scripts/scaffold-verify.ts",
-    "scaffold:rollback": "bun run scripts/scaffold-rollback.ts",
-    "scaffold:drift": "bun run scripts/scaffold-drift.ts",
+    "amino:sync": "bun run scripts/amino-sync.ts",
+    "amino:release": "bun run scripts/amino-release.ts",
+    "amino:verify": "bun run scripts/amino-verify.ts",
+    "amino:rollback": "bun run scripts/amino-rollback.ts",
+    "amino:drift": "bun run scripts/amino-drift.ts",
     "check:assets": "bun run scripts/check-asset-naming.ts",
     "check:manifest": "bun run scripts/check-manifest.ts",
     "typecheck": "tsc --noEmit"
@@ -46,7 +46,7 @@
     "vite": "^6.1.0",
     "vite-plugin-solid": "^2.11.0"
   },
-  "scaffold": {
+  "amino": {
     "version": "1.0.0"
   },
   "engines": {

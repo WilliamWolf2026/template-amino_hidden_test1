@@ -19,49 +19,26 @@ const sources = [
   { type: 'doc', path: 'docs', ext: ['.md'] },
   { type: 'command', path: 'docs/factory', ext: ['.md'] },
 
-  // --- Scaffold (read-only framework) ---
-  { type: 'scaffold-system', path: 'src/scaffold/systems', ext: ['.ts', '.tsx'] },
-  { type: 'scaffold-ui', path: 'src/scaffold/ui', ext: ['.ts', '.tsx'] },
-  { type: 'scaffold-config', path: 'src/scaffold/config', ext: ['.ts'] },
-  { type: 'scaffold-dev', path: 'src/scaffold/dev', ext: ['.ts', '.tsx'] },
-  { type: 'scaffold-lib', path: 'src/scaffold/lib', ext: ['.ts'] },
-  { type: 'scaffold-util', path: 'src/scaffold/utils', ext: ['.ts', '.tsx'] },
+  // --- Core (amino-owned framework) ---
+  { type: 'core-system', path: 'src/core/systems', ext: ['.ts', '.tsx'] },
+  { type: 'core-ui', path: 'src/core/ui', ext: ['.ts', '.tsx'] },
+  { type: 'core-config', path: 'src/core/config', ext: ['.ts'] },
+  { type: 'core-dev', path: 'src/core/dev', ext: ['.ts', '.tsx'] },
+  { type: 'core-lib', path: 'src/core/lib', ext: ['.ts'] },
+  { type: 'core-util', path: 'src/core/utils', ext: ['.ts', '.tsx'] },
+  { type: 'core-analytics', path: 'src/core/analytics', ext: ['.ts'] },
 
-  // --- Game (shared across variants) ---
+  // --- Modules (shared reusable modules) ---
+  { type: 'module-logic', path: 'src/modules/logic', ext: ['.ts'] },
+  { type: 'module-prefab', path: 'src/modules/prefabs', ext: ['.ts', '.tsx'] },
+  { type: 'module-primitive', path: 'src/modules/primitives', ext: ['.ts', '.tsx'] },
+
+  // --- Game ---
   { type: 'game-screen', path: 'src/game/screens', ext: ['.ts', '.tsx'] },
-  { type: 'game-component', path: 'src/game/shared/components', ext: ['.ts'] },
-  { type: 'game-controller', path: 'src/game/shared/controllers', ext: ['.ts'] },
   { type: 'game-audio', path: 'src/game/audio', ext: ['.ts'] },
-  { type: 'game-service', path: 'src/game/services', ext: ['.ts'] },
-  { type: 'game-config', path: 'src/game/config', ext: ['.ts'] },
-  { type: 'game-type', path: 'src/game/types', ext: ['.ts'] },
   { type: 'game-tuning', path: 'src/game/tuning', ext: ['.ts'] },
-  { type: 'game-hook', path: 'src/game/hooks', ext: ['.ts'] },
-  { type: 'game-analytics', path: 'src/game/analytics', ext: ['.ts'] },
-
-  // --- CityLines variant ---
-  { type: 'citylines-core', path: 'src/game/citylines/core', ext: ['.ts'] },
-  { type: 'citylines-ui', path: 'src/game/citylines/ui', ext: ['.ts'] },
-  { type: 'citylines-data', path: 'src/game/citylines/data', ext: ['.ts'] },
-  { type: 'citylines-type', path: 'src/game/citylines/types', ext: ['.ts'] },
-  { type: 'citylines-service', path: 'src/game/citylines/services', ext: ['.ts'] },
-  { type: 'citylines-animation', path: 'src/game/citylines/animations', ext: ['.ts'] },
-  { type: 'citylines-system', path: 'src/game/citylines/systems', ext: ['.ts'] },
-  { type: 'citylines-controller', path: 'src/game/citylines/controllers', ext: ['.ts'] },
-  { type: 'citylines-screen', path: 'src/game/citylines/screens', ext: ['.ts'] },
-  { type: 'citylines-util', path: 'src/game/citylines/utils', ext: ['.ts'] },
-
-  // --- Daily Dispatch variant ---
-  { type: 'dispatch-core', path: 'src/game/dailydispatch/core', ext: ['.ts'] },
-  { type: 'dispatch-ui', path: 'src/game/dailydispatch/ui', ext: ['.ts'] },
-  { type: 'dispatch-data', path: 'src/game/dailydispatch/data', ext: ['.ts'] },
-  { type: 'dispatch-type', path: 'src/game/dailydispatch/types', ext: ['.ts'] },
-  { type: 'dispatch-service', path: 'src/game/dailydispatch/services', ext: ['.ts'] },
-  { type: 'dispatch-animation', path: 'src/game/dailydispatch/animations', ext: ['.ts'] },
-  { type: 'dispatch-system', path: 'src/game/dailydispatch/systems', ext: ['.ts'] },
-  { type: 'dispatch-controller', path: 'src/game/dailydispatch/controllers', ext: ['.ts'] },
-  { type: 'dispatch-screen', path: 'src/game/dailydispatch/screens', ext: ['.ts'] },
-  { type: 'dispatch-util', path: 'src/game/dailydispatch/utils', ext: ['.ts'] },
+  { type: 'game-setup', path: 'src/game/setup', ext: ['.ts'] },
+  { type: 'game-variant', path: 'src/game/mygame', ext: ['.ts', '.tsx'] },
 
   // --- Public data ---
   { type: 'tuning', path: 'public/config/tuning', ext: ['.json'] },
