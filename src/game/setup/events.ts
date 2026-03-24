@@ -13,17 +13,6 @@ export const baseParamsSet = type({
   session_elapsed: "number",
 });
 
-/**
- * Level context parameter set schema for level-related events.
- * Extend based on your game's specific needs.
- */
-export const levelContextParamsSet = type({
-  chapter_count: "number",
-  county_theme: "string",
-  level_order: "number",
-  "chapter_progress?": "string",
-});
-
 // ============================================================================
 // SESSION EVENT SCHEMAS
 // ============================================================================
@@ -79,8 +68,3 @@ export const errorCapturedSchema = type({
   session_id: "string",
 });
 
-// ============================================================================
-// RE-EXPORTS
-// ============================================================================
-
-export { type } from "arktype";
