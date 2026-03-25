@@ -45,7 +45,6 @@ Framework shell — providers, hooks, systems, dev tools. No deps on `modules/` 
 | Game logo | ui/Logo.tsx |
 | Pause overlay | ui/PauseOverlay.tsx |
 | Mobile viewport wrapper | ui/MobileViewport.tsx |
-| Viewport toggle (dev) | ui/ViewportToggle.tsx |
 
 ## Utils
 
