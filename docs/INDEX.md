@@ -203,15 +203,6 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Claude Code instructions | CLAUDE.md |
 | Claude settings docs | .claude/README.md |
 
-## Game Design (docs)
-
-| Intent | Path |
-|--------|------|
-| Game design document | game/gdd.md |
-| Sound effects style guide | game/sound-effects-style-guide.md |
-| Analytics requirements | game/analytics-requirements.md |
-
-
 ## Getting Started (docs)
 
 | Intent | Path |
