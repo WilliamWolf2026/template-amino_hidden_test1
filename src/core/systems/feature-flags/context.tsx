@@ -1,5 +1,6 @@
 import {
   createContext,
+  createSignal,
   useContext,
   onMount,
   createEffect,
@@ -8,8 +9,8 @@ import {
   type ParentProps,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import type { PostHog } from '~/core/lib/analytics';
-import { useAnalytics } from '../analytics/context';
+import type { AnalyticsClient } from '@wolfgames/components/core';
+import { useAnalyticsCore } from '@wolfgames/components/solid';
 import type { FeatureFlagState } from './types';
 import { getRegisteredFlagConfig } from './registry';
 import { loadFlagCache, saveFlagCache, validateFlags } from './cache';
@@ -28,7 +29,7 @@ export function FeatureFlagProvider(props: ParentProps) {
 
   const { defaults, validators, storagePrefix, userId, timeoutMs = 2000 } = config;
   const cached = loadFlagCache(storagePrefix, userId, defaults, validators);
-  const analytics = useAnalytics();
+  const analytics = useAnalyticsCore();
   const defs = defaults as Record<string, unknown>;
 
   const [state, setState] = createStore<FeatureFlagState<typeof defaults>>({
@@ -38,7 +39,12 @@ export function FeatureFlagProvider(props: ParentProps) {
 
   let isSettled = false;
 
-  const processFlags = (ph: PostHog, source: string) => {
+  // Bridge game-components Signal → Solid signal for reactivity
+  const [client, setClient] = createSignal<AnalyticsClient | null>(null);
+  const unsubClient = analytics.client.subscribe((c) => setClient(() => c));
+  onCleanup(() => unsubClient());
+
+  const processFlags = (ph: AnalyticsClient, source: string) => {
     const raw: Record<string, unknown> = {};
 
     for (const key of Object.keys(defaults)) {
@@ -66,9 +72,9 @@ export function FeatureFlagProvider(props: ParentProps) {
     isSettled = true;
   };
 
-  // Watch for PostHog initialization
+  // Watch for analytics client initialization
   createEffect(() => {
-    const ph = analytics.posthog();
+    const ph = client();
 
     if (ph) {
       const stopListening = ph.onFeatureFlags(() => processFlags(ph, 'posthog_update'));

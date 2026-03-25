@@ -1,5 +1,4 @@
 import { captureException, setUser as setSentryUser, addBreadcrumb as addSentryBreadcrumb } from '../../lib/sentry';
-import { capture as posthogCapture, identify as posthogIdentify } from '../../lib/posthog';
 import type { ErrorContext, ErrorSeverity, ErrorReporter } from './types';
 
 // Dedupe rapid-fire errors
@@ -62,28 +61,16 @@ export const errorReporter: ErrorReporter = {
       ...fullContext,
       severity,
     });
-
-    // PostHog for product analytics
-    posthogCapture('error', {
-      error_name: error.name,
-      error_message: error.message,
-      severity,
-      screen: fullContext.screen,
-      session_id: fullContext.sessionId,
-      ...fullContext.extra,
-    });
   },
 
   setUser(userId: string) {
     currentUserId = userId;
     setSentryUser(userId);
-    posthogIdentify(userId);
   },
 
   setScreen(screen: string) {
     currentScreen = screen;
     addSentryBreadcrumb(`Screen: ${screen}`);
-    posthogCapture('screen_view', { screen });
   },
 
   addBreadcrumb(message: string, data?: Record<string, unknown>) {

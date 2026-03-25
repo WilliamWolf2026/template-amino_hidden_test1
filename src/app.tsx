@@ -12,11 +12,12 @@ import {
   TuningPanel,
   useTuning,
   type ScaffoldTuning,
+  FeatureFlagProvider,
 } from '~/core';
 import { initSentry } from '~/core/lib/sentry';
 import { getEnvironment } from '~/core/config';
 import { gameConfig, manifest, defaultGameData } from '~/game';
-import { ManifestProvider } from '@wolfgames/components/solid';
+import { ManifestProvider, AnalyticsProvider } from '@wolfgames/components/solid';
 import {
   ViewportProvider,
   ViewportModeWrapper,
@@ -28,7 +29,6 @@ import {
 import { GAME_DEFAULTS } from '~/game/tuning';
 import './app.css';
 import { IS_DEV_ENV } from './core/dev/env';
-import { AnalyticsProvider, FeatureFlagProvider } from '~/core';
 import { useGameTracking } from '~/game/setup/tracking';
 import '~/game/setup/flags'; // registers flag config at module load
 import { ViewportToggle } from '~/core/ui/ViewportToggle';
@@ -95,12 +95,12 @@ export default function App() {
   });
 
   return (
-    <GlobalBoundary>
-      <TuningProvider gameDefaults={GAME_DEFAULTS}>
-        <Show when={IS_DEV_ENV}>
-          <TuningPanel />
-        </Show>
-        <AnalyticsProvider>
+    <AnalyticsProvider>
+      <GlobalBoundary>
+        <TuningProvider gameDefaults={GAME_DEFAULTS}>
+          <Show when={IS_DEV_ENV}>
+            <TuningPanel />
+          </Show>
           <FeatureFlagProvider>
             <TuningViewportBridge>
               <ViewportModeWrapper>
@@ -126,8 +126,8 @@ export default function App() {
               </ViewportModeWrapper>
             </TuningViewportBridge>
           </FeatureFlagProvider>
-        </AnalyticsProvider>
-      </TuningProvider>
-    </GlobalBoundary>
+        </TuningProvider>
+      </GlobalBoundary>
+    </AnalyticsProvider>
   );
 }
