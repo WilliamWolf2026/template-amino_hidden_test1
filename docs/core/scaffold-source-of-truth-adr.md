@@ -263,9 +263,8 @@ What a game must provide for scaffold to function:
 | `.claude/settings.dev.json` | AI (existing) | AI: game/ + modules/ |
 | `.claude/settings.admin.json` | AI (existing) | AI: unrestricted |
 | `biome.json` | Lint (ENG-1684) | Import boundary rules |
-| `evaluation/` | Runtime (existing) | Before/after scaffold modification testing |
+| `evaluation/` | E2E + Runtime (existing) | Playwright smoke/behavior tests and before/after scaffold modification evaluation |
 | `tests/` | Unit (existing) | Vitest unit tests for core systems |
-| `e2e/tests/` | E2E (existing) | Playwright smoke and behavior tests |
 
 ---
 

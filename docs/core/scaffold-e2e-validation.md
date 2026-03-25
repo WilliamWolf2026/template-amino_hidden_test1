@@ -1,6 +1,6 @@
-# Scaffold E2E Validation
+# Amino E2E Validation
 
-How to verify the scaffold update workflow works end-to-end.
+How to verify the amino update workflow works end-to-end.
 
 ## Automated Tests
 
@@ -14,57 +14,57 @@ bun test tests/unit/scripts/scaffold-e2e.test.ts
 
 | Test | Verifies |
 |------|----------|
-| release: bumps version, creates tag, generates changelog | `scaffold:release` creates correct version, tag, and CHANGELOG.md |
-| sync: pulls update into game, preserves game files | `scaffold:sync` updates core/modules, leaves game files untouched |
-| rollback: reverts a sync commit | `scaffold:rollback` restores pre-sync state |
+| release: bumps version, creates tag, generates changelog | `amino:release` creates correct version, tag, and CHANGELOG.md |
+| sync: pulls update into game, preserves game files | `amino:sync` updates core/modules, leaves game files untouched |
+| rollback: reverts a sync commit | `amino:rollback` restores pre-sync state |
 | rollback: refuses if latest commit is not a sync | Rollback safety check rejects non-sync commits |
-| drift: reports clean when no local changes | `scaffold:drift` exits 0 when game matches upstream |
-| drift: detects local modifications | `scaffold:drift` exits 1 and lists modified files |
+| drift: reports clean when no local changes | `amino:drift` exits 0 when game matches upstream |
+| drift: detects local modifications | `amino:drift` exits 1 and lists modified files |
 | full workflow: release → sync → verify drift clean | Complete flow from release to synced game with clean drift |
 
 ## Manual Validation on a Real Game
 
 To validate against an actual game repo:
 
-### 1. Make a scaffold change
+### 1. Make an amino change
 
 ```bash
-# In scaffold-production
+# In template-amino
 echo "// test change" >> src/core/index.ts
 git add src/core/index.ts
-git commit -m "test: scaffold update for e2e validation"
+git commit -m "test: amino update for e2e validation"
 ```
 
 ### 2. Release
 
 ```bash
-bun run scaffold:release patch
+bun run amino:release patch
 git push
-git push origin scaffold-v<new-version>
+git push origin amino-v<new-version>
 ```
 
 ### 3. Verify GitHub Release was created
 
-Check https://github.com/wolfgames/scaffold-production/releases for the new release.
+Check https://github.com/wolfgames/template-amino/releases for the new release.
 
 ### 4. Sync from game repo
 
 ```bash
 # In the game repo
-bun run scaffold:sync
+bun run amino:sync
 ```
 
 ### 5. Verify
 
 ```bash
-bun run scaffold:verify    # typecheck + lint + build
-bun run scaffold:drift     # should report clean
+bun run amino:verify    # typecheck + lint + build
+bun run amino:drift     # should report clean
 ```
 
 ### 6. Check metadata
 
 ```bash
-node -e "console.log(JSON.stringify(require('./package.json').scaffold, null, 2))"
+node -e "console.log(JSON.stringify(require('./package.json').amino, null, 2))"
 ```
 
 Expected output:
@@ -79,7 +79,7 @@ Expected output:
 ### 7. Test rollback (optional)
 
 ```bash
-bun run scaffold:rollback
+bun run amino:rollback
 # Verify core files reverted
-bun run scaffold:drift     # should now report drift
+bun run amino:drift     # should now report drift
 ```

@@ -79,7 +79,7 @@ The core provides engine-agnostic systems that can power any game.
 - **[Architecture Overview](core/architecture.md)** - System overview, diagrams, and design patterns
 - **[Deep Dive](core/deep-dive.md)** - Comprehensive technical documentation with data flow analysis
 - **[Context Map](core/context-map.md)** - Node-edge relationship map for AI context engineering
-- **[Overview & Migration Guide](core/scaffold-overview-and-migration.md)** - Complete inventory and game swap guide
+- **[Overview & Migration Guide](core/scaffold-overview-and-migration.md)** - Complete inventory and game fork guide
 
 ### Systems
 
