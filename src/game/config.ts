@@ -11,18 +11,17 @@ import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '~/core/systems/tuning/types';
 import type { ScreenId, ScreenAssetConfig } from '~/core/systems/screens/types';
 import {
+  Environment,
   getEnvironment,
   isLocal,
-  type Environment,
 } from '~/core/config';
 import { buildCdnUrl } from '@wolfgames/game-kit';
-import { toGameKitEnvironment } from '~/core/config/environment';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 
 // Re-export scaffold utilities for convenience
 export { getEnvironment, isLocal, isProduction } from '~/core/config';
-export type { Environment } from '~/core/config';
+export { Environment } from '~/core/config';
 
 // ============================================================================
 // IDENTITY
@@ -59,9 +58,8 @@ export const getLocalAssetPath = (): string => GAME_PATHS.localAssetPath;
 
 export const getCdnUrl = (): string => {
   const env = getEnvironment();
-  if (env === 'local') return GAME_PATHS.localAssetPath;
-  const gkEnv = toGameKitEnvironment(env);
-  return buildCdnUrl(gkEnv, `${GAME_PATHS.gamePath}/assets`);
+  if (env === Environment.Local) return GAME_PATHS.localAssetPath;
+  return buildCdnUrl(env, `${GAME_PATHS.gamePath}/assets`);
 };
 
 // ============================================================================

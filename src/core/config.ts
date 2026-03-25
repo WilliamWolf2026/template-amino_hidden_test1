@@ -2,7 +2,7 @@ import type { EngineType } from "./systems/assets";
 
 // Re-export environment config from config directory
 export {
-  type Environment,
+  Environment,
   type EnvConfig,
   type PosthogConfig,
   getEnvironment,

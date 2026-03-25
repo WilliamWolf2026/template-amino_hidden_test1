@@ -7,51 +7,15 @@
  */
 
 import {
-  Environment as GKEnvironment,
+  Environment,
+  parseEnvironment,
   getCdnHost,
 } from '@wolfgames/game-kit';
 
-export type Environment =
-  | "local"
-  | "development"
-  | "staging"
-  | "qa"
-  | "production";
-
-/** Map amino environment strings to game-kit's Environment enum. */
-const ENV_MAP: Record<Environment, GKEnvironment> = {
-  local: GKEnvironment.Local,
-  development: GKEnvironment.Development,
-  staging: GKEnvironment.Staging,
-  qa: GKEnvironment.QA,
-  production: GKEnvironment.Production,
-};
-
-export function toGameKitEnvironment(env: Environment): GKEnvironment {
-  return ENV_MAP[env];
-}
+export { Environment };
 
 export const getEnvironment = (): Environment => {
-  const env = import.meta.env.VITE_APP_ENV;
-
-  // Default to local if not set
-  if (!env) {
-    return "local";
-  }
-
-  const normalized = env.toLowerCase();
-  if (
-    !["local", "development", "staging", "qa", "production"].includes(
-      normalized,
-    )
-  ) {
-    console.warn(
-      `[Environment] Invalid VITE_APP_ENV: ${env}, defaulting to local`,
-    );
-    return "local";
-  }
-
-  return normalized as Environment;
+  return parseEnvironment(import.meta.env.VITE_APP_ENV);
 };
 
 export interface PosthogConfig {
@@ -80,11 +44,10 @@ const SHARED_POSTHOG = {
  * Build env config using game-kit CDN factories + local posthog settings.
  */
 function buildEnvConfig(env: Environment): EnvConfig {
-  const gkEnv = toGameKitEnvironment(env);
-  const analyticsEnabled = env !== "local" && env !== "development";
+  const analyticsEnabled = env !== Environment.Local && env !== Environment.Development;
 
   return {
-    url: getCdnHost(gkEnv),
+    url: getCdnHost(env),
     posthog: {
       ...SHARED_POSTHOG,
       enabled: analyticsEnabled,
@@ -97,11 +60,11 @@ function buildEnvConfig(env: Environment): EnvConfig {
  * CDN URLs are resolved via game-kit factories.
  */
 export const ENV_CONFIG: Record<Environment, EnvConfig> = {
-  local: buildEnvConfig("local"),
-  development: buildEnvConfig("development"),
-  qa: buildEnvConfig("qa"),
-  staging: buildEnvConfig("staging"),
-  production: buildEnvConfig("production"),
+  [Environment.Local]: buildEnvConfig(Environment.Local),
+  [Environment.Development]: buildEnvConfig(Environment.Development),
+  [Environment.QA]: buildEnvConfig(Environment.QA),
+  [Environment.Staging]: buildEnvConfig(Environment.Staging),
+  [Environment.Production]: buildEnvConfig(Environment.Production),
 };
 
 export const getEnvConfig = (): EnvConfig => {
@@ -127,12 +90,12 @@ export const getPosthogConfig = (): PosthogConfig => {
  * Check if running in local development mode.
  */
 export const isLocal = (): boolean => {
-  return getEnvironment() === "local";
+  return getEnvironment() === Environment.Local;
 };
 
 /**
  * Check if running in production.
  */
 export const isProduction = (): boolean => {
-  return getEnvironment() === "production";
+  return getEnvironment() === Environment.Production;
 };

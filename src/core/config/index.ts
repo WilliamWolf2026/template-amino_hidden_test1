@@ -1,5 +1,5 @@
 export {
-  type Environment,
+  Environment,
   type EnvConfig,
   type PosthogConfig,
   getEnvironment,
@@ -8,7 +8,6 @@ export {
   getPosthogConfig,
   isLocal,
   isProduction,
-  toGameKitEnvironment,
   ENV_CONFIG,
 } from './environment';
 
