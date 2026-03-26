@@ -2,16 +2,17 @@ import type { EngineType } from "./systems/assets";
 
 // Re-export environment config from config directory
 export {
-  type Environment,
+  Environment,
   type EnvConfig,
   type PosthogConfig,
   getEnvironment,
   getEnvConfig,
   getCdnBaseUrl,
+  getCdnHost,
+  buildCdnUrl,
   getPosthogConfig,
   isLocal,
   isProduction,
-  ENV_CONFIG,
 } from "./config/environment";
 
 export interface ScaffoldConfig {

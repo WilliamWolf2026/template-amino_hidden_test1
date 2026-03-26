@@ -11,17 +11,17 @@ import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '@wolfgames/components/core';
 import type { ScreenId, ScreenAssetConfig } from '~/core/systems/screens/types';
 import {
+  Environment,
   getEnvironment,
-  getCdnBaseUrl,
   isLocal,
-  type Environment,
+  buildCdnUrl,
 } from '~/core/config';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 
 // Re-export scaffold utilities for convenience
 export { getEnvironment, isLocal, isProduction } from '~/core/config';
-export type { Environment } from '~/core/config';
+export { Environment } from '~/core/config';
 
 // ============================================================================
 // IDENTITY
@@ -57,9 +57,9 @@ const GAME_PATHS = {
 export const getLocalAssetPath = (): string => GAME_PATHS.localAssetPath;
 
 export const getCdnUrl = (): string => {
-  const baseUrl = getCdnBaseUrl();
-  if (!baseUrl) return GAME_PATHS.localAssetPath;
-  return `${baseUrl}/${GAME_PATHS.gamePath}/assets`;
+  const env = getEnvironment();
+  if (env === Environment.Local) return GAME_PATHS.localAssetPath;
+  return buildCdnUrl(env, `${GAME_PATHS.gamePath}/assets`);
 };
 
 // ============================================================================

@@ -2,38 +2,44 @@
  * Environment configuration for different deployment targets.
  * Controls CDN URLs, API servers, and feature flags per environment.
  *
- * This is scaffold-level config - reusable across games.
- * Game-specific paths are configured separately.
+ * Environment detection is Vite-specific (import.meta.env).
+ * URL resolution is delegated to @wolfgames/game-kit factories.
  */
 
-export type Environment =
-  | "local"
-  | "development"
-  | "staging"
-  | "qa"
-  | "production";
+/**
+ * Environment configuration for different deployment targets.
+ * Controls CDN URLs, API servers, and feature flags per environment.
+ *
+ * Environment detection is Vite-specific (import.meta.env).
+ */
+
+import {
+  Environment,
+  parseEnvironment,
+} from '@wolfgames/game-kit';
+
+export { Environment };
+
+const CDN_HOST_MAP: Record<Environment, string> = {
+  [Environment.Production]: "https://media.wolf.games",
+  [Environment.Staging]: "https://media.staging.wolf.games",
+  [Environment.QA]: "https://media.qa.wolf.games",
+  [Environment.Development]: "https://media.dev.wolf.games",
+  [Environment.Local]: "",
+};
 
 export const getEnvironment = (): Environment => {
-  const env = import.meta.env.VITE_APP_ENV;
+  return parseEnvironment(import.meta.env.VITE_GAME_KIT_ENV);
+};
 
-  // Default to local if not set
-  if (!env) {
-    return "local";
-  }
+export const getCdnHost = (env: Environment): string => {
+  return CDN_HOST_MAP[env] || "";
+};
 
-  const normalized = env.toLowerCase();
-  if (
-    !["local", "development", "staging", "qa", "production"].includes(
-      normalized,
-    )
-  ) {
-    console.warn(
-      `[Environment] Invalid VITE_APP_ENV: ${env}, defaulting to local`,
-    );
-    return "local";
-  }
-
-  return normalized as Environment;
+export const buildCdnUrl = (env: Environment, gamePath: string): string => {
+  const host = getCdnHost(env);
+  if (!host) return gamePath;
+  return `${host}/${gamePath}`;
 };
 
 export interface PosthogConfig {
@@ -46,79 +52,41 @@ export interface PosthogConfig {
 export interface EnvConfig {
   /** Base URL for media/assets CDN */
   url: string;
-  /** API server URL (if applicable) */
-  server?: string;
   /** Posthog analytics configuration */
   posthog: PosthogConfig;
 }
 
-const SHARED_CONFIG = {
-  posthog: {
-    enabled: true,
-    key: "phc_RFhmtnQWjam4fNHYyn89lf0WVW6qF5bVYMwoXO8dSpR",
-    host: "https://us.i.posthog.com",
-    platform: "advance",
-  },
-};
-
-/**
- * Base environment config (scaffold-level).
- * Games extend this with their specific paths.
- */
-export const ENV_CONFIG: Record<Environment, EnvConfig> = {
-  local: {
-    url: "", // Empty = relative paths, games provide their own
-    ...SHARED_CONFIG,
-    posthog: { ...SHARED_CONFIG.posthog, enabled: false },
-  },
-  development: {
-    url: "https://media.dev.wolf.games",
-    ...SHARED_CONFIG,
-    posthog: { ...SHARED_CONFIG.posthog, enabled: false },
-  },
-  qa: {
-    url: "https://media.qa.wolf.games",
-    ...SHARED_CONFIG,
-  },
-  staging: {
-    url: "https://media.staging.wolf.games",
-    ...SHARED_CONFIG,
-  },
-  production: {
-    url: "https://media.wolf.games",
-    ...SHARED_CONFIG,
-  },
+const SHARED_POSTHOG = {
+  key: import.meta.env.VITE_POSTHOG_API_KEY ?? "",
+  host: "https://us.i.posthog.com",
+  platform: "advance",
 };
 
 export const getEnvConfig = (): EnvConfig => {
   const env = getEnvironment();
-  return ENV_CONFIG[env];
+  const analyticsEnabled = env !== Environment.Local && env !== Environment.Development;
+
+  return {
+    url: getCdnHost(env),
+    posthog: {
+      ...SHARED_POSTHOG,
+      enabled: analyticsEnabled,
+    },
+  };
 };
 
-/**
- * Get the CDN base URL for the current environment.
- */
 export const getCdnBaseUrl = (): string => {
   return getEnvConfig().url;
 };
 
-/**
- * Get the posthog config for the current environment.
- */
 export const getPosthogConfig = (): PosthogConfig => {
   return getEnvConfig().posthog;
 };
 
-/**
- * Check if running in local development mode.
- */
 export const isLocal = (): boolean => {
-  return getEnvironment() === "local";
+  return getEnvironment() === Environment.Local;
 };
 
-/**
- * Check if running in production.
- */
 export const isProduction = (): boolean => {
-  return getEnvironment() === "production";
+  return getEnvironment() === Environment.Production;
 };

@@ -1,4 +1,4 @@
-import { type Environment, scaffoldConfig } from "../config";
+import { Environment, scaffoldConfig } from "../config";
 
 type SentryModule = typeof import("@sentry/browser");
 
@@ -29,7 +29,7 @@ function getSentryConfig(environment: Environment): SentryConfig {
   const dsn =
     import.meta.env.VITE_SENTRY_DSN || (scaffoldConfig?.sentry?.dsn ?? "");
 
-  const enabledEnvironments: Environment[] = ["qa", "staging", "production"];
+  const enabledEnvironments: Environment[] = [Environment.QA, Environment.Staging, Environment.Production];
   const enabled = enabledEnvironments.includes(environment);
 
   return {

@@ -107,83 +107,56 @@ describe('GameAudioManager', () => {
 
 ## E2E Tests (Playwright)
 
+All Playwright tests live in `evaluation/tests/` with a single config at `evaluation/playwright.config.ts`. Tests are tagged with `@smoke`, `@unload-bundles`, etc. for selective execution.
+
 ### Setup
 
 ```bash
 bun add -d @playwright/test
-npx playwright install
+bunx playwright install
 ```
 
-### Critical Path Tests
+### Test Structure
 
-```typescript
-// e2e/game-flow.spec.ts
-import { test, expect } from '@playwright/test';
+Tests are organized by modification suite (see `evaluation/modification-suites.ts`):
 
-test('complete level flow', async ({ page }) => {
-  await page.goto('/');
-
-  // Wait for loading
-  await expect(page.locator('.loading-screen')).toBeHidden({ timeout: 10000 });
-
-  // Start game
-  await page.click('button:has-text("Play")');
-
-  // Wait for game canvas
-  await expect(page.locator('canvas')).toBeVisible();
-
-  // Game should be interactive (canvas receives events)
-  const canvas = page.locator('canvas');
-  await canvas.click({ position: { x: 200, y: 200 } });
-
-  // Check game responds (HUD updates, etc.)
-  await expect(page.locator('.moves-counter')).toContainText('1');
-});
-
-test('audio unlocks on interaction', async ({ page }) => {
-  await page.goto('/');
-
-  // Audio context should start suspended
-  const audioState = await page.evaluate(() => {
-    return (window as any).Howler?.ctx?.state;
-  });
-  expect(audioState).toBe('suspended');
-
-  // Click start
-  await page.click('button:has-text("Play")');
-
-  // Audio should now be running
-  const audioStateAfter = await page.evaluate(() => {
-    return (window as any).Howler?.ctx?.state;
-  });
-  expect(audioStateAfter).toBe('running');
-});
-```
-
-### Visual Regression
-
-```typescript
-test('game screen matches snapshot', async ({ page }) => {
-  await page.goto('/?level=test');
-  await page.waitForLoadState('networkidle');
-
-  // Wait for animations to settle
-  await page.waitForTimeout(1000);
-
-  await expect(page).toHaveScreenshot('game-screen.png', {
-    maxDiffPixels: 100,
-  });
-});
-```
+| Suite | Tag | What it tests |
+|-------|-----|---------------|
+| Smoke | `@smoke` | App loads, root visible, no console errors |
+| Unload Bundles | `@unload-bundles` | Reload cycles, memory behavior, bundle unloading |
 
 ### Running E2E Tests
 
 ```bash
-npx playwright test              # Run all
-npx playwright test --headed     # See browser
-npx playwright test --ui         # Interactive mode
-npx playwright show-report       # View results
+# Run all tests
+bunx playwright test --config evaluation/playwright.config.ts
+
+# Run specific suite
+bunx playwright test --config evaluation/playwright.config.ts --grep "@smoke"
+
+# See browser
+bunx playwright test --config evaluation/playwright.config.ts --headed
+
+# View HTML report
+bunx playwright show-report evaluation/playwright-report
 ```
+
+### Evaluation Harness (before/after comparison)
+
+The evaluation system runs the same Playwright tests before and after a scaffold change, then compares results:
+
+```bash
+# Run before modification
+bun run evaluate -- --game mygame --modification smoke --phase before
+
+# Apply scaffold change, then run after
+bun run evaluate -- --game mygame --modification smoke --phase after
+
+# Compare and generate report
+bun run evaluate:report -- --game mygame --modification smoke
+```
+
+See `evaluation/README.md` for full details.
 
 ---
 
@@ -281,14 +254,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
       - run: bun install
-      - run: npx playwright install --with-deps
+      - run: bunx playwright install --with-deps
       - run: bun run build
-      - run: npx playwright test
+      - run: bunx playwright test --config evaluation/playwright.config.ts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: evaluation/playwright-report/
 ```
 
 ---

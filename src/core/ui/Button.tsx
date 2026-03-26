@@ -30,10 +30,6 @@ export function Button(props: ButtonProps) {
   const size = () => local.size ?? 'md';
 
   const handleClick = (e: MouseEvent) => {
-    // Play button click sound
-    coordinator.audio.play('sfx-citylines', 'button_click', { volume: 0.7 });
-
-    // Call original onClick if provided
     if (local.onClick) {
       local.onClick(e);
     }

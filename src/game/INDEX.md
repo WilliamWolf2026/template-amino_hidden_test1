@@ -12,11 +12,10 @@ src/game/
 
   audio/           # GameAudioManager + sound definitions
   screens/         # Solid.js screen shells + hooks
-  setup/           # Game tracking hook, flag config, user helper
+  setup/           # Game tracking hook, flag config
   tuning/          # Game tuning types + defaults
 
   mygame/          # Your game (Pixi engine, controllers, etc.)
-  archive/         # Old games (CityLines, DailyDispatch)
 ```
 
 ## Infrastructure
@@ -29,7 +28,7 @@ src/game/
 | Game tuning barrel + URL helpers | tuning/index.ts |
 | Game tracking hook (wraps Core analytics) | setup/tracking.ts |
 | Game feature flag config + types | setup/flags.ts |
-| User data helper (getUserData) | setup/helper.ts |
+| Player identity (via game-kit PlayerIdentityService) | setup/tracking.ts, setup/flags.ts |
 
 ## Screens (Solid.js shells)
 
@@ -92,7 +91,7 @@ The bundle name prefix determines which loader handles the assets:
 
 For single-asset bundles, the **bundle name IS the Pixi alias**:
 ```
-{ name: 'scene-tiles', assets: ['atlas-tiles-daily-dispatch.json'] }
+{ name: 'scene-tiles', assets: ['atlas-tiles-mygame.json'] }
 → gpuLoader.createSprite('scene-tiles', 'bg-gameboard.png')
 ```
 
