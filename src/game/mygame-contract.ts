@@ -69,7 +69,7 @@ export interface StartScreenDeps {
   loadAudio: (onProgress?: (p: number) => void) => Promise<void>;
   loadBundle?: (name: string, onProgress?: (p: number) => void) => Promise<void>;
   tuning: { scaffold: ScaffoldTuning; game: GameTuningBase };
-  analytics: { trackGameStart: (params: { start_source: string; is_returning_player: boolean }) => void };
+  analytics: { trackGameStart: () => void };
 }
 
 export interface StartScreenController {

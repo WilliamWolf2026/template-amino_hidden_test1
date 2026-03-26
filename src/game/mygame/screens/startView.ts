@@ -28,7 +28,7 @@ export const setupStartScreen: SetupStartScreen = (deps: StartScreenDeps): Start
         'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:24px;';
 
       const title = document.createElement('h1');
-      title.textContent = 'Tic-Tac-Toe';
+      title.textContent = 'Start Screen';
       title.style.cssText =
         'font-size:2.5rem;font-weight:700;color:#2d5016;margin:0;font-family:system-ui,sans-serif;';
 
@@ -48,7 +48,7 @@ export const setupStartScreen: SetupStartScreen = (deps: StartScreenDeps): Start
         deps.unlockAudio();
         await deps.loadCore();
         try { await deps.loadAudio(); } catch { /* audio optional */ }
-        deps.analytics.trackGameStart({ start_source: 'play_button', is_returning_player: false });
+        deps.analytics.trackGameStart();
         deps.goto('game');
       }, { once: true });
 
