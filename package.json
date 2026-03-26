@@ -53,8 +53,5 @@
   },
   "engines": {
     "node": ">=22"
-  },
-  "overrides": {
-    "@wolfgames/components": "file:../game-components"
   }
 }
