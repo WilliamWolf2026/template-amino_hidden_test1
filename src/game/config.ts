@@ -28,13 +28,13 @@ export { Environment } from '~/core/config';
 // ============================================================================
 
 /** Analytics event tag and GameKit project ID */
-export const GAME_ID = 'mygame';
+export const GAME_ID = 'tictactoe';
 
 /** URL-safe slug used in CDN paths, asset names, storage keys */
-export const GAME_SLUG = 'mygame';
+export const GAME_SLUG = 'tictactoe';
 
 /** Human-readable display name */
-export const GAME_NAME = 'My Game';
+export const GAME_NAME = 'Tic-Tac-Toe';
 
 /** CDN path segment for this game's assets and data */
 export const GAME_CDN_PATH = `games/${GAME_SLUG}/data`;
