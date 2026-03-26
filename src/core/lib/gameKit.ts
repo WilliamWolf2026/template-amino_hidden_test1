@@ -5,7 +5,7 @@ import {
 } from "@wolfgames/game-kit";
 import { getEnvironment } from "../config";
 import { baseParamsSet, type BaseAnalyticsContext } from "~/game/setup/events";
-import { GAME_NAME, GAME_ID } from "~/game/config";
+import { GAME_NAME } from "~/game/config";
 
 const projectId = import.meta.env.VITE_GAME_KIT_PROJECT_ID;
 
@@ -50,14 +50,12 @@ export async function getAnalyticsService(): Promise<AnalyticsService> {
     .withContext<BaseAnalyticsContext>({
       sessionStartTime: Date.now(),
       gameSlug: projectId,
-      gameId: GAME_ID,
     })
     .addParamsSet({ base: baseParamsSet })
     .addParamsDefault({
       base: (ctx) => ({
         game_name: GAME_NAME,
         game_slug: ctx.gameSlug,
-        game_id: ctx.gameId,
         session_elapsed: parseFloat(
           ((Date.now() - ctx.sessionStartTime) / 1000).toFixed(2)
         ),

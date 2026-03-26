@@ -11,7 +11,6 @@ import { type } from "arktype";
 export const baseParamsSet = type({
   game_name: "string",
   game_slug: "string",
-  game_id: "string",
   session_elapsed: "number",
 });
 
@@ -22,7 +21,6 @@ export const baseParamsSet = type({
 export interface BaseAnalyticsContext {
   sessionStartTime: number;
   gameSlug: string;
-  gameId: string;
 }
 
 // ============================================================================
