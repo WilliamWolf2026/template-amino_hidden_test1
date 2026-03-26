@@ -1,5 +1,5 @@
 import { ErrorBoundary as SolidErrorBoundary, type ParentProps } from 'solid-js';
-import { useAnalytics } from '@wolfgames/components/solid';
+import { useGameTracking } from '~/game/setup/tracking';
 import { errorReporter } from './reporter';
 import type { ErrorSeverity } from './types';
 
@@ -11,7 +11,7 @@ interface BoundaryProps extends ParentProps {
 }
 
 export function Boundary(props: BoundaryProps) {
-  const analytics = useAnalytics();
+  const { trackError } = useGameTracking();
 
   const handleError = (error: Error, reset: () => void) => {
     errorReporter.capture(
@@ -20,12 +20,10 @@ export function Boundary(props: BoundaryProps) {
       props.severity ?? 'error'
     );
 
-    // PostHog error capture (via analytics provider, if available)
-    analytics.capture('error', {
-      error_name: error.name,
-      error_message: error.message,
-      severity: props.severity ?? 'error',
-      boundary: props.name ?? 'unknown',
+    trackError({
+      error_type: error.name,
+      user_id: 'anonymous',
+      session_id: '',
     });
 
     props.onError?.(error);

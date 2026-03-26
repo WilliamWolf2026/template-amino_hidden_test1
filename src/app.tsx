@@ -1,4 +1,4 @@
-import { onMount, Show, createResource, type ParentComponent } from 'solid-js';
+import { onMount, onCleanup, Show, createResource, type ParentComponent } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -19,6 +19,7 @@ import { getEnvironment } from '~/core/config';
 import { getAnalyticsService } from '~/core/lib/gameKit';
 import { gameConfig, manifest, defaultGameData } from '~/game';
 import { ManifestProvider, AnalyticsProvider } from '@wolfgames/components/solid';
+import { useAnalyticsCore } from '@wolfgames/components/solid';
 import {
   ViewportProvider,
   ViewportModeWrapper,
@@ -33,6 +34,9 @@ import './app.css';
 import { IS_DEV_ENV } from './core/dev/env';
 import { useGameTracking } from '~/game/setup/tracking';
 import '~/game/setup/flags'; // registers flag config at module load
+import { createSessionTracker } from '~/core/systems/analytics/session-tracker';
+import { createLoadingTracker } from '~/core/systems/analytics/loading-tracker';
+import { useAssetCoordinator } from '~/core/systems/assets';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlViewportMode = getViewportModeFromUrl();
@@ -42,6 +46,23 @@ const environment = getEnvironment();
 const handleResetProgress = () => {
   window.location.reload();
 };
+
+/** Wires session lifecycle events (start, pause, resume, end) */
+function SessionTrackerBridge() {
+  const { service } = useAnalyticsCore();
+  const cleanup = createSessionTracker(service, gameConfig.initialScreen);
+  onCleanup(cleanup);
+  return null;
+}
+
+/** Wires loading events (start, complete, abandon) to asset coordinator */
+function LoadingTrackerBridge() {
+  const { service } = useAnalyticsCore();
+  const coordinator = useAssetCoordinator();
+  const cleanup = createLoadingTracker(service, coordinator.loadingStateSignal);
+  onCleanup(cleanup);
+  return null;
+}
 
 /** SettingsMenu wired with game analytics */
 function GameSettingsMenu() {
@@ -101,6 +122,7 @@ export default function App() {
     <Show when={analyticsService()} keyed>
       {(service) => (
         <AnalyticsProvider service={service}>
+          <SessionTrackerBridge />
           <GlobalBoundary>
             <TuningProvider gameDefaults={GAME_DEFAULTS}>
               <Show when={IS_DEV_ENV}>
@@ -122,6 +144,7 @@ export default function App() {
                     <PauseProvider>
                       <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
                         <AssetProvider>
+                          <LoadingTrackerBridge />
                           <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
                             <ScreenRenderer screens={gameConfig.screens} />
                           </ScreenProvider>

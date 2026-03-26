@@ -1,5 +1,5 @@
 import { createContext, useContext, type ParentProps, Show, Suspense } from 'solid-js';
-import { useAnalytics } from '@wolfgames/components/solid';
+import { useGameTracking } from '~/game/setup/tracking';
 import { createScreenManager, type ScreenManager, type ScreenManagerOptions } from './manager';
 import type { ScreenId, ScreenAssetConfig } from './types';
 import { ScreenBoundary } from '../errors/boundary';
@@ -13,8 +13,9 @@ interface ScreenProviderProps extends ParentProps {
 }
 
 export function ScreenProvider(props: ScreenProviderProps) {
-  const analytics = useAnalytics();
+  const { trackScreenView, trackScreenExit } = useGameTracking();
   const assets = useAssets();
+  let screenEnteredAt = Date.now();
 
   const getBundlesForScreen = (screen: ScreenId | null): string[] => {
     if (!screen) return [];
@@ -44,7 +45,16 @@ export function ScreenProvider(props: ScreenProviderProps) {
     },
     onScreenChange: (from, to) => {
       errorReporter.setScreen(to);
-      analytics.capture('screen_view', { screen: to });
+
+      // Track exit from previous screen with time spent
+      if (from) {
+        const timeOnScreen = parseFloat(((Date.now() - screenEnteredAt) / 1000).toFixed(2));
+        trackScreenExit({ screen_name: from, time_on_screen: timeOnScreen });
+      }
+
+      // Track entry to new screen
+      screenEnteredAt = Date.now();
+      trackScreenView({ screen_name: to, previous_screen: from ?? undefined });
 
       const fromBundles = getBundlesForScreen(from);
       if (fromBundles.length > 0) {
