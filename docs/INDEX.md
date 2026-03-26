@@ -17,7 +17,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Dependency edges, context map for AI | core/context-map.md |
 | Pixi scene graph, container hierarchy | core/scene-graph.md |
 | Deep technical reference | core/deep-dive.md |
-| Scaffold inventory & migration | core/scaffold-overview-and-migration.md |
+| Amino architecture overview & migration guide | core/scaffold-overview-and-migration.md |
 
 ## Core Systems (source)
 
@@ -54,11 +54,11 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 
 | Intent | Path |
 |--------|------|
-| Button component (scaffold) | src/core/ui/Button.tsx |
+| Button component | src/core/ui/Button.tsx |
 | Logo component | src/core/ui/Logo.tsx |
 | Mobile viewport wrapper | src/core/ui/MobileViewport.tsx |
 | Pause overlay screen | src/core/ui/PauseOverlay.tsx |
-| Progress bar (scaffold) | src/core/ui/ProgressBar.tsx |
+| Progress bar | src/core/ui/ProgressBar.tsx |
 | Loading spinner | src/core/ui/Spinner.tsx |
 | Settings menu | src/core/utils/SettingsMenu/SettingsMenu.tsx |
 | Local storage utilities | src/core/utils/storage.ts |
@@ -138,16 +138,7 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 | Start screen, main menu | src/game/screens/StartScreen.tsx |
 | Main gameplay screen | src/game/screens/GameScreen.tsx |
 | Results screen, game over | src/game/screens/ResultsScreen.tsx |
-| Level completion overlay | src/game/screens/components/CompletionOverlay.tsx |
 | useGameData hook | src/game/screens/useGameData.ts |
-| useCompanionDialogue hook | src/game/screens/useCompanionDialogue.ts |
-
-## Game Audio (source)
-
-| Intent | Path |
-|--------|------|
-| GameAudioManager, extends BaseAudioManager | src/game/audio/manager.ts |
-| Sound effect definitions, SFX constants | src/game/audio/sounds.ts |
 
 ## Game Setup (source)
 
@@ -155,48 +146,24 @@ Paths prefixed `src/` are source code. Paths without prefix are relative to `doc
 |--------|------|
 | Analytics context provider | src/game/setup/AnalyticsContext.tsx |
 | Feature flag context provider | src/game/setup/FeatureFlagContext.tsx |
-| Analytics helper (getUserData) | src/game/setup/helper.ts |
+| Player identity (via game-kit PlayerIdentityService) | src/game/setup/tracking.ts, src/game/setup/flags.ts |
 
 ## Game Logic — mygame/ (source)
 
 | Intent | Path |
 |--------|------|
+| Game module root export | src/game/mygame/index.ts |
 | Game controller (Pixi ↔ GameScreen bridge) | src/game/mygame/screens/gameController.ts |
 | Start view (Pixi ↔ StartScreen bridge) | src/game/mygame/screens/startView.ts |
-| Game engine classes | src/game/mygame/core/ |
-| Controllers | src/game/mygame/controllers/ |
-| Systems | src/game/mygame/systems/ |
-| UI components | src/game/mygame/ui/ |
-| Static data | src/game/mygame/data/ |
-| Types | src/game/mygame/types/ |
-| Services | src/game/mygame/services/ |
-
-## Archive — Old Games (source)
-
-Previous game implementations preserved for reference:
-
-| Intent | Path |
-|--------|------|
-| CityLines (archived) | src/game/archive/games/citylines/ |
-| DailyDispatch (archived) | src/game/archive/games/dailydispatch/ |
-| Old analytics (archived) | src/game/archive/games/analytics/ |
-| Old services (archived) | src/game/archive/games/services/ |
-| Old game docs (archived) | src/game/archive/games/docs/ |
 
 ## Public Assets & Data
 
 | Intent | Path |
 |--------|------|
 | Branding sprite atlas (Wolf logo) | public/assets/atlas-branding-wolf.json |
-| Daily Dispatch tile atlas | public/assets/atlas-tiles-daily-dispatch.json |
-| CityLines sound effects | public/assets/sfx-citylines.json |
-| Daily Dispatch sound effects | public/assets/sfx-daily-dispatch.json |
-| Warehouse puzzle music | public/assets/music-warehouse-puzzle.json |
 | Default particle effect | public/assets/vfx/effects/default.json |
 | Game tuning parameters | public/config/tuning/game.json |
-| Scaffold tuning parameters | public/config/tuning/scaffold.json |
-| Chapter catalog / manifest | public/chapters/index.json |
-| Dispatch chapter 1–10 | public/chapters/dispatch-1.json … dispatch-10.json |
+| Core tuning parameters | public/config/tuning/core.json |
 | Baloo font (web) | public/assets/fonts/Baloo-Regular.woff2 |
 
 ## AI Rules & Standards
@@ -235,16 +202,6 @@ Previous game implementations preserved for reference:
 | Agent orchestration doc | AGENTS.md |
 | Claude Code instructions | CLAUDE.md |
 | Claude settings docs | .claude/README.md |
-
-## Game Design (docs)
-
-| Intent | Path |
-|--------|------|
-| Game design document | game/gdd.md |
-| Chapter generation system | game/chapter-generation.md |
-| Fallback chapter data | game/fallback-patrol-chapters.md |
-| CDN chapter loading | game/cdn-chapter-loading-plan.md |
-| Sound effects style guide | game/sound-effects-style-guide.md |
 
 ## Getting Started (docs)
 
@@ -298,7 +255,7 @@ Previous game implementations preserved for reference:
 | Intent | Path |
 |--------|------|
 | Testing strategy | guides/testing/testing-strategy.md |
-| Scaffold evaluation test suite (before/after) | evaluation/README.md |
+| Evaluation test suite (before/after) | evaluation/README.md |
 | Save/load progress | guides/progress-persistence.md |
 | Common issues | guides/troubleshooting.md |
 
@@ -325,30 +282,6 @@ Previous game implementations preserved for reference:
 | `/deploy` | Deploy to QA/staging/production | factory/deploy.md |
 | `/help` | Command reference | factory/help.md |
 
-## Reports (Historical)
-
-| Topic | Path |
-|-------|------|
-| Bundle size analysis | reports/chunk-size-audit.md |
-| Doc traversal optimization | reports/doc-index-optimization.md |
-| Level progression curves | reports/level-progression-report.md |
-| Scaffold extraction analysis | reports/scaffold-extraction-candidates.md |
-| File organization analysis | reports/extraction-file-analysis.md |
-| Scaffold & docs audit | reports/scaffold-and-docs-audit.md |
-| GameKit integration plan | reports/game-kit-integration-plan.md |
-| GameKit implementation | reports/game-kit-analytics-integration.md |
-| Telemetry implementation | reports/telemetry-integration-report.md |
-| Chapter index analysis | reports/chapter-index-report.md |
-| Music loading analysis | reports/music-loading-report.md |
-| AIDD vs factory comparison | reports/aidd-vs-factory-comparison.md |
-
-## Archive
-
-| Topic | Path |
-|-------|------|
-| CityLines learnings | archive/citylines/citylines-learnings.md |
-| Documentation planning | archive/next-game-documentation-plan.md |
-| Executed plans (13 reports) | archive/executed-plans/ |
 
 ## Setup & Meta
 
@@ -364,9 +297,7 @@ Previous game implementations preserved for reference:
 | Task | Files to touch |
 |------|---------------|
 | Add a new screen | src/game/screens/*.tsx, src/game/config.ts |
-| Add a new sound effect | src/game/audio/sounds.ts, src/game/audio/manager.ts |
 | Add a new game tuning param | src/game/tuning/types.ts, public/config/tuning/game.json |
-| Add a new asset / sprite | src/game/config.ts (manifest section), public/assets/ |
-| Add a new chapter | public/chapters/*.json, public/chapters/index.json |
-| Add game logic | src/game/mygame/core/, src/game/mygame/controllers/ |
+| Add a new asset / sprite | src/game/asset-manifest.ts, public/assets/ |
+| Add game logic | src/game/mygame/ |
 | Add a new module | src/modules/<category>/<name>/, docs/modules/writing-a-module.md |

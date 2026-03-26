@@ -259,52 +259,42 @@ Each module follows a consistent structure:
 
 The game layer is **entirely replaced** when creating a new game. It contains all game-specific screens, logic, assets, and configuration.
 
-### Current Game Structure (CityLines)
+### Game Structure (mygame template)
 
 ```
 src/game/
 ├── config.ts                 # Screen component mapping
-├── manifest.ts               # Asset bundle definitions
+├── asset-manifest.ts         # Asset bundle definitions
 ├── state.ts                  # Global game state (score, level, etc.)
 ├── index.ts                  # Public exports
+├── mygame-contract.ts        # Game controller type contract
 │
 ├── tuning/                   # Game-specific configuration
-│   ├── types.ts              # CityLinesTuning interface + defaults
+│   ├── types.ts              # Game tuning interface + defaults
 │   └── index.ts              # Exports
 │
 ├── setup/                    # Game-level providers
 │   ├── AnalyticsContext.tsx   # Analytics provider + useAnalytics()
-│   └── FeatureFlagContext.tsx # Feature flag provider
+│   ├── FeatureFlagContext.tsx # Feature flag provider
+│   └── helper.ts             # Analytics helpers
 │
 ├── screens/                  # Solid.js screen components
 │   ├── LoadingScreen.tsx     # Asset loading with progress
-│   ├── StartScreen.tsx       # Main menu, level select
-│   ├── GameScreen.tsx        # Gameplay (renders CityLinesGame)
-│   └── ResultsScreen.tsx     # Level complete, story progression
+│   ├── StartScreen.tsx       # Main menu
+│   ├── GameScreen.tsx        # Gameplay
+│   └── ResultsScreen.tsx     # Game over / results
 │
 ├── audio/                    # Game audio management
-│   └── GameAudioManager.ts   # Sound effect triggers
 │
-├── services/                 # Game services
-│   └── progress.ts           # Progress persistence
-│
-├── citylines/                # Core game logic (GAME-SPECIFIC)
-│   ├── core/                 # Main game entities
-│   │   ├── CityLinesGame.ts  # Main Pixi.Container
-│   │   ├── RoadTile.ts       # Rotatable puzzle tile
-│   │   ├── Landmark.ts       # Destination points
-│   │   ├── Exit.ts           # Start/end points
-│   │   ├── ConnectionDetector.ts  # BFS pathfinding
-│   │   └── LevelGenerator/   # Procedural generation
-│   │
-│   ├── types/                # Type definitions
-│   ├── data/                 # Static data
-│   ├── services/             # Business logic
-│   ├── systems/              # Game systems
-│   ├── ui/                   # Game UI (Pixi-based)
-│   └── animations/           # GSAP animations
-│
-└── dailydispatch/            # Additional game mode
+└── mygame/                   # Core game logic (GAME-SPECIFIC)
+    ├── screens/              # Game controller + start view
+    ├── core/                 # Game engine classes
+    ├── controllers/          # Controllers
+    ├── systems/              # Game systems
+    ├── ui/                   # Game UI (Pixi-based)
+    ├── data/                 # Static data
+    ├── types/                # Type definitions
+    └── services/             # Business logic
 ```
 
 ### What Each File Does
@@ -312,12 +302,12 @@ src/game/
 | File | Purpose | Integration |
 |------|---------|-------------|
 | `config.ts` | Maps screen IDs to components | Consumed by ScreenProvider |
-| `manifest.ts` | Defines asset bundles | Consumed by AssetProvider |
+| `asset-manifest.ts` | Defines asset bundles | Consumed by AssetProvider |
 | `state.ts` | Global game state signals | Independent (Solid.js root) |
 | `tuning/types.ts` | Game config schema + defaults | Extends GameTuningBase |
 | `setup/*.tsx` | Analytics + feature flag providers | Wrap in app.tsx provider stack |
 | `screens/*.tsx` | UI screens | Use core hooks + module components |
-| `citylines/` | Game engine code | Uses assets from core, components from modules |
+| `mygame/` | Game engine code | Uses assets from core, components from modules |
 
 ---
 
@@ -344,26 +334,20 @@ When creating a new game, you **replace the entire `src/game/` folder** while ke
 #### Step 1: Fork the Repository
 
 ```bash
-# Clone the scaffold-production repo as your new game
-git clone <scaffold-production-url> my-new-game
+# Clone the template-amino repo as your new game
+git clone git@github.com:wolfgames/template-amino.git my-new-game
 cd my-new-game
 ```
 
-#### Step 2: Remove Current Game Code
+#### Step 2: Remove Template Game Code
 
 ```bash
-# Remove the existing game implementation
-rm -rf src/game/citylines
-rm -rf src/game/dailydispatch
+# Remove the template game implementation
+rm -rf src/game/mygame
 rm -rf src/game/screens
 rm -rf src/game/audio
 rm -rf src/game/setup
-rm -rf src/game/services
-rm -rf src/game/data
-rm -rf src/game/hooks
-rm -rf src/game/analytics
-rm -rf src/game/types
-rm -rf src/game/utils
+rm -rf src/game/tuning
 ```
 
 #### Step 3: Clear Game Tuning Storage
@@ -599,8 +583,8 @@ import { LevelCompletionController } from '~/modules/logic/level-completion';
 
 ### Forking Checklist
 
-- [ ] Fork/clone the scaffold-production repository
-- [ ] Remove old game folders (`citylines/`, `dailydispatch/`, etc.)
+- [ ] Fork/clone the template-amino repository
+- [ ] Remove template game folder (`mygame/`)
 - [ ] Clear `localStorage.tuning_game`
 - [ ] Create `game/tuning/types.ts` with new schema
 - [ ] Create `game/asset-manifest.ts` with asset bundles
@@ -692,54 +676,52 @@ The core handles infrastructure, modules provide reusable building blocks, and y
 
 ---
 
-## Scaffold Commands Reference
+## Amino Commands Reference
 
 All commands are run from the game repo root with `bun run`.
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `scaffold:sync` | Pull latest scaffold (selective checkout) | Routine updates (non-breaking) |
-| `scaffold:verify` | Run typecheck + lint + build | After every sync |
-| `scaffold:rollback` | Revert the last sync commit | When a sync broke something |
-| `scaffold:drift` | Detect local changes to scaffold paths | Before syncing, or periodically |
-| `scaffold:release` | Bump version + tag (scaffold repo only) | When publishing a new scaffold version |
+| `amino:sync` | Pull latest amino (selective checkout) | Routine updates (non-breaking) |
+| `amino:verify` | Run typecheck + lint + build | After every sync |
+| `amino:rollback` | Revert the last sync commit | When a sync broke something |
+| `amino:drift` | Detect local changes to amino paths | Before syncing, or periodically |
+| `amino:release` | Bump version + tag (amino repo only) | When publishing a new amino version |
 
-For major (breaking) scaffold updates, use a full merge instead of `scaffold:sync`:
+For major (breaking) amino updates, use a full merge instead of `amino:sync`:
 
 ```bash
-git fetch scaffold && git merge scaffold/main
+git fetch amino && git merge amino/main
 ```
 
-## Adopting Scaffold Updates (Existing Games)
+## Adopting Amino Updates (Existing Games)
 
-If your game was forked before the scaffold tooling existed, follow these steps to adopt it:
+If your game was forked before the amino tooling existed, follow these steps to adopt it:
 
-1. **Add the scaffold remote**:
+1. **Add the amino remote**:
    ```bash
-   git remote add scaffold git@github.com:wolfgames/scaffold-production.git
+   git remote add amino git@github.com:wolfgames/template-amino.git
    ```
 
 2. **Run your first sync** — this establishes the version tracking metadata:
    ```bash
-   bun run scaffold:sync
+   bun run amino:sync
    ```
 
 3. **Verify** the sync didn't break anything:
    ```bash
-   bun run scaffold:verify
+   bun run amino:verify
    ```
 
 4. **Check for drift** — if your game modified `src/core/` or `src/modules/` locally, those changes will be overwritten on sync. Review drift first:
    ```bash
-   bun run scaffold:drift
+   bun run amino:drift
    ```
-
-5. **(Optional) Add the update-check workflow** — copy `docs/core/scaffold-update-check.yml` to `.github/workflows/scaffold-update-check.yml` in your game repo to get automatic issue creation when new scaffold versions are released. *(Note: GitHub Actions CI/release workflows have been removed from the scaffold repo for now; this template workflow for game repos is still available.)*
 
 ---
 
 *See also:*
-- [Scaffold Sync Guide](scaffold-sync-guide.md) -- Detailed sync, verify, rollback, and release workflow
+- [Amino Sync Guide](scaffold-sync-guide.md) -- Detailed sync, verify, rollback, and release workflow
 - [Architecture Map](architecture-map.md) -- Full system architecture diagram
 - [Context Map](context-map.md) -- Dependency relationships
 - [Entry Points](entry-points.md) -- How the app boots

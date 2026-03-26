@@ -8,18 +8,19 @@
     "preview": "vite preview",
     "format": "biome check --write .",
     "format:src": "biome check --write ./src",
-    "evaluate": "bun run evaluation/run.ts",
-    "evaluate:report": "bun run evaluation/compare.ts",
+    "evaluate": "bun run tests/evaluation/run.ts",
+    "evaluate:report": "bun run tests/evaluation/compare.ts",
     "test": "vitest",
     "test:run": "vitest run",
-    "scaffold:sync": "bun run scripts/scaffold-sync.ts",
-    "scaffold:release": "bun run scripts/scaffold-release.ts",
-    "scaffold:verify": "bun run scripts/scaffold-verify.ts",
-    "scaffold:rollback": "bun run scripts/scaffold-rollback.ts",
-    "scaffold:drift": "bun run scripts/scaffold-drift.ts",
+    "amino:sync": "bun run scripts/amino-sync.ts",
+    "amino:release": "bun run scripts/amino-release.ts",
+    "amino:verify": "bun run scripts/amino-verify.ts",
+    "amino:rollback": "bun run scripts/amino-rollback.ts",
+    "amino:drift": "bun run scripts/amino-drift.ts",
     "check:assets": "bun run scripts/check-asset-naming.ts",
     "check:manifest": "bun run scripts/check-manifest.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:unused": "knip"
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
@@ -34,19 +35,20 @@
     "tweakpane": "^4.0.5"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
-    "vitest": "^2.1.0",
     "@biomejs/biome": "^2.3.13",
+    "@playwright/test": "^1.49.0",
     "@tailwindcss/vite": "^4.0.7",
     "@types/howler": "^2.2.12",
     "@wolfgames/semantic-router": "^0.1.2",
     "@xenova/transformers": "^2.17.2",
+    "knip": "^6.0.5",
     "qrcode-terminal": "^0.12.0",
     "tailwindcss": "^4.0.7",
     "vite": "^6.1.0",
-    "vite-plugin-solid": "^2.11.0"
+    "vite-plugin-solid": "^2.11.0",
+    "vitest": "^2.1.0"
   },
-  "scaffold": {
+  "amino": {
     "version": "1.0.0"
   },
   "engines": {

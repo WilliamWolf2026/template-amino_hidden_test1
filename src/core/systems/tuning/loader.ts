@@ -3,7 +3,7 @@ import { SCAFFOLD_DEFAULTS } from './types';
 
 // Paths to JSON config files
 const PATHS = {
-  scaffold: '/config/tuning/scaffold.json',
+  core: '/config/tuning/core.json',
   game: '/config/tuning/game.json',
 } as const;
 
@@ -102,7 +102,7 @@ export async function loadTuning<T extends object>(
  * Load scaffold tuning configuration
  */
 export async function loadScaffoldTuning(): Promise<TuningLoadResult<ScaffoldTuning>> {
-  return loadTuning<ScaffoldTuning>(PATHS.scaffold, STORAGE_KEYS.SCAFFOLD, SCAFFOLD_DEFAULTS);
+  return loadTuning<ScaffoldTuning>(PATHS.core, STORAGE_KEYS.SCAFFOLD, SCAFFOLD_DEFAULTS);
 }
 
 /**

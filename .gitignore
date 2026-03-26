@@ -20,7 +20,8 @@ node_modules
 # Testing
 coverage
 evaluation-results
-evaluation/
+evaluation/.playwright-result.json
+evaluation/playwright-report
 
 # Logs
 *.log
