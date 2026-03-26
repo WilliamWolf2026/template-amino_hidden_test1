@@ -8,7 +8,7 @@
  */
 
 import { lazy, type Component } from 'solid-js';
-import type { ViewportMode } from '~/core/systems/tuning/types';
+import type { ViewportMode } from '@wolfgames/components/core';
 import type { ScreenId, ScreenAssetConfig } from '~/core/systems/screens/types';
 import {
   Environment,

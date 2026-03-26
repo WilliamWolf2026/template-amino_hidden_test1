@@ -30,12 +30,15 @@ Then export the token in your shell profile (`~/.zshrc` or `~/.bashrc`):
 export NODE_AUTH_TOKEN="ghp_your_token_here"
 ```
 
-### 2. Install & Run
+### 2. Clone & Install
 
 ```bash
+git clone --recurse-submodules <repo-url>
 bun install
 bun run dev
 ```
+
+> The `--recurse-submodules` flag pulls the `tools/game-builder/` submodule used by the AIDD framework. If you already cloned without it, run `git submodule update --init`.
 
 Open [http://localhost:3000](http://localhost:3000) to play.
 

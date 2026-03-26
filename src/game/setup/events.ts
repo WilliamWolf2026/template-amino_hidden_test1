@@ -55,7 +55,7 @@ export const sessionResumeSchema = type({
 });
 
 /**
- * Base schema for session_end event.
+ * Schema for session_end event.
  * Fires when the user leaves. Should include a snapshot of last-known game state.
  * Games should extend this with their own session-level context properties.
  */
@@ -228,9 +228,3 @@ export const chapterCompleteSchema = type({
   levels_completed: "number",
   time_to_complete: "number",
 });
-
-// ============================================================================
-// RE-EXPORTS FOR CONVENIENCE
-// ============================================================================
-
-export { type } from "arktype";

@@ -1,4 +1,5 @@
 import { createContext, useContext, type ParentProps, Show, Suspense } from 'solid-js';
+import { useAnalytics } from '@wolfgames/components/solid';
 import { createScreenManager, type ScreenManager, type ScreenManagerOptions } from './manager';
 import type { ScreenId, ScreenAssetConfig } from './types';
 import { ScreenBoundary } from '../errors/boundary';
@@ -12,6 +13,7 @@ interface ScreenProviderProps extends ParentProps {
 }
 
 export function ScreenProvider(props: ScreenProviderProps) {
+  const analytics = useAnalytics();
   const assets = useAssets();
 
   const getBundlesForScreen = (screen: ScreenId | null): string[] => {
@@ -42,6 +44,7 @@ export function ScreenProvider(props: ScreenProviderProps) {
     },
     onScreenChange: (from, to) => {
       errorReporter.setScreen(to);
+      analytics.capture('screen_view', { screen: to });
 
       const fromBundles = getBundlesForScreen(from);
       if (fromBundles.length > 0) {

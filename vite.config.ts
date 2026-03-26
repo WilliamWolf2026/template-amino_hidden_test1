@@ -47,6 +47,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ["@wolfgames/components"],
+    include: ["howler"],
   },
   server: {
     host: true,
