@@ -14,8 +14,8 @@ import {
   Environment,
   getEnvironment,
   isLocal,
+  buildCdnUrl,
 } from '~/core/config';
-import { buildCdnUrl } from '@wolfgames/game-kit';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 

@@ -1,6 +1,6 @@
 import { GameKIT } from '@wolfgames/game-kit';
 import { getEnvironment } from '../config';
-import { projectId } from '../../../wolf-game-kit.json';
+const projectId = import.meta.env.VITE_GAME_KIT_PROJECT_ID;
 
 export const environment = getEnvironment();
 

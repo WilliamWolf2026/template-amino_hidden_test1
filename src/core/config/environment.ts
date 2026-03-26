@@ -6,16 +6,40 @@
  * URL resolution is delegated to @wolfgames/game-kit factories.
  */
 
+/**
+ * Environment configuration for different deployment targets.
+ * Controls CDN URLs, API servers, and feature flags per environment.
+ *
+ * Environment detection is Vite-specific (import.meta.env).
+ */
+
 import {
   Environment,
   parseEnvironment,
-  getCdnHost,
 } from '@wolfgames/game-kit';
 
 export { Environment };
 
+const CDN_HOST_MAP: Record<Environment, string> = {
+  [Environment.Production]: "https://media.wolf.games",
+  [Environment.Staging]: "https://media.staging.wolf.games",
+  [Environment.QA]: "https://media.qa.wolf.games",
+  [Environment.Development]: "https://media.dev.wolf.games",
+  [Environment.Local]: "",
+};
+
 export const getEnvironment = (): Environment => {
-  return parseEnvironment(import.meta.env.VITE_APP_ENV);
+  return parseEnvironment(import.meta.env.VITE_GAME_KIT_ENV);
+};
+
+export const getCdnHost = (env: Environment): string => {
+  return CDN_HOST_MAP[env] || "";
+};
+
+export const buildCdnUrl = (env: Environment, gamePath: string): string => {
+  const host = getCdnHost(env);
+  if (!host) return gamePath;
+  return `${host}/${gamePath}`;
 };
 
 export interface PosthogConfig {
@@ -28,22 +52,18 @@ export interface PosthogConfig {
 export interface EnvConfig {
   /** Base URL for media/assets CDN */
   url: string;
-  /** API server URL (if applicable) */
-  server?: string;
   /** Posthog analytics configuration */
   posthog: PosthogConfig;
 }
 
 const SHARED_POSTHOG = {
-  key: "phc_RFhmtnQWjam4fNHYyn89lf0WVW6qF5bVYMwoXO8dSpR",
+  key: import.meta.env.VITE_POSTHOG_API_KEY ?? "",
   host: "https://us.i.posthog.com",
   platform: "advance",
 };
 
-/**
- * Build env config using game-kit CDN factories + local posthog settings.
- */
-function buildEnvConfig(env: Environment): EnvConfig {
+export const getEnvConfig = (): EnvConfig => {
+  const env = getEnvironment();
   const analyticsEnabled = env !== Environment.Local && env !== Environment.Development;
 
   return {
@@ -53,49 +73,20 @@ function buildEnvConfig(env: Environment): EnvConfig {
       enabled: analyticsEnabled,
     },
   };
-}
-
-/**
- * Base environment config (scaffold-level).
- * CDN URLs are resolved via game-kit factories.
- */
-export const ENV_CONFIG: Record<Environment, EnvConfig> = {
-  [Environment.Local]: buildEnvConfig(Environment.Local),
-  [Environment.Development]: buildEnvConfig(Environment.Development),
-  [Environment.QA]: buildEnvConfig(Environment.QA),
-  [Environment.Staging]: buildEnvConfig(Environment.Staging),
-  [Environment.Production]: buildEnvConfig(Environment.Production),
 };
 
-export const getEnvConfig = (): EnvConfig => {
-  const env = getEnvironment();
-  return ENV_CONFIG[env];
-};
-
-/**
- * Get the CDN base URL for the current environment.
- */
 export const getCdnBaseUrl = (): string => {
   return getEnvConfig().url;
 };
 
-/**
- * Get the posthog config for the current environment.
- */
 export const getPosthogConfig = (): PosthogConfig => {
   return getEnvConfig().posthog;
 };
 
-/**
- * Check if running in local development mode.
- */
 export const isLocal = (): boolean => {
   return getEnvironment() === Environment.Local;
 };
 
-/**
- * Check if running in production.
- */
 export const isProduction = (): boolean => {
   return getEnvironment() === Environment.Production;
 };

@@ -8,10 +8,11 @@ export {
   getEnvironment,
   getEnvConfig,
   getCdnBaseUrl,
+  getCdnHost,
+  buildCdnUrl,
   getPosthogConfig,
   isLocal,
   isProduction,
-  ENV_CONFIG,
 } from "./config/environment";
 
 export interface ScaffoldConfig {

@@ -5,10 +5,11 @@ export {
   getEnvironment,
   getEnvConfig,
   getCdnBaseUrl,
+  getCdnHost,
+  buildCdnUrl,
   getPosthogConfig,
   isLocal,
   isProduction,
-  ENV_CONFIG,
 } from './environment';
 
 export { getViewportModeFromUrl } from './viewport';

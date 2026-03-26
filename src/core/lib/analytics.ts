@@ -86,6 +86,8 @@ export function resetAnalytics(): void {
  */
 export const baseParamsSet = type({
   game_name: "string",
+  game_slug: "string",
+  game_id: "string",
   session_elapsed: "number",
 });
 
@@ -107,15 +109,21 @@ export const levelContextParamsSet = type({
 /**
  * Creates the base default parameter generator function.
  * This should be used with addParamsDefault({ base: createBaseDefaults(...) })
- * 
- * @param gameName - The name of the game (e.g., 'city_lines')
+ *
+ * @param gameName - Human-readable game name (e.g., "City Lines")
+ * @param gameSlug - URL-safe game identifier (e.g., "city-lines")
+ * @param gameId - Unique identifier for the game instance
  * @returns A function that generates base defaults from context
  */
 export function createBaseDefaults<T extends { sessionStartTime: number }, const G extends string>(
   gameName: G,
-): (ctx: T) => { game_name: G; session_elapsed: number } {
+  gameSlug: string,
+  gameId: string,
+): (ctx: T) => { game_name: G; game_slug: string; game_id: string; session_elapsed: number } {
   return (ctx: T) => ({
     game_name: gameName,
+    game_slug: gameSlug,
+    game_id: gameId,
     session_elapsed: parseFloat(
       ((Date.now() - ctx.sessionStartTime) / 1000).toFixed(2)
     ),
@@ -128,10 +136,12 @@ export function createBaseDefaults<T extends { sessionStartTime: number }, const
 
 /**
  * Base context interface that all games should extend.
- * Provides session tracking foundation.
+ * Provides session tracking and game identity.
  */
 export interface BaseAnalyticsContext {
   sessionStartTime: number;
+  gameSlug: string;
+  gameId: string;
 }
 
 /**
