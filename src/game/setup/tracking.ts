@@ -10,20 +10,20 @@ export interface GameTracking {
   trackGameStart: () => void;
   /** Track audio setting change (settings menu) */
   trackAudioSettingChanged: () => void;
-  /** Raw Core analytics for advanced use / passing to controllers */
-  analytics: AnalyticsCore;
+  /** Analytics core for advanced use / passing to controllers */
+  core: AnalyticsCore;
 }
 
 export function useGameTracking(): GameTracking {
-  const analytics = useAnalyticsCore();
+  const core = useAnalyticsCore();
 
   return {
     trackGameStart: () => {
-      analytics.capture('game_start');
+      core.capture('game_start');
     },
     trackAudioSettingChanged: () => {
-      analytics.capture('audio_setting_changed');
+      core.capture('audio_setting_changed');
     },
-    analytics,
+    core,
   };
 }

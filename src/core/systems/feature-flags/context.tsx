@@ -1,15 +1,12 @@
 import {
   createContext,
-  createSignal,
   useContext,
   onMount,
-  createEffect,
   onCleanup,
   Show,
   type ParentProps,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import type { AnalyticsClient } from '@wolfgames/components/core';
 import { useAnalyticsCore } from '@wolfgames/components/solid';
 import type { FeatureFlagState } from './types';
 import { getRegisteredFlagConfig } from './registry';
@@ -30,6 +27,7 @@ export function FeatureFlagProvider(props: ParentProps) {
   const { defaults, validators, storagePrefix, userId, timeoutMs = 2000 } = config;
   const cached = loadFlagCache(storagePrefix, userId, defaults, validators);
   const analytics = useAnalyticsCore();
+  const ph = analytics.service.getPosthog();
   const defs = defaults as Record<string, unknown>;
 
   const [state, setState] = createStore<FeatureFlagState<typeof defaults>>({
@@ -39,12 +37,9 @@ export function FeatureFlagProvider(props: ParentProps) {
 
   let isSettled = false;
 
-  // Bridge game-components Signal → Solid signal for reactivity
-  const [client, setClient] = createSignal<AnalyticsClient | null>(null);
-  const unsubClient = analytics.client.subscribe((c) => setClient(() => c));
-  onCleanup(() => unsubClient());
+  const processFlags = (source: string) => {
+    if (!ph) return;
 
-  const processFlags = (ph: AnalyticsClient, source: string) => {
     const raw: Record<string, unknown> = {};
 
     for (const key of Object.keys(defaults)) {
@@ -72,24 +67,19 @@ export function FeatureFlagProvider(props: ParentProps) {
     isSettled = true;
   };
 
-  // Watch for analytics client initialization
-  createEffect(() => {
-    const ph = client();
+  // PostHog is already initialized (service is ready before provider mounts)
+  if (ph) {
+    const stopListening = ph.onFeatureFlags(() => processFlags('posthog_update'));
+    onCleanup(() => {
+      if (typeof stopListening === 'function') stopListening();
+    });
 
-    if (ph) {
-      const stopListening = ph.onFeatureFlags(() => processFlags(ph, 'posthog_update'));
-
-      // Immediate check in case flags are already loaded
-      const firstKey = Object.keys(defaults)[0];
-      if (firstKey && ph.getFeatureFlag(firstKey) !== undefined) {
-        processFlags(ph, 'immediate_check');
-      }
-
-      onCleanup(() => {
-        if (typeof stopListening === 'function') stopListening();
-      });
+    // Immediate check in case flags are already loaded
+    const firstKey = Object.keys(defaults)[0];
+    if (firstKey && ph.getFeatureFlag(firstKey) !== undefined) {
+      processFlags('immediate_check');
     }
-  });
+  }
 
   // Timeout fallback — unblock UI even if PostHog never loads
   onMount(() => {

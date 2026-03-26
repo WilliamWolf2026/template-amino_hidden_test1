@@ -1,4 +1,4 @@
-import { onMount, Show, type ParentComponent } from 'solid-js';
+import { onMount, Show, createResource, type ParentComponent } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -16,11 +16,13 @@ import {
 } from '~/core';
 import { initSentry } from '~/core/lib/sentry';
 import { getEnvironment } from '~/core/config';
+import { getAnalyticsService } from '~/core/lib/gameKit';
 import { gameConfig, manifest, defaultGameData } from '~/game';
 import { ManifestProvider, AnalyticsProvider } from '@wolfgames/components/solid';
 import {
   ViewportProvider,
   ViewportModeWrapper,
+  ViewportToggle,
 } from '@wolfgames/components/solid';
 import {
   getViewportModeFromUrl,
@@ -31,7 +33,6 @@ import './app.css';
 import { IS_DEV_ENV } from './core/dev/env';
 import { useGameTracking } from '~/game/setup/tracking';
 import '~/game/setup/flags'; // registers flag config at module load
-import { ViewportToggle } from '~/core/ui/ViewportToggle';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlViewportMode = getViewportModeFromUrl();
@@ -83,6 +84,8 @@ const TuningViewportBridge: ParentComponent = (props) => {
 };
 
 export default function App() {
+  const [analyticsService] = createResource(getAnalyticsService);
+
   onMount(async () => {
     // Initialize error tracking
     initSentry(environment);
@@ -95,39 +98,43 @@ export default function App() {
   });
 
   return (
-    <AnalyticsProvider>
-      <GlobalBoundary>
-        <TuningProvider gameDefaults={GAME_DEFAULTS}>
-          <Show when={IS_DEV_ENV}>
-            <TuningPanel />
-          </Show>
-          <FeatureFlagProvider>
-            <TuningViewportBridge>
-              <ViewportModeWrapper>
-                {/* Settings Menu - Top Right Corner */}
-                <div class="fixed top-2 right-2 z-[9999]">
-                  <GameSettingsMenu />
-                </div>
-                {/* Viewport Toggle - Top Left Corner (dev only) */}
-                <Show when={IS_DEV_ENV}>
-                  <div class="fixed top-2 left-2 z-[9999]">
-                    <ViewportToggle />
-                  </div>
-                </Show>
-                <PauseProvider>
-                  <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
-                    <AssetProvider>
-                      <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
-                        <ScreenRenderer screens={gameConfig.screens} />
-                      </ScreenProvider>
-                    </AssetProvider>
-                  </ManifestProvider>
-                </PauseProvider>
-              </ViewportModeWrapper>
-            </TuningViewportBridge>
-          </FeatureFlagProvider>
-        </TuningProvider>
-      </GlobalBoundary>
-    </AnalyticsProvider>
+    <Show when={analyticsService()} keyed>
+      {(service) => (
+        <AnalyticsProvider service={service}>
+          <GlobalBoundary>
+            <TuningProvider gameDefaults={GAME_DEFAULTS}>
+              <Show when={IS_DEV_ENV}>
+                <TuningPanel />
+              </Show>
+              <FeatureFlagProvider>
+                <TuningViewportBridge>
+                  <ViewportModeWrapper>
+                    {/* Settings Menu - Top Right Corner */}
+                    <div class="fixed top-2 right-2 z-[9999]">
+                      <GameSettingsMenu />
+                    </div>
+                    {/* Viewport Toggle - Top Left Corner (dev only) */}
+                    <Show when={IS_DEV_ENV}>
+                      <div class="fixed top-2 left-2 z-[9999]">
+                        <ViewportToggle />
+                      </div>
+                    </Show>
+                    <PauseProvider>
+                      <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
+                        <AssetProvider>
+                          <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
+                            <ScreenRenderer screens={gameConfig.screens} />
+                          </ScreenProvider>
+                        </AssetProvider>
+                      </ManifestProvider>
+                    </PauseProvider>
+                  </ViewportModeWrapper>
+                </TuningViewportBridge>
+              </FeatureFlagProvider>
+            </TuningProvider>
+          </GlobalBoundary>
+        </AnalyticsProvider>
+      )}
+    </Show>
   );
 }

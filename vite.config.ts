@@ -47,7 +47,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ["@wolfgames/components"],
-    include: ["howler"],
+    include: ["howler", "eventemitter3", "parse-svg-path", "@xmldom/xmldom"],
+  },
+  define: {
+    "process.env": {},
   },
   server: {
     host: true,
