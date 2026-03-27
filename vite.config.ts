@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import solid from "vite-plugin-solid";
 import tailwindcss from "@tailwindcss/vite";
 import { networkInterfaces } from "os";
@@ -38,8 +38,28 @@ function qrcodePlugin(): Plugin {
   };
 }
 
+function gameKitEnvPlugin(): Plugin {
+  let envVars: Record<string, string>;
+
+  return {
+    name: "game-kit-env",
+    enforce: "pre",
+    configResolved(config) {
+      envVars = loadEnv(config.mode, config.root, "VITE_");
+    },
+    transform(code, id) {
+      if (!id.includes("game-kit")) return;
+      const key = envVars.VITE_POSTHOG_API_KEY ?? "";
+      return code.replace(
+        /import\.meta\.env\.VITE_POSTHOG_API_KEY/g,
+        JSON.stringify(key),
+      );
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [solid(), tailwindcss(), qrcodePlugin()],
+  plugins: [solid(), tailwindcss(), qrcodePlugin(), gameKitEnvPlugin()],
   resolve: {
     alias: {
       "~": path.resolve(__dirname, "src"),
