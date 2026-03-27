@@ -1,4 +1,6 @@
-import { Environment, scaffoldConfig } from "../config";
+import { Environment } from "@wolfgames/game-kit";
+
+const SENTRY_DSN = "https://2dca8e7bdb35416abee59ca40bb0f887@o4509084313976832.ingest.us.sentry.io/4510839538384896";
 
 type SentryModule = typeof import("@sentry/browser");
 
@@ -27,7 +29,7 @@ let sessionId: string | null = null;
 
 function getSentryConfig(environment: Environment): SentryConfig {
   const dsn =
-    import.meta.env.VITE_SENTRY_DSN || (scaffoldConfig?.sentry?.dsn ?? "");
+    import.meta.env.VITE_SENTRY_DSN || SENTRY_DSN;
 
   const enabledEnvironments: Environment[] = [Environment.QA, Environment.Staging, Environment.Production];
   const enabled = enabledEnvironments.includes(environment);
@@ -137,6 +139,7 @@ export function connectSentryToPostHog(
   tracker: ErrorTracker,
   userContext: SentryUserContext,
 ): void {
+  if (!Sentry || !isSentryEnabled()) return;
   errorTracker = tracker;
   userId = userContext.userId;
   sessionId = userContext.sessionId;
