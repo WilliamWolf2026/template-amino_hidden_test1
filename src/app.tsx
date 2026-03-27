@@ -1,4 +1,4 @@
-import { onMount, onCleanup, Show, createResource, type ParentComponent } from 'solid-js';
+import { onMount, onCleanup, type ParentComponent } from 'solid-js';
 import {
   GlobalBoundary,
   setupGlobalErrorHandlers,
@@ -15,12 +15,16 @@ import {
   FeatureFlagProvider,
 } from '~/core';
 import { initSentry } from '~/core/lib/sentry';
-import { getEnvironment } from '~/core/config';
-import { getAnalyticsService } from '~/core/lib/gameKit';
-import { gameConfig, manifest, defaultGameData } from '~/game';
-import { ManifestProvider, AnalyticsProvider } from '@wolfgames/components/solid';
-import { useAnalyticsCore } from '@wolfgames/components/solid';
+import { parseEnvironment } from '@wolfgames/game-kit';
+import { gameConfig, defaultGameData } from '~/game';
+import { manifest } from '~/game/asset-manifest';
 import {
+  GameConfigProvider,
+  useGameConfig,
+  DevOnly,
+  AnalyticsProvider,
+  useAnalyticsService,
+  GameManifestProvider,
   ViewportProvider,
   ViewportModeWrapper,
   ViewportToggle,
@@ -31,7 +35,6 @@ import {
 } from '@wolfgames/components/core';
 import { GAME_DEFAULTS } from '~/game/tuning';
 import './app.css';
-import { IS_DEV_ENV } from './core/dev/env';
 import { useGameTracking } from '~/game/setup/tracking';
 import '~/game/setup/flags'; // registers flag config at module load
 import { createSessionTracker } from '~/core/systems/analytics/session-tracker';
@@ -40,7 +43,7 @@ import { useAssetCoordinator } from '~/core/systems/assets';
 
 // Build URL overrides (applied after load, not saved to localStorage)
 const urlViewportMode = getViewportModeFromUrl();
-const environment = getEnvironment();
+const environment = parseEnvironment(import.meta.env.VITE_GAME_KIT_ENV);
 
 /** Reset progress and reload the page */
 const handleResetProgress = () => {
@@ -49,7 +52,7 @@ const handleResetProgress = () => {
 
 /** Wires session lifecycle events (start, pause, resume, end) */
 function SessionTrackerBridge() {
-  const { service } = useAnalyticsCore();
+  const service = useAnalyticsService();
   const cleanup = createSessionTracker(service, gameConfig.initialScreen);
   onCleanup(cleanup);
   return null;
@@ -57,7 +60,7 @@ function SessionTrackerBridge() {
 
 /** Wires loading events (start, complete, abandon) to asset coordinator */
 function LoadingTrackerBridge() {
-  const { service } = useAnalyticsCore();
+  const service = useAnalyticsService();
   const coordinator = useAssetCoordinator();
   const cleanup = createLoadingTracker(service, coordinator.loadingStateSignal);
   onCleanup(cleanup);
@@ -66,10 +69,11 @@ function LoadingTrackerBridge() {
 
 /** SettingsMenu wired with game analytics */
 function GameSettingsMenu() {
+  const config = useGameConfig();
   const { trackAudioSettingChanged } = useGameTracking();
   return (
     <SettingsMenu
-      onResetProgress={IS_DEV_ENV ? handleResetProgress : undefined}
+      onResetProgress={!config.isProduction() ? handleResetProgress : undefined}
       onAudioSettingChanged={trackAudioSettingChanged}
     />
   );
@@ -105,8 +109,6 @@ const TuningViewportBridge: ParentComponent = (props) => {
 };
 
 export default function App() {
-  const [analyticsService] = createResource(getAnalyticsService);
-
   onMount(async () => {
     // Initialize error tracking
     initSentry(environment);
@@ -119,45 +121,46 @@ export default function App() {
   });
 
   return (
-    <Show when={analyticsService()} keyed>
-      {(service) => (
-        <AnalyticsProvider service={service}>
-          <SessionTrackerBridge />
-          <GlobalBoundary>
-            <TuningProvider gameDefaults={GAME_DEFAULTS}>
-              <Show when={IS_DEV_ENV}>
-                <TuningPanel />
-              </Show>
-              <FeatureFlagProvider>
-                <TuningViewportBridge>
-                  <ViewportModeWrapper>
-                    {/* Settings Menu - Top Right Corner */}
-                    <div class="fixed top-2 right-2 z-[9999]">
-                      <GameSettingsMenu />
+    <GameConfigProvider debug>
+      <AnalyticsProvider>
+        <SessionTrackerBridge />
+        <GlobalBoundary>
+          <TuningProvider gameDefaults={GAME_DEFAULTS}>
+            <DevOnly>
+              <TuningPanel />
+            </DevOnly>
+            <FeatureFlagProvider>
+              <TuningViewportBridge>
+                <ViewportModeWrapper>
+                  {/* Settings Menu - Top Right Corner */}
+                  <div class="fixed top-2 right-2 z-[9999]">
+                    <GameSettingsMenu />
+                  </div>
+                  {/* Viewport Toggle - Top Left Corner (dev only) */}
+                  <DevOnly>
+                    <div class="fixed top-2 left-2 z-[9999]">
+                      <ViewportToggle />
                     </div>
-                    {/* Viewport Toggle - Top Left Corner (dev only) */}
-                    <Show when={IS_DEV_ENV}>
-                      <div class="fixed top-2 left-2 z-[9999]">
-                        <ViewportToggle />
-                      </div>
-                    </Show>
-                    <PauseProvider>
-                      <ManifestProvider manifest={manifest} defaultGameData={defaultGameData} serverStorageUrl={gameConfig.serverStorageUrl}>
-                        <AssetProvider>
-                          <LoadingTrackerBridge />
-                          <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
-                            <ScreenRenderer screens={gameConfig.screens} />
-                          </ScreenProvider>
-                        </AssetProvider>
-                      </ManifestProvider>
-                    </PauseProvider>
-                  </ViewportModeWrapper>
-                </TuningViewportBridge>
-              </FeatureFlagProvider>
-            </TuningProvider>
-          </GlobalBoundary>
-        </AnalyticsProvider>
-      )}
-    </Show>
+                  </DevOnly>
+                  <PauseProvider>
+                    <GameManifestProvider 
+                      manifest={manifest} 
+                      defaultGameData={defaultGameData}
+                    >
+                      <AssetProvider>
+                        <LoadingTrackerBridge />
+                        <ScreenProvider options={{ initialScreen: gameConfig.initialScreen, screenAssets: gameConfig.screenAssets }}>
+                          <ScreenRenderer screens={gameConfig.screens} />
+                        </ScreenProvider>
+                      </AssetProvider>
+                    </GameManifestProvider>
+                  </PauseProvider>
+                </ViewportModeWrapper>
+              </TuningViewportBridge>
+            </FeatureFlagProvider>
+          </TuningProvider>
+        </GlobalBoundary>
+      </AnalyticsProvider>
+    </GameConfigProvider>
   );
 }

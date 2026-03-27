@@ -1,29 +1,6 @@
 import { type } from "arktype";
 
 // ============================================================================
-// SHARED PARAMETER SET SCHEMAS
-// ============================================================================
-
-/**
- * Base parameter set schema — included on every event automatically.
- * Register with addParamsSet({ base: baseParamsSet })
- */
-export const baseParamsSet = type({
-  game_name: "string",
-  game_slug: "string",
-  session_elapsed: "number",
-});
-
-/**
- * Base context interface that all games should extend.
- * Provides session tracking and game identity.
- */
-export interface BaseAnalyticsContext {
-  sessionStartTime: number;
-  gameSlug: string;
-}
-
-// ============================================================================
 // SESSION EVENTS (automatic — template fires these)
 // ============================================================================
 

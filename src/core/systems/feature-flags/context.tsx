@@ -7,7 +7,7 @@ import {
   type ParentProps,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { useAnalyticsCore } from '@wolfgames/components/solid';
+import { useAnalyticsService, useConfigState } from '@wolfgames/components/solid';
 import type { FeatureFlagState } from './types';
 import { getRegisteredFlagConfig } from './registry';
 import { loadFlagCache, saveFlagCache, validateFlags } from './cache';
@@ -24,10 +24,13 @@ export function FeatureFlagProvider(props: ParentProps) {
     );
   }
 
-  const { defaults, validators, storagePrefix, userId, timeoutMs = 2000 } = config;
+  const { defaults, validators, userId, timeoutMs = 2000 } = config;
+  const configState = useConfigState();
+  const projectId = configState.service.get()?.projectId ?? 'unknown';
+  const storagePrefix = config.storagePrefix ?? `${projectId}_ff_`;
   const cached = loadFlagCache(storagePrefix, userId, defaults, validators);
-  const analytics = useAnalyticsCore();
-  const ph = analytics.service.getPosthog();
+  const analytics = useAnalyticsService();
+  const ph = analytics.getPosthog();
   const defs = defaults as Record<string, unknown>;
 
   const [state, setState] = createStore<FeatureFlagState<typeof defaults>>({

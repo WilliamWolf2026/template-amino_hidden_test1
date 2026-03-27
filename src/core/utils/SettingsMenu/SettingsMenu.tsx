@@ -2,7 +2,7 @@ import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import gsap from 'gsap';
 import { useAudio } from '~/core/systems/audio';
 import { setIsPanelOpen, isPanelOpen } from '~/core/dev/TuningPanel';
-import { IS_DEV_ENV } from '~/core/dev/env';
+import { useGameConfig } from '@wolfgames/components/solid';
 import gearIcon from './assets/icon_gear.svg';
 import soundMusic2Icon from './assets/icon_sound_music2.svg';
 import soundMusic2MutedIcon from './assets/icon_sound_music2_muted.svg';
@@ -16,7 +16,6 @@ import trashIcon from './assets/icon_trash.svg';
 // Settings Menu Configuration
 const SETTINGS_CONFIG = {
   showVolumeSlider: true,
-  showTuningToggle: IS_DEV_ENV,
   showMusicToggle: true,
   backgroundColor: 'rgb(23,23,23)',
   borderRadius: '26px',
@@ -78,6 +77,7 @@ function StatusNotification(props: StatusNotificationProps) {
 
 export default function SettingsMenu(props: SettingsMenuProps = {}) {
   const audio = useAudio();
+  const config = useGameConfig();
 
   const [isOpen, setIsOpen] = createSignal(false);
   const [statusMessage, setStatusMessage] = createSignal('');
@@ -345,7 +345,7 @@ export default function SettingsMenu(props: SettingsMenuProps = {}) {
               </div>
             </Show>
 
-            <Show when={IS_DEV_ENV}>
+            <Show when={!config.isProduction()}>
               <button
                 class={`h-11 w-11 sm:h-15 sm:w-15 shrink-0 flex items-center justify-center rounded-xl transition-colors duration-150 ${
                   !isPanelOpen() ? 'bg-[rgb(60,60,60)]' : 'bg-white'

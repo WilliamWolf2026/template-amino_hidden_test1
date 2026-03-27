@@ -5,8 +5,8 @@ export interface FeatureFlagConfig<T extends object> {
   defaults: T;
   /** Optional per-flag validators (keys that match T's keys) */
   validators?: Partial<Record<keyof T, FlagValidator>>;
-  /** localStorage key prefix for caching (e.g. "mygame_ff_") */
-  storagePrefix: string;
+  /** localStorage key prefix for caching (e.g. "mygame_ff_"). Resolved from config if omitted. */
+  storagePrefix?: string;
   /** User ID for per-user cache keying */
   userId: string;
   /** How long to wait for PostHog before falling back to defaults/cache (ms) */

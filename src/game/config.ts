@@ -1,66 +1,18 @@
 /**
  * Game Configuration
  *
- * Single source of truth for game identity, environment URLs,
- * asset manifest, screen wiring, fonts, and data types.
- *
- * When forking for a new game, update this file.
+ * Screen wiring, asset manifest, and data types.
+ * Game identity (projectId, slug, CDN URLs) comes from GameConfigProvider.
  */
 
 import { lazy, type Component } from 'solid-js';
 import type { ViewportMode } from '@wolfgames/components/core';
 import type { ScreenId, ScreenAssetConfig } from '~/core/systems/screens/types';
-import {
-  Environment,
-  getEnvironment,
-  isLocal,
-  buildCdnUrl,
-} from '~/core/config';
 import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 
-// Re-export scaffold utilities for convenience
-export { getEnvironment, isLocal, isProduction } from '~/core/config';
-export { Environment } from '~/core/config';
-
-// ============================================================================
-// IDENTITY
-// ============================================================================
-
-/** Analytics event tag and GameKit project ID */
-export const GAME_ID = 'mygame';
-
-/** URL-safe slug used in CDN paths, asset names, storage keys */
-export const GAME_SLUG = 'mygame';
-
-/** Human-readable display name */
-export const GAME_NAME = 'My Game';
-
-/** CDN path segment for this game's assets and data */
-export const GAME_CDN_PATH = `games/${GAME_SLUG}/data`;
-
-/** localStorage key prefix for analytics */
-export const GAME_STORAGE_PREFIX = `${GAME_SLUG}_`;
-
 /** Game font family — loaded via @font-face in app.css */
 export const GAME_FONT_FAMILY = 'Baloo, system-ui, sans-serif';
-
-// ============================================================================
-// ENVIRONMENT
-// ============================================================================
-
-const GAME_PATHS = {
-  gamePath: GAME_CDN_PATH,
-  localAssetPath: '/assets',
-};
-
-export const getLocalAssetPath = (): string => GAME_PATHS.localAssetPath;
-
-export const getCdnUrl = (): string => {
-  const env = getEnvironment();
-  if (env === Environment.Local) return GAME_PATHS.localAssetPath;
-  return buildCdnUrl(env, `${GAME_PATHS.gamePath}/assets`);
-};
 
 // ============================================================================
 // DATA TYPES
@@ -84,19 +36,6 @@ export interface GameData {
   uid: string;
   name: string;
 }
-
-// ============================================================================
-// MANIFEST
-// ============================================================================
-
-import { manifest as _manifest } from './asset-manifest';
-import type { Manifest } from '~/core/systems/assets';
-
-export const manifest: Manifest = {
-  ..._manifest,
-  cdnBase: getCdnUrl(),
-};
-
 // ============================================================================
 // SCREEN WIRING
 // ============================================================================
@@ -112,7 +51,6 @@ export interface GameConfig {
    *  before showing the screen and background-loads optional bundles. */
   screenAssets?: Partial<Record<ScreenId, ScreenAssetConfig>>;
   initialScreen: 'loading' | 'start' | 'game' | 'results';
-  serverStorageUrl: string | null;
   defaultViewportMode?: ViewportMode;
 }
 
@@ -125,5 +63,4 @@ export const gameConfig: GameConfig = {
   },
   initialScreen: 'loading',
   defaultViewportMode: 'small',
-  serverStorageUrl: null,
 };

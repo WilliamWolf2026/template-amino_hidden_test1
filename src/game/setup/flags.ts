@@ -1,5 +1,4 @@
-import { registerFlagConfig, type FeatureFlagConfig } from '~/core/systems/feature-flags';
-import { GAME_STORAGE_PREFIX } from '~/game/config';
+import { registerFlagConfig } from '~/core/systems/feature-flags';
 import { getUserData } from './helper';
 
 // ============================================================================
@@ -45,6 +44,7 @@ const VALIDATORS: Partial<Record<keyof GameFeatureFlags, (v: unknown) => boolean
 
 // ============================================================================
 // REGISTRATION (runs at module load)
+// storagePrefix is resolved by FeatureFlagProvider from GameConfigProvider
 // ============================================================================
 
 const { uid } = getUserData();
@@ -52,6 +52,5 @@ const { uid } = getUserData();
 registerFlagConfig<GameFeatureFlags>({
   defaults: DEFAULT_FLAGS,
   validators: VALIDATORS,
-  storagePrefix: `${GAME_STORAGE_PREFIX}ff_`,
   userId: uid,
 });

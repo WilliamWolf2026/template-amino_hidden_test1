@@ -3,15 +3,15 @@ import type { Pane } from 'tweakpane';
 import { useTuning } from '../systems/tuning/context';
 import { bindTuningToPane, addPresetControls } from './bindings';
 import type { ScaffoldTuning, GameTuningBase } from '../systems/tuning/types';
-import { IS_DEV_ENV } from './env';
+import { useGameConfig } from '@wolfgames/components/solid';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaneInstance = Pane & any;
 
-// Global keyboard listener for backtick toggle
+// Global keyboard listener for backtick toggle (import.meta.env.DEV is a Vite build-time constant)
 const [isPanelOpen, setIsPanelOpen] = createSignal(false);
 
-if (typeof window !== 'undefined' && IS_DEV_ENV) {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   window.addEventListener('keydown', (e) => {
     if (e.key === '`') {
       e.preventDefault();
@@ -26,6 +26,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   let containerRef: HTMLDivElement | undefined;
   let pane: PaneInstance | undefined;
   const tuning = useTuning<ScaffoldTuning, G>();
+  const config = useGameConfig();
 
   // Get position from tuning state, with fallback
   const getPosition = () => tuning.scaffold.tuningPanel?.position || 'left';
@@ -38,7 +39,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   };
 
   onMount(async () => {
-    if (!IS_DEV_ENV || !containerRef) return;
+    if (config.isProduction() || !containerRef) return;
 
     const { Pane } = await import('tweakpane');
 
@@ -86,7 +87,7 @@ export default function TuningPanel<G extends GameTuningBase = GameTuningBase>()
   });
 
   return (
-    <Show when={IS_DEV_ENV}>
+    <Show when={!config.isProduction()}>
       <div
         class={`fixed z-[9999] flex flex-col ${positionClasses[getPosition()]}`}
         style={{

@@ -1,5 +1,5 @@
-import { useAnalyticsCore } from '@wolfgames/components/solid';
-import type { AnalyticsCore } from '@wolfgames/components/core';
+import { useAnalyticsService } from '@wolfgames/components/solid';
+import type { AnalyticsService } from '@wolfgames/game-kit';
 import {
   gameStartSchema,
   audioSettingChangedSchema,
@@ -18,12 +18,11 @@ export interface GameTracking {
   trackScreenView: (params: typeof screenEnterSchema.infer) => void;
   trackScreenExit: (params: typeof screenExitSchema.infer) => void;
   trackError: (params: typeof errorCapturedSchema.infer) => void;
-  core: AnalyticsCore;
+  service: AnalyticsService;
 }
 
 export function useGameTracking(): GameTracking {
-  const core = useAnalyticsCore();
-  const { service } = core;
+  const service = useAnalyticsService();
 
   return {
     trackGameStart: service.createTracker('game_start', gameStartSchema, ['base'], {}),
@@ -31,6 +30,6 @@ export function useGameTracking(): GameTracking {
     trackScreenView: service.createTracker('screen_enter', screenEnterSchema, ['base'], {}),
     trackScreenExit: service.createTracker('screen_exit', screenExitSchema, ['base'], {}),
     trackError: service.createTracker('error_captured', errorCapturedSchema, ['base'], {}),
-    core,
+    service,
   };
 }
