@@ -182,7 +182,7 @@ main();
 
 ```bash
 # Install the fal.ai client (if not already installed from sound generation)
-npm install --save-dev @fal-ai/client
+bun add -d @fal-ai/client
 
 # Set your API key
 export FAL_KEY="your-key-here"

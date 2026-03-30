@@ -181,7 +181,7 @@ main();
 
 ```bash
 # Install the fal.ai client
-npm install --save-dev @fal-ai/client
+bun add -d @fal-ai/client
 
 # Set your API key
 export FAL_KEY="your-key-here"
