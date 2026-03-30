@@ -92,6 +92,11 @@ Before creating any new file, check if the scaffold already provides the capabil
 
 ## Universal Code Constraints
 
+### Package Manager
+- This project uses **bun**. Always use `bun add` / `bun install` / `bun remove`.
+- Never use `npm`, `yarn`, or `pnpm` to install or manage dependencies.
+- The lockfile is `bun.lock` — never generate or commit `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`.
+
 ### TypeScript
 - All files `.ts` or `.tsx`, strict mode
 - Explicit return types on exported functions
