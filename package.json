@@ -24,13 +24,8 @@
   },
   "dependencies": {
     "@sentry/solid": "^10.38.0",
-<<<<<<< HEAD
-    "@wolfgames/components": "0.1.14",
-    "@wolfgames/game-kit": "0.0.46",
-=======
     "@wolfgames/components": "^0.1.14",
     "@wolfgames/game-kit": "^0.0.46",
->>>>>>> 3510eee (update version of components)
     "arktype": "^2.1.27",
     "gsap": "^3.14.2",
     "howler": "^2.2.4",
