@@ -12,7 +12,7 @@ import { LoadingScreen } from './screens/LoadingScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 
 /** Game font family — loaded via @font-face in app.css */
-export const GAME_FONT_FAMILY = 'Baloo, system-ui, sans-serif';
+export const GAME_FONT_FAMILY = 'Fredoka One, system-ui, sans-serif';
 
 // ============================================================================
 // DATA TYPES

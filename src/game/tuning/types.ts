@@ -1,7 +1,7 @@
 import type { GameTuningBase } from '~/core/systems/tuning/types';
 
 // ============================================
-// GAME TUNING TYPES — Template
+// GAME TUNING TYPES — Recipe Hunt
 //
 // Add your game-specific tuning interfaces here.
 // Each section maps to a Tweakpane folder in dev mode.
@@ -17,9 +17,23 @@ export interface GameScreensConfig {
   loadingBackgroundColor: string;
 }
 
+export interface GameplayConfig {
+  basePointsPerIngredient: number;
+  timePointsPerSecond: number;
+  wrongTapPenaltySeconds: number;
+  comboWindowMs: number;
+  hintDelaySeconds: number;
+  minItemSpacingPx: number;
+  tapTargetMinPx: number;
+  popDurationMs: number;
+  shakeDurationMs: number;
+  itemFadeInMs: number;
+}
+
 export interface GameTuning extends GameTuningBase {
   devMode: DevModeConfig;
   screens: GameScreensConfig;
+  gameplay: GameplayConfig;
 }
 
 // ============================================
@@ -32,8 +46,20 @@ export const GAME_DEFAULTS: GameTuning = {
     skipStartScreen: false,
   },
   screens: {
-    startBackgroundColor: '#BCE083',
-    loadingBackgroundColor: '#BCE083',
+    startBackgroundColor: '#FFF8F0',
+    loadingBackgroundColor: '#FFF8F0',
+  },
+  gameplay: {
+    basePointsPerIngredient: 100,
+    timePointsPerSecond: 10,
+    wrongTapPenaltySeconds: 3,
+    comboWindowMs: 2000,
+    hintDelaySeconds: 10,
+    minItemSpacingPx: 44,
+    tapTargetMinPx: 44,
+    popDurationMs: 150,
+    shakeDurationMs: 200,
+    itemFadeInMs: 300,
   },
 };
 
